@@ -174,6 +174,7 @@
   <a class="nav-link" href="#sec-laws"><span class="nav-icon">&#9878;</span><span class="nav-label">Laws & Gov</span></a>
   <a class="nav-link" href="#sec-school"><span class="nav-icon">&#127891;</span><span class="nav-label">Village School</span></a>
   <div class="nav-sep"></div>
+  <a class="nav-link" href="https://dashboard.justout.today/deductions.html" style="color:var(--green)"><span class="nav-icon">&#128269;</span><span class="nav-label">Deductions HQ</span></a>
   <a class="nav-link" href="https://dashboard.justout.today" style="color:var(--accent)"><span class="nav-icon">&#8592;</span><span class="nav-label">Back to Tax HQ</span></a>
 </nav>
 
@@ -399,8 +400,8 @@ var DEFAULT_BOTS = [
   { id:'deductbot', name:'DeductBot', role:'Tax Deductions (Staff S3)', model:'claude-sonnet-4-6', status:'active', avatar:'&#128269;', color:'#22c55e', coc:'staff', village:'Village Prospector',
     xp:800, str:12, dex:13, con:14, int:18, wis:16, cha:11,
     weapon:{name:'Pick of Discovery',rarity:'rare'}, armor:{name:'Vest of Legitimacy',rarity:'uncommon'}, accessory:{name:'Ring of Dedup',rarity:'epic'},
-    backstory:'Always sniffing out hidden tax deductions. Found the 925 duplicate expenses worth $25K+ in overcounts.',
-    missions:[{title:'Home Office Deduction Analysis',status:'pending',xp:150},{title:'Vehicle Deduction Comparison',status:'pending',xp:100}] },
+    backstory:'Always sniffing out hidden tax deductions. Found the 925 duplicate expenses worth $25K+ in overcounts. Now actively hunting new deductions with miniDuct-1 and miniDuct-2 sub-agents.',
+    missions:[{title:'Home Office Deduction (Form 8829)',status:'active',xp:250},{title:'Vehicle Mileage vs Actual Comparison',status:'active',xp:200},{title:'Cyberattack Casualty Loss Research',status:'active',xp:300},{title:'Section 179 vs Depreciation Strategy',status:'active',xp:200},{title:'Software Subscription Scan',status:'active',xp:100},{title:'NOL Carryforward Calculation',status:'active',xp:150},{title:'2023-2025 Deduction Planning',status:'active',xp:200}] },
   { id:'cruncher', name:'Cruncher', role:'Data Analyst (Staff S4)', model:'claude-sonnet-4-6', status:'active', avatar:'&#128200;', color:'#3b82f6', coc:'staff', village:'Village Accountant',
     xp:1500, str:11, dex:16, con:13, int:19, wis:14, cha:12,
     weapon:{name:'Abacus of Truth',rarity:'rare'}, armor:{name:'Spreadsheet Shield',rarity:'uncommon'}, accessory:{name:'Calculator of Precision',rarity:'rare'},
