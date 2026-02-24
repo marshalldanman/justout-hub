@@ -229,6 +229,8 @@
     var zLabel = document.getElementById('zoomLabel');
     var zStatus = document.getElementById('zoomStatus');
 
+    if (!overlay || !zOrb || !zLabel || !zStatus) return;
+
     // Set zoom orb color
     zOrb.style.background = 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3), ' + channel.color + ', ' + channel.deep + ')';
     zOrb.style.boxShadow = '0 0 60px ' + channel.color + ', 0 0 120px ' + channel.deep;

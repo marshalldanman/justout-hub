@@ -403,7 +403,7 @@ body {
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
+  mask-composite: subtract;
   opacity: 0.4;
   inset: -8px;
 }
