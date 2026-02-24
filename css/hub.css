@@ -250,6 +250,7 @@ body {
   animation-delay: var(--drift-delay, 0s);
 }
 .orb-container:hover {
+  animation-play-state: paused;
   transform: scale(1.08) translateY(-4px);
   z-index: 10;
 }
@@ -401,6 +402,7 @@ body {
   background: conic-gradient(from 0deg, #f87171, #fbbf24, #4ade80, #38bdf8, #a78bfa, #f472b6, #f87171) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   opacity: 0.4;
   inset: -8px;
@@ -523,17 +525,20 @@ body {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   background: var(--bg-deep);
   opacity: 0;
-  transition: opacity 0.3s;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s, visibility 0.3s;
 }
 .zoom-overlay.active {
-  display: flex;
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .zoom-orb {
@@ -564,6 +569,12 @@ body {
 @keyframes zoom-fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Toast animation (used by showComingSoon in hub.js) */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 

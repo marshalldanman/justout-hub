@@ -113,6 +113,7 @@
           if (role === 'admin' || role === 'member') {
             gate.style.display = 'none';
             hub.style.display = 'block';
+            stopAuthParticles();
             // Populate user info in header
             var userEl = document.getElementById('hubUser');
             if (userEl) {
@@ -185,6 +186,8 @@
   }
 
   // Auth particles for the sign-in screen
+  var authParticleFrameId = null;
+
   function initAuthParticles() {
     var canvas = document.getElementById('authParticles');
     if (!canvas) return;
@@ -220,9 +223,16 @@
         ctx.fillStyle = 'rgba(148, 163, 184, ' + s.a + ')';
         ctx.fill();
       }
-      requestAnimationFrame(draw);
+      authParticleFrameId = requestAnimationFrame(draw);
     }
     draw();
+  }
+
+  function stopAuthParticles() {
+    if (authParticleFrameId) {
+      cancelAnimationFrame(authParticleFrameId);
+      authParticleFrameId = null;
+    }
   }
 
   // Boot

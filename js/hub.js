@@ -239,10 +239,10 @@
     // Trigger animation
     overlay.classList.add('active');
 
-    // Navigate after animation
+    // Navigate after zoom-expand animation completes (1.2s)
     setTimeout(function () {
       window.location.href = 'https://' + channel.sub;
-    }, 1000);
+    }, 1300);
   }
 
   function showComingSoon(channel) {
@@ -268,11 +268,6 @@
       setTimeout(function () { toast.remove(); }, 300);
     }, 2000);
   }
-
-  // Toast animation
-  var toastStyle = document.createElement('style');
-  toastStyle.textContent = '@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
-  document.head.appendChild(toastStyle);
 
   // ============================================================
   //  INIT — Wait for auth, then build
