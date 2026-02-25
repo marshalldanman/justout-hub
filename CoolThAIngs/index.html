@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DanMan's Cool ThAIngs</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0ff;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* Header */
+.header{position:relative;z-index:10;text-align:center;padding:2rem 1rem 1rem}
+.header h1{font-size:2.4rem;background:linear-gradient(135deg,#ff6fd8,#3813c2,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem}
+.header .subtitle{color:#8888cc;font-size:.95rem;letter-spacing:3px}
+.header .scan-status{margin-top:.8rem;font-size:.75rem;color:#44ff88;opacity:.8}
+.header .scan-status::before{content:'● ';color:#44ff88;animation:pulse 2s infinite}
+
+/* Orb Grid */
+.orb-universe{position:relative;z-index:5;display:flex;flex-wrap:wrap;justify-content:center;gap:2rem;padding:2rem;max-width:1200px;margin:0 auto}
+
+/* Each Floating Orb */
+.cool-orb{
+  width:220px;height:280px;perspective:600px;cursor:pointer;
+  animation:float 6s ease-in-out infinite;
+}
+.cool-orb:nth-child(2){animation-delay:-1s;animation-duration:7s}
+.cool-orb:nth-child(3){animation-delay:-2s;animation-duration:5.5s}
+.cool-orb:nth-child(4){animation-delay:-3s;animation-duration:6.5s}
+.cool-orb:nth-child(5){animation-delay:-0.5s;animation-duration:5s}
+
+.orb-card{
+  width:100%;height:100%;border-radius:20px;position:relative;
+  background:rgba(20,20,50,0.7);backdrop-filter:blur(12px);
+  border:1px solid rgba(100,100,255,0.15);
+  padding:1.2rem;display:flex;flex-direction:column;align-items:center;
+  transition:transform .4s,box-shadow .4s,border-color .4s;
+  overflow:hidden;
+}
+.cool-orb:hover .orb-card{
+  transform:translateY(-8px) scale(1.03);
+  box-shadow:0 0 40px rgba(100,100,255,0.3);
+  border-color:rgba(100,100,255,0.5);
+}
+
+/* Orb Glow Sphere */
+.orb-sphere{
+  width:80px;height:80px;border-radius:50%;margin-bottom:.8rem;
+  position:relative;flex-shrink:0;
+}
+.orb-sphere::after{
+  content:'';position:absolute;inset:-8px;border-radius:50%;
+  background:inherit;filter:blur(20px);opacity:.4;z-index:-1;
+}
+.orb-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem}
+
+.orb-title{font-size:1rem;font-weight:700;text-align:center;margin-bottom:.4rem;color:#fff;line-height:1.2}
+.orb-oneliner{font-size:.72rem;color:#aaa;text-align:center;flex-grow:1;line-height:1.4}
+.orb-tags{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem}
+.orb-tag{font-size:.6rem;padding:2px 7px;border-radius:10px;background:rgba(100,100,255,0.15);color:#88aaff}
+.orb-difficulty{position:absolute;top:8px;right:10px;font-size:.55rem;padding:2px 6px;border-radius:8px}
+.diff-easy{background:rgba(0,255,100,0.15);color:#44ff88}
+.diff-medium{background:rgba(255,200,0,0.15);color:#ffcc44}
+.diff-hard{background:rgba(255,50,50,0.15);color:#ff6666}
+
+/* Expanded Detail Panel */
+.detail-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;
+  background:rgba(5,5,20,0.92);backdrop-filter:blur(20px);
+  display:none;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .3s;
+}
+.detail-overlay.open{display:flex;opacity:1}
+.detail-panel{
+  max-width:700px;width:90%;max-height:85vh;overflow-y:auto;
+  background:rgba(15,15,40,0.95);border:1px solid rgba(100,100,255,0.2);
+  border-radius:20px;padding:2rem;position:relative;
+}
+.detail-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.5rem;cursor:pointer}
+.detail-close:hover{color:#fff}
+.detail-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.detail-sphere{width:60px;height:60px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.detail-title{font-size:1.5rem;font-weight:700;color:#fff}
+.detail-section{margin-bottom:1.2rem}
+.detail-section h3{font-size:.85rem;color:#6688cc;text-transform:uppercase;letter-spacing:2px;margin-bottom:.4rem}
+.detail-section p,.detail-section textarea{font-size:.9rem;line-height:1.6;color:#ccd}
+.detail-section textarea{
+  width:100%;min-height:100px;background:rgba(30,30,60,0.5);border:1px solid rgba(100,100,255,0.2);
+  border-radius:10px;padding:.8rem;color:#ccd;font-family:inherit;resize:vertical;
+}
+.detail-money{color:#44ff88}
+.detail-source{font-size:.75rem;color:#666;word-break:break-all}
+.detail-source a{color:#6688ff;text-decoration:none}
+
+/* Animations */
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-15px)}
+}
+@keyframes pulse{
+  0%,100%{opacity:1}
+  50%{opacity:.3}
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Footer */
+.footer{position:relative;z-index:10;text-align:center;padding:2rem;font-size:.7rem;color:#444}
+
+/* Responsive */
+@media(max-width:600px){
+  .header h1{font-size:1.6rem}
+  .cool-orb{width:160px;height:240px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div class="header">
+  <h1>DanMan's Cool ThAIngs</h1>
+  <div class="subtitle">AI Discoveries from the Frontier</div>
+  <div class="scan-status">Scanner Active — Last scan: <span id="lastScan">2026-02-25</span> — Next: <span id="nextScan">checking...</span></div>
+</div>
+
+<div class="orb-universe" id="orbUniverse">
+  <!-- Orbs injected by JS from data -->
+</div>
+
+<!-- Detail overlay -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-panel" id="detailPanel">
+    <button class="detail-close" id="detailClose">&times;</button>
+    <div class="detail-header">
+      <div class="detail-sphere" id="detailSphere"></div>
+      <div class="detail-title" id="detailTitle"></div>
+    </div>
+    <div class="detail-section"><h3>Description</h3><p id="detailDesc"></p></div>
+    <div class="detail-section"><h3>Why It's Hot 🔥</h3><p id="detailWhy"></p></div>
+    <div class="detail-section"><h3>Money Potential 💰</h3><p id="detailMoney" class="detail-money"></p></div>
+    <div class="detail-section"><h3>Difficulty</h3><p id="detailDiff"></p></div>
+    <div class="detail-section"><h3>Source</h3><p class="detail-source" id="detailSource"></p></div>
+    <div class="detail-section">
+      <h3>Notes (Editable)</h3>
+      <textarea id="detailNotes" placeholder="Add your notes, ideas, plans..."></textarea>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">DanMan's Cool ThAIngs &mdash; Powered by AI Discovery &mdash; justout.today/CoolThAIngs</footer>
+
+<script>
+/* ============ STARFIELD ============ */
+(function(){
+  var c=document.getElementById('starfield'),x=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  var stars=[];for(var i=0;i<200;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.5+.3,s:Math.random()*.5+.1,b:Math.random()});
+  function draw(){
+    x.clearRect(0,0,c.width,c.height);
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];s.b+=s.s*.02;
+      var a=.3+Math.abs(Math.sin(s.b))*.7;
+      x.beginPath();x.arc(s.x,s.y,s.r,0,Math.PI*2);
+      x.fillStyle='rgba(180,180,255,'+a+')';x.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============ COOL THINGS DATA ============ */
+var COOL_THINGS = [
+  {
+    id: 1,
+    name: "Claude Code Security",
+    emoji: "🛡️",
+    oneliner: "AI finds zero-day vulnerabilities humans missed for decades",
+    description: "Launched Feb 20, 2026 — a reasoning-based vulnerability scanner that goes beyond pattern matching. Claude Opus 4.6 found and validated 500+ high-severity zero-days in production open-source software, including bugs undetected for decades. It caused a flash crash in cybersecurity stocks.",
+    whyHot: "Found 500+ zero-days humans missed for years. Cybersecurity stocks crashed on launch day. This is a paradigm shift — not incremental, it threatens to replace entire security audit teams.",
+    moneyPotential: "Offer security audit services: $2K-$10K per codebase audit. Build a SaaS wrapper for continuous scanning at $200-$500/month per client. Security consulting is high-trust, high-margin.",
+    difficulty: "Medium",
+    tags: ["Security", "Anthropic", "Zero-Day"],
+    color: "#ff2244",
+    source: "https://thehackernews.com/2026/02/anthropic-launches-claude-code-security.html",
+    notes: ""
+  },
+  {
+    id: 2,
+    name: "MCP Server Empire",
+    emoji: "🔌",
+    oneliner: "Build once, sell forever — the AI plugin gold rush",
+    description: "MCP is now the universal standard — adopted by Claude, ChatGPT, Cursor, VS Code. 97 million monthly SDK downloads, 10,000+ active servers. Marketplaces like Apify and LobeHub (33K+ servers) let devs publish and monetize with pay-per-invocation. One dev went from $500/mo to $2,000/mo on Apify alone.",
+    whyHot: "MCP is the USB-C of AI. Anthropic created it, then Google, Microsoft, OpenAI, and AWS all adopted it. Building MCP servers now is like building iOS apps in 2009 — early movers are printing money.",
+    moneyPotential: "Build niche MCP servers for industries. Marketplace passive income $500-$2K/month. Or license vertical AI agents at $399/month to 35+ businesses for $167K+ ARR at 85% margins.",
+    difficulty: "Medium",
+    tags: ["MCP", "Integration", "Passive Income"],
+    color: "#9933ff",
+    source: "https://modelcontextprotocol.io/",
+    notes: ""
+  },
+  {
+    id: 3,
+    name: "Cline CLI 2.0",
+    emoji: "⚡",
+    oneliner: "Open-source parallel multi-agent coding in your terminal",
+    description: "Open-source autonomous coding agent with parallel agent execution. Run multiple AI agents simultaneously — one refactoring backend, another writing tests, a third updating docs. Supports every major model (Claude, GPT, Gemini, DeepSeek, Ollama). Full MCP integration. All free.",
+    whyHot: "Parallel agents are the unlock everyone was waiting for. Instead of one AI working sequentially, you now have a swarm. Model-agnostic + open-source = the Swiss Army knife for 10x developer throughput.",
+    moneyPotential: "Use it to take on 3-5x more freelance projects simultaneously. Build and sell custom Cline workflows as templates. Offer AI-augmented dev services at premium rates — deliver in days what took weeks.",
+    difficulty: "Easy",
+    tags: ["Open Source", "Agents", "Coding"],
+    color: "#00ff88",
+    source: "https://github.com/cline/cline",
+    notes: ""
+  },
+  {
+    id: 4,
+    name: "AI Booking Bot Factory",
+    emoji: "🤝",
+    oneliner: "Build $400/month chatbots for local businesses in minutes",
+    description: "No-code AI chatbot business has exploded. Platforms like Lindy and Taskade let you describe a booking system in plain language and get a complete solution in minutes. A wellness studio owner pays $400/month for a bot that took 10 minutes to build. 80% of customer inquiries are now automatable.",
+    whyHot: "10 minutes of work for $400/month recurring revenue per client. Local businesses are desperate for automation but don't know how. Become the AI person for your local community. 20 clients = $96K/year.",
+    moneyPotential: "Charge $300-$500/month per client for booking and customer service bots. Near-zero acquisition cost — walk into local businesses and demo. At 20 clients: $96K/year. Add upsells for CRM integration.",
+    difficulty: "Easy",
+    tags: ["No-Code", "Local Business", "Recurring Revenue"],
+    color: "#ff8844",
+    source: "https://www.gobankingrates.com/money/side-gigs/ai-side-hustles-will-dominate-2026-how-to-get-started/",
+    notes: ""
+  },
+  {
+    id: 5,
+    name: "Claude Agent SDK Teams",
+    emoji: "🧠",
+    oneliner: "Build autonomous agent teams that research, code, and ship",
+    description: "Anthropic's Agent SDK lets you build agents with Claude Code's full power — file editing, code execution, MCP, streaming, multi-turn. The killer feature: multi-agent orchestration. A research agent coordinates sub-agents to investigate and produce reports. Microsoft Semantic Kernel integrates directly.",
+    whyHot: "You can now build products that work like Claude Code itself. The multi-agent research demo coordinates specialists like a manager delegating to a team. This is the foundation for real AI products, not just wrappers.",
+    moneyPotential: "Build vertical AI agent products: security review bots ($500-$2K/month SaaS), research report generators, oncall engineering assistants. Devs earning $2K-$8K/month shipping focused vertical agents.",
+    difficulty: "Hard",
+    tags: ["Anthropic", "Multi-Agent", "SDK"],
+    color: "#ff6fd8",
+    source: "https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk",
+    notes: ""
+  }
+];
+
+/* ============ RENDER ORBS ============ */
+var universe = document.getElementById('orbUniverse');
+
+function renderOrbs() {
+  universe.innerHTML = '';
+  COOL_THINGS.forEach(function(thing, i) {
+    var orb = document.createElement('div');
+    orb.className = 'cool-orb';
+    orb.style.animation = 'float ' + (5 + Math.random()*3) + 's ease-in-out infinite';
+    orb.style.animationDelay = (-Math.random()*4) + 's';
+
+    var diffClass = thing.difficulty === 'Easy' ? 'diff-easy' : thing.difficulty === 'Medium' ? 'diff-medium' : 'diff-hard';
+
+    orb.innerHTML = '<div class="orb-card">' +
+      '<span class="orb-difficulty ' + diffClass + '">' + thing.difficulty + '</span>' +
+      '<div class="orb-sphere" style="background:radial-gradient(circle at 30% 30%,' + thing.color + '22,' + thing.color + '88)">' +
+        '<span class="orb-emoji">' + thing.emoji + '</span>' +
+      '</div>' +
+      '<div class="orb-title">' + thing.name + '</div>' +
+      '<div class="orb-oneliner">' + thing.oneliner + '</div>' +
+      '<div class="orb-tags">' + thing.tags.map(function(t){return '<span class="orb-tag">'+t+'</span>'}).join('') + '</div>' +
+    '</div>';
+
+    orb.addEventListener('click', function() { openDetail(thing); });
+    universe.appendChild(orb);
+  });
+}
+
+/* ============ DETAIL PANEL ============ */
+var overlay = document.getElementById('detailOverlay');
+var currentThing = null;
+
+function openDetail(thing) {
+  currentThing = thing;
+  document.getElementById('detailSphere').style.background = 'radial-gradient(circle at 30% 30%,' + thing.color + '44,' + thing.color + ')';
+  document.getElementById('detailSphere').textContent = thing.emoji;
+  document.getElementById('detailTitle').textContent = thing.name;
+  document.getElementById('detailDesc').textContent = thing.description;
+  document.getElementById('detailWhy').textContent = thing.whyHot;
+  document.getElementById('detailMoney').textContent = thing.moneyPotential;
+  document.getElementById('detailDiff').textContent = thing.difficulty;
+  document.getElementById('detailSource').innerHTML = thing.source.startsWith('http') ?
+    '<a href="' + thing.source + '" target="_blank">' + thing.source + '</a>' : thing.source;
+  document.getElementById('detailNotes').value = thing.notes || '';
+  overlay.classList.add('open');
+}
+
+document.getElementById('detailClose').addEventListener('click', function() {
+  if (currentThing) {
+    currentThing.notes = document.getElementById('detailNotes').value;
+    try { localStorage.setItem('coolthings_notes_' + currentThing.id, currentThing.notes); } catch(e){}
+  }
+  overlay.classList.remove('open');
+  currentThing = null;
+});
+
+overlay.addEventListener('click', function(e) {
+  if (e.target === overlay) document.getElementById('detailClose').click();
+});
+
+/* Load saved notes */
+COOL_THINGS.forEach(function(t) {
+  try { var n = localStorage.getItem('coolthings_notes_' + t.id); if(n) t.notes = n; } catch(e){}
+});
+
+/* Render */
+renderOrbs();
+
+/* Scan timer */
+document.getElementById('lastScan').textContent = new Date().toISOString().split('T')[0];
+var next = new Date(); next.setHours(next.getHours() + 5);
+document.getElementById('nextScan').textContent = next.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+</script>
+
+</body>
+</html>
