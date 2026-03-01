@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-010
+==============================================================================
+Title:          JOH-010 — AI Music Channel Build
+Friendly Name:  AI Music Channel
+Assigned AI:    Claude Opus 4.6
+Approx Tokens:  ~120,000 tokens (~$1.80)
+Approx Time:    12-18 hours
+Project:        AI / Creative (Phase 1)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         BACK BURNER — 5 days
+Time Worked:    0 hrs
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+Build AI music creation lab at aimusic.justout.today. Experiment
+tracking, audio player, generation UI. Integration with AI music
+services. Track experiments with metadata and results.
+
+Delegation Plan:
+- Claude Opus 4.6 handles AI integration architecture
+- Claude Sonnet 4.6 builds the UI and player components
+==============================================================================

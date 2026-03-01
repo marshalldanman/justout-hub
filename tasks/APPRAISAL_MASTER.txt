@@ -1,0 +1,230 @@
+==============================================================================
+  JUSTOUT HUB — FULL TASK APPRAISAL DASHBOARD
+  Generated: 2026-03-01
+  Project: JustOut Universe Portal (justout.today)
+  Repo: marshalldanman/justout-hub
+  Local Task Store: C:\Users\James\AI_Tasks
+==============================================================================
+
+PROJECT OVERVIEW
+----------------
+JustOut is a cosmic-themed personal universe portal with 18 channels across
+4 phases (0-3). Firebase-authenticated, 3-tier access (admin/member/guest).
+Built with vanilla JS, Canvas particle engine, CSS animations.
+Project age: 5 days (Feb 24 - Mar 1, 2026). 6 commits total.
+
+==============================================================================
+TASK APPRAISAL — ALL TASKS
+==============================================================================
+
+KEY:  [FB] = Front Burner   [BB] = Back Burner   [NEW] = Newly Identified
+
+------------------------------------------------------------------------------
+PHASE 0 — LIVE CHANNELS (Maintenance & Enhancement)
+------------------------------------------------------------------------------
+
+ID       | Task                        | Assigned    | Summary (150 char max)
+---------|-----------------------------|-----------  |--------------------------------------------------
+JOH-001  | FPCS Dashboard Content      | Claude Sonnet| FPCS channel live but contentCount=0. Needs job/invoice content population & dashboard page buildout.
+JOH-002  | Tax HQ Maintenance          | Claude Haiku | Tax HQ live w/ 1185 items. Routine maintenance, data validation, potential UI refresh for tax season.
+JOH-003  | Bot HQ Fleet Expansion      | Claude Opus  | Bot HQ has 16 bots. Needs fleet inventory audit, new bot creation pipeline, command center upgrades.
+JOH-004  | SentryLion Security Buildout | Claude Opus  | SentryLion live but contentCount=0. Needs endpoint monitoring, threat dashboard, alert system built out.
+
+         | Time Worked | ETA to Complete | Burner Status | Project Category
+---------|-------------|-----------------|---------------|------------------
+JOH-001  | ~2 hrs      | 8-12 hrs        | [FB] 1 day    | FPCS / Business Tools
+JOH-002  | ~1 hr       | 2-4 hrs         | [FB] 1 day    | Tax / Finance
+JOH-003  | ~2 hrs      | 15-25 hrs       | [FB] 1 day    | Bot Fleet / Automation
+JOH-004  | ~1 hr       | 20-30 hrs       | [FB] 1 day    | Security / Infrastructure
+
+         | Best Suited Agent        | Delegation Plan
+---------|--------------------------|------------------------------------------
+JOH-001  | Claude Sonnet 4.6        | Sonnet builds FPCS content pages, forms, invoice UI
+JOH-002  | Claude Haiku 4.5         | Haiku handles routine data checks, minor UI tweaks
+JOH-003  | Claude Opus 4.6          | Opus architects bot management system, delegates bot builds to Sonnet
+JOH-004  | Claude Opus 4.6          | Opus designs security architecture, builds threat detection logic
+
+------------------------------------------------------------------------------
+INFRASTRUCTURE — CRITICAL GAPS (No tracking, no docs, no CI/CD)
+------------------------------------------------------------------------------
+
+ID       | Task                        | Assigned     | Summary (150 char max)
+---------|-----------------------------|-----------   |--------------------------------------------------
+JOH-005  | README & Onboarding Docs    | Claude Sonnet| No README exists. Need onboarding guide, project overview, setup instructions, pointer to AI_Tasks.
+JOH-006  | CLAUDE.md Agent Guidance     | Claude Sonnet| No CLAUDE.md for AI agents. Need coding standards, project context, task workflow, file conventions.
+JOH-007  | Task Tracking System Setup   | Claude Opus  | Establish task logistics: ID naming, file format, assignment workflow, progress tracking conventions.
+
+         | Time Worked | ETA to Complete | Burner Status | Project Category
+---------|-------------|-----------------|---------------|------------------
+JOH-005  | 0 hrs       | 2-3 hrs         | [NEW] 0 days  | Infrastructure / Documentation
+JOH-006  | 0 hrs       | 1-2 hrs         | [NEW] 0 days  | Infrastructure / AI Ops
+JOH-007  | 0 hrs       | 3-5 hrs         | [NEW] 0 days  | Infrastructure / Project Mgmt
+
+         | Best Suited Agent        | Delegation Plan
+---------|--------------------------|------------------------------------------
+JOH-005  | Claude Sonnet 4.6        | Sonnet writes docs with project context, includes C:\Users\James\AI_Tasks pointer
+JOH-006  | Claude Sonnet 4.6        | Sonnet creates CLAUDE.md with coding standards and conventions
+JOH-007  | Claude Opus 4.6          | Opus designs system, this appraisal is step 1 (IN PROGRESS)
+
+------------------------------------------------------------------------------
+PHASE 1 — NEXT UP (6 Channels — Not Started)
+------------------------------------------------------------------------------
+
+ID       | Task                        | Assigned     | Summary (150 char max)
+---------|-----------------------------|-----------   |--------------------------------------------------
+JOH-008  | Ideas/Notes Channel         | Claude Sonnet| Build quick-capture notes app at notes.justout.today. Tagging, organizing, search. localStorage first.
+JOH-009  | Music Channel               | Claude Sonnet| Build music library/playlist manager at music.justout.today. Spotify/YouTube integration potential.
+JOH-010  | AI Music Channel            | Claude Sonnet| Build AI music creation lab at aimusic.justout.today. Experiment tracking, audio player, generation UI.
+JOH-011  | Books Channel               | Claude Sonnet| Build reading list tracker at books.justout.today. Notes, quotes, ratings, reading progress tracking.
+JOH-012  | Art Channel                 | Claude Sonnet| Build art gallery at art.justout.today. Image grid, favorites, creation showcase, lightbox viewer.
+JOH-013  | Food Channel                | Claude Sonnet| Build food hub at food.justout.today. Restaurant saves, recipes, meal planning, rating system.
+
+         | Time Worked | ETA to Complete | Burner Status     | Project Category
+---------|-------------|-----------------|-------------------|------------------
+JOH-008  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Productivity / Notes
+JOH-009  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Media / Music
+JOH-010  | 0 hrs       | 12-18 hrs       | [BB] 5 days       | AI / Creative
+JOH-011  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Media / Reading
+JOH-012  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Creative / Gallery
+JOH-013  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Lifestyle / Food
+
+         | Best Suited Agent        | Delegation Plan
+---------|--------------------------|------------------------------------------
+JOH-008  | Claude Sonnet 4.6        | Sonnet builds UI + localStorage CRUD. Opus reviews architecture.
+JOH-009  | Claude Sonnet 4.6        | Sonnet builds player UI + playlist logic. Haiku handles metadata.
+JOH-010  | Claude Opus 4.6          | Opus handles AI integration architecture. Sonnet builds UI.
+JOH-011  | Claude Sonnet 4.6        | Sonnet builds reading tracker UI. Haiku handles data templates.
+JOH-012  | Claude Sonnet 4.6        | Sonnet builds gallery grid + lightbox. Haiku handles image metadata.
+JOH-013  | Claude Sonnet 4.6        | Sonnet builds recipe/restaurant UI. Haiku handles data entry forms.
+
+------------------------------------------------------------------------------
+PHASE 2 — MID-TERM (5 Channels — Not Started)
+------------------------------------------------------------------------------
+
+ID       | Task                        | Assigned     | Summary (150 char max)
+---------|-----------------------------|-----------   |--------------------------------------------------
+JOH-014  | Movies Channel              | Claude Sonnet| Build watchlist/ratings app at movies.justout.today. TMDB API integration, reviews, recommendations.
+JOH-015  | My YouTube Channel          | Claude Sonnet| Build curated YouTube hub at myyoutube.justout.today. Playlist manager, favorites, embed player.
+JOH-016  | AI Lab Channel              | Claude Opus  | Build AI experimentation lab at ai.justout.today. Prompt library, tool tracker, experiment logs.
+JOH-017  | Health Channel              | Claude Sonnet| Build health tracker at health.justout.today. Goals, wellness metrics, workout logs, habit tracking.
+JOH-018  | Business Card Channel       | Claude Sonnet| Build digital business card at businesscard.justout.today. Contact info, portfolio, QR code, vCard.
+
+         | Time Worked | ETA to Complete | Burner Status     | Project Category
+---------|-------------|-----------------|-------------------|------------------
+JOH-014  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Media / Movies
+JOH-015  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Media / YouTube
+JOH-016  | 0 hrs       | 15-25 hrs       | [BB] 5 days       | AI / Lab
+JOH-017  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Health / Wellness
+JOH-018  | 0 hrs       | 6-10 hrs        | [BB] 5 days       | Business / Identity
+
+         | Best Suited Agent        | Delegation Plan
+---------|--------------------------|------------------------------------------
+JOH-014  | Claude Sonnet 4.6        | Sonnet builds UI + API integration. Haiku handles data models.
+JOH-015  | Claude Sonnet 4.6        | Sonnet builds embed player + playlist UI.
+JOH-016  | Claude Opus 4.6          | Opus architects AI tool integration. Sonnet builds prompt library UI.
+JOH-017  | Claude Sonnet 4.6        | Sonnet builds tracker UI + charts. Haiku handles data templates.
+JOH-018  | Claude Haiku 4.5         | Haiku can handle this — simple static page with vCard export.
+
+------------------------------------------------------------------------------
+PHASE 3 — LONG-TERM (4 Channels — Not Started)
+------------------------------------------------------------------------------
+
+ID       | Task                        | Assigned     | Summary (150 char max)
+---------|-----------------------------|-----------   |--------------------------------------------------
+JOH-019  | Dreams Channel              | Claude Sonnet| Build dream journal at dreams.justout.today. Voice-to-text entry, pattern analysis, dream dictionary.
+JOH-020  | Meditation Channel          | Claude Sonnet| Build meditation app at meditation.justout.today. Timer, guided sessions, streak tracking, ambient sounds.
+JOH-021  | Good News Channel           | Claude Opus  | Build positive news feed at thegoodnews.justout.today. RSS/API aggregation, curated stories, mood boost.
+JOH-022  | Games Channel               | Claude Sonnet| Build game library at games.justout.today. Collection tracker, achievements, saves, play history.
+
+         | Time Worked | ETA to Complete | Burner Status     | Project Category
+---------|-------------|-----------------|-------------------|------------------
+JOH-019  | 0 hrs       | 12-18 hrs       | [BB] 5 days       | Wellness / Journal
+JOH-020  | 0 hrs       | 12-18 hrs       | [BB] 5 days       | Wellness / Mindfulness
+JOH-021  | 0 hrs       | 15-20 hrs       | [BB] 5 days       | Media / News
+JOH-022  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Entertainment / Gaming
+
+         | Best Suited Agent        | Delegation Plan
+---------|--------------------------|------------------------------------------
+JOH-019  | Claude Sonnet 4.6        | Sonnet builds journal UI. Opus adds AI pattern analysis.
+JOH-020  | Claude Sonnet 4.6        | Sonnet builds timer + session UI. Haiku handles audio asset config.
+JOH-021  | Claude Opus 4.6          | Opus designs RSS aggregation + content curation pipeline.
+JOH-022  | Claude Sonnet 4.6        | Sonnet builds collection tracker. Haiku handles data templates.
+
+------------------------------------------------------------------------------
+NEWLY IDENTIFIED TASKS (Gaps Found During Appraisal)
+------------------------------------------------------------------------------
+
+ID       | Task                        | Assigned     | Summary (150 char max)
+---------|-----------------------------|-----------   |--------------------------------------------------
+JOH-023  | CI/CD Pipeline Setup        | Claude Opus  | No deployment pipeline exists. Need GitHub Actions for build, test, deploy to justout.today hosting.
+JOH-024  | CoolThAIngs Auto-Scanner    | Claude Opus  | Discovery page has 5 manual entries. Build auto-scan pipeline to find & surface AI opportunities daily.
+JOH-025  | Subdomain DNS/Hosting Setup | Claude Sonnet| 14 planned subdomains need DNS records, hosting config, SSL certs before channel pages can go live.
+JOH-026  | Mobile Responsive Audit     | Claude Sonnet| Hub constellation needs mobile optimization. Orb layout, touch events, viewport scaling not tested.
+JOH-027  | Performance Optimization    | Claude Haiku | Canvas particle engine runs continuously. Need lazy loading, requestIdleCallback, reduced motion support.
+JOH-028  | Analytics & Monitoring      | Claude Sonnet| No analytics or error monitoring. Need basic page view tracking and error reporting for live channels.
+JOH-029  | Onboarding Pointer to Local | Claude Haiku | Onboarding docs must reference C:\Users\James\AI_Tasks as the canonical local task store for all agents.
+
+         | Time Worked | ETA to Complete | Burner Status     | Project Category
+---------|-------------|-----------------|-------------------|------------------
+JOH-023  | 0 hrs       | 4-6 hrs         | [NEW] should be FB| Infrastructure / DevOps
+JOH-024  | 0 hrs       | 8-12 hrs        | [NEW] should be FB| AI / Discovery
+JOH-025  | 0 hrs       | 3-5 hrs         | [NEW] should be FB| Infrastructure / Hosting
+JOH-026  | 0 hrs       | 4-6 hrs         | [NEW] should be FB| UI/UX / Mobile
+JOH-027  | 0 hrs       | 2-4 hrs         | [NEW] low priority | Performance / Optimization
+JOH-028  | 0 hrs       | 3-5 hrs         | [NEW] should be FB| Infrastructure / Monitoring
+JOH-029  | 0 hrs       | 1 hr            | [NEW] immediate   | Infrastructure / Documentation
+
+         | Best Suited Agent        | Delegation Plan
+---------|--------------------------|------------------------------------------
+JOH-023  | Claude Opus 4.6          | Opus designs CI/CD pipeline. Sonnet implements Actions workflows.
+JOH-024  | Claude Opus 4.6          | Opus builds scraping + AI analysis pipeline for discovery scanning.
+JOH-025  | Claude Sonnet 4.6        | Sonnet writes DNS configs + hosting setup docs/scripts.
+JOH-026  | Claude Sonnet 4.6        | Sonnet audits responsive CSS, fixes layout, adds touch support.
+JOH-027  | Claude Haiku 4.5         | Haiku applies known performance patterns — simple optimizations.
+JOH-028  | Claude Sonnet 4.6        | Sonnet integrates lightweight analytics (Plausible or custom).
+JOH-029  | Claude Haiku 4.5         | Haiku adds one line to onboarding: local task store path reference.
+
+==============================================================================
+SUMMARY STATISTICS
+==============================================================================
+
+Total Tasks:           29
+  Phase 0 (Live):       4  — Front Burner (active maintenance)
+  Infrastructure:       3  — CRITICAL GAP (no docs, no tracking)
+  Phase 1 (Next):       6  — Back Burner 5 days
+  Phase 2 (Mid):        5  — Back Burner 5 days
+  Phase 3 (Long):       4  — Back Burner 5 days
+  Newly Identified:     7  — Mixed priority
+
+Agent Workload Distribution:
+  Claude Opus 4.6:      9 tasks  (complex architecture, security, AI integration)
+  Claude Sonnet 4.6:   16 tasks  (UI builds, channel pages, moderate complexity)
+  Claude Haiku 4.5:     4 tasks  (simple docs, config, performance tweaks)
+
+Estimated Total Project Hours:  200-310 hrs
+Estimated Total Token Cost:     ~$45-75 (across all tasks)
+
+Time Transpired on Project:     5 days (Feb 24 - Mar 1, 2026)
+Active Development Days:        4 days (6 commits)
+Commits:                        6
+
+==============================================================================
+TASK LOGISTICS COMPLIANCE CHECK
+==============================================================================
+
+REQUIRED FORMAT FOR NEW TASKS:
+  When a new task is created, a .txt file must be generated with:
+  1. Title with ID (e.g., JOH-001)
+  2. Friendly name
+  3. Assigned AI agent
+  4. Approx token usage with dollar cost
+  5. Approx time to finish
+  6. Project it relates to
+
+STATUS: Individual task files created in /tasks/ folder (this repo)
+        Canonical local store: C:\Users\James\AI_Tasks
+
+ONBOARDING NOTE: All agents must check C:\Users\James\AI_Tasks for
+existing task context before starting work on any task.
+
+==============================================================================

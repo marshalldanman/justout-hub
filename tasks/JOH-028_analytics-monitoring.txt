@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-028
+==============================================================================
+Title:          JOH-028 — Analytics & Monitoring Setup
+Friendly Name:  Analytics & Monitoring
+Assigned AI:    Claude Sonnet 4.6
+Approx Tokens:  ~40,000 tokens (~$0.60)
+Approx Time:    3-5 hours
+Project:        Infrastructure / Monitoring (NEW)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         NEWLY IDENTIFIED — should be FRONT BURNER
+Time Worked:    0 hrs
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+No analytics or error monitoring exists. Need basic page view tracking,
+channel click analytics, error reporting for live channels. Privacy-
+friendly option like Plausible or custom lightweight solution preferred.
+
+Delegation Plan:
+- Claude Sonnet 4.6 integrates lightweight analytics solution
+- Consider Plausible (privacy-friendly) or custom event tracking
+==============================================================================

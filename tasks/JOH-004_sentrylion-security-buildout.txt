@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-004
+==============================================================================
+Title:          JOH-004 — SentryLion Security Buildout
+Friendly Name:  SentryLion Security Buildout
+Assigned AI:    Claude Opus 4.6
+Approx Tokens:  ~200,000 tokens (~$3.00)
+Approx Time:    20-30 hours
+Project:        Security / Infrastructure (Phase 0 — Live)
+==============================================================================
+
+Status:         IN PROGRESS (channel live, content empty)
+Burner:         FRONT BURNER — security is critical, contentCount=0
+Time Worked:    ~1 hr (channel added Feb 28)
+Created:        2026-02-28
+Updated:        2026-03-01
+
+Description:
+SentryLion endpoint security channel is live at
+dashboard.justout.today/sentrylion.html but has no content. Needs
+endpoint monitoring dashboard, threat detection, alert system, fleet
+protection status, and security audit logging built out.
+
+Delegation Plan:
+- Claude Opus 4.6 designs security architecture and threat detection
+- Claude Sonnet 4.6 builds monitoring dashboard UI
+- Bot HQ fleet bots handle automated scanning tasks
+==============================================================================

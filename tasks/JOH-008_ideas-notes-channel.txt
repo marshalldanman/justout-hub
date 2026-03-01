@@ -1,0 +1,27 @@
+==============================================================================
+TASK: JOH-008
+==============================================================================
+Title:          JOH-008 — Ideas/Notes Channel Build
+Friendly Name:  Ideas/Notes Channel
+Assigned AI:    Claude Sonnet 4.6
+Approx Tokens:  ~100,000 tokens (~$1.50)
+Approx Time:    10-15 hours
+Project:        Productivity / Notes (Phase 1)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         BACK BURNER — 5 days (since project creation)
+Time Worked:    0 hrs
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+Build quick-capture notes app at notes.justout.today. Features: tagging,
+organizing, search, localStorage-first storage. Cosmic theme matching
+hub design. Quick idea capture with minimal friction.
+
+Delegation Plan:
+- Claude Sonnet 4.6 builds UI + localStorage CRUD operations
+- Claude Opus 4.6 reviews architecture decisions
+- Claude Haiku 4.5 handles data model templates
+==============================================================================

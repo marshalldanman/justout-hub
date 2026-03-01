@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-011
+==============================================================================
+Title:          JOH-011 — Books Channel Build
+Friendly Name:  Books Channel
+Assigned AI:    Claude Sonnet 4.6
+Approx Tokens:  ~80,000 tokens (~$1.20)
+Approx Time:    8-12 hours
+Project:        Media / Reading (Phase 1)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         BACK BURNER — 5 days
+Time Worked:    0 hrs
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+Build reading list tracker at books.justout.today. Notes, quotes,
+ratings, reading progress tracking. Book search and cover display.
+Cosmic theme matching hub design language.
+
+Delegation Plan:
+- Claude Sonnet 4.6 builds reading tracker UI
+- Claude Haiku 4.5 handles data entry templates and models
+==============================================================================
