@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-002
+==============================================================================
+Title:          JOH-002 — Tax HQ Maintenance
+Friendly Name:  Tax HQ Maintenance
+Assigned AI:    Claude Haiku 4.5
+Approx Tokens:  ~30,000 tokens (~$0.45)
+Approx Time:    2-4 hours
+Project:        Tax / Finance (Phase 0 — Live)
+==============================================================================
+
+Status:         ACTIVE (live with 1,185 items)
+Burner:         FRONT BURNER — live production channel
+Time Worked:    ~1 hr (channel wired since initial build)
+Created:        2026-02-24
+Updated:        2026-03-01
+
+Description:
+Tax HQ is live with 1,185 content items on dashboard.justout.today.
+Routine maintenance: data validation, potential UI refresh for upcoming
+tax season, ensuring all records are accurate and accessible.
+
+Delegation Plan:
+- Claude Haiku 4.5 handles routine data checks and minor UI tweaks
+- Escalate any structural changes to Claude Sonnet 4.6
+==============================================================================

@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-007
+==============================================================================
+Title:          JOH-007 — Task Tracking System Setup
+Friendly Name:  Task Tracking System
+Assigned AI:    Claude Opus 4.6
+Approx Tokens:  ~40,000 tokens (~$0.60)
+Approx Time:    3-5 hours
+Project:        Infrastructure / Project Management (NEW — IN PROGRESS)
+==============================================================================
+
+Status:         IN PROGRESS (this appraisal is step 1)
+Burner:         FRONT BURNER — being built now
+Time Worked:    ~2 hrs (current session)
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+Establish task logistics system. Task file format with ID, friendly
+name, assigned AI, token cost, time estimate, project category. Create
+tasks/ folder in repo, individual .txt files per task, master appraisal
+dashboard. Sync with C:\Users\James\AI_Tasks local store.
+
+Delegation Plan:
+- Claude Opus 4.6 designs the system and creates initial files (DONE)
+- All agents follow this format for new tasks going forward
+- Task files live in repo /tasks/ AND C:\Users\James\AI_Tasks
+==============================================================================

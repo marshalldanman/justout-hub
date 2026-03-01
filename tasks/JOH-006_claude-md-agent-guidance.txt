@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-006
+==============================================================================
+Title:          JOH-006 — CLAUDE.md Agent Guidance File
+Friendly Name:  CLAUDE.md Agent Guidance
+Assigned AI:    Claude Sonnet 4.6
+Approx Tokens:  ~20,000 tokens (~$0.30)
+Approx Time:    1-2 hours
+Project:        Infrastructure / AI Ops (NEW)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         FRONT BURNER — no AI agent guidance exists
+Time Worked:    0 hrs
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+No CLAUDE.md exists for AI agent onboarding. Must define coding
+standards, project context, file conventions, task workflow, channel
+architecture, and agent delegation hierarchy. Should include task
+logistics format and pointer to C:\Users\James\AI_Tasks.
+
+Delegation Plan:
+- Claude Sonnet 4.6 creates CLAUDE.md with all conventions
+- Include: task file format, naming conventions, agent roles
+- Reference: C:\Users\James\AI_Tasks for task context
+==============================================================================

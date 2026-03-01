@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-024
+==============================================================================
+Title:          JOH-024 — CoolThAIngs Auto-Scanner
+Friendly Name:  CoolThAIngs Auto-Scanner
+Assigned AI:    Claude Opus 4.6
+Approx Tokens:  ~100,000 tokens (~$1.50)
+Approx Time:    8-12 hours
+Project:        AI / Discovery (NEW)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         NEWLY IDENTIFIED — should be FRONT BURNER
+Time Worked:    0 hrs
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+Discovery page currently has 5 manually-curated entries. Build
+automated scanning pipeline to find and surface AI opportunities
+daily from configured sources (scanFrequency: 5x daily already
+defined in discoveries.json). Auto-populate new discoveries.
+
+Delegation Plan:
+- Claude Opus 4.6 builds the scraping + AI analysis pipeline
+- Bot HQ fleet bots handle scheduled scanning execution
+- Claude Sonnet 4.6 updates discovery UI for auto-populated content
+==============================================================================

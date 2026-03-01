@@ -1,0 +1,27 @@
+==============================================================================
+TASK: JOH-026
+==============================================================================
+Title:          JOH-026 — Mobile Responsive Audit
+Friendly Name:  Mobile Responsive Audit
+Assigned AI:    Claude Sonnet 4.6
+Approx Tokens:  ~50,000 tokens (~$0.75)
+Approx Time:    4-6 hours
+Project:        UI/UX / Mobile (NEW)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         NEWLY IDENTIFIED — should be FRONT BURNER
+Time Worked:    0 hrs
+Created:        2026-03-01
+Updated:        2026-03-01
+
+Description:
+Hub constellation layout needs mobile optimization. Orb grid, touch
+event handling, viewport scaling, and responsive breakpoints need
+testing and fixes. Canvas particle engine may need mobile-specific
+performance adjustments.
+
+Delegation Plan:
+- Claude Sonnet 4.6 audits responsive CSS and fixes layout issues
+- Adds touch event support and mobile-friendly orb interactions
+==============================================================================
