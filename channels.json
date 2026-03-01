@@ -1,7 +1,20 @@
 {
   "version": "1.0",
-  "updated": "2026-02-24",
+  "updated": "2026-02-28",
   "channels": [
+    {
+      "id": "fpcs",
+      "name": "FPCS",
+      "subdomain": "dashboard.justout.today",
+      "description": "Friendly PC Support \u2014 Tech Jobs & Invoices",
+      "orbType": "crystal",
+      "color": "#4ade80",
+      "colorAlt": "#166534",
+      "icon": "\ud83d\udda5\ufe0f",
+      "status": "live",
+      "contentCount": 0,
+      "phase": 0
+    },
     {
       "id": "tax",
       "name": "Tax HQ",
@@ -26,6 +39,19 @@
       "icon": "\ud83e\udd16",
       "status": "live",
       "contentCount": 16,
+      "phase": 0
+    },
+    {
+      "id": "security",
+      "name": "SentryLion",
+      "subdomain": "dashboard.justout.today/sentrylion.html",
+      "description": "Endpoint Security & Fleet Protection",
+      "orbType": "prism",
+      "color": "#f97316",
+      "colorAlt": "#7c2d12",
+      "icon": "\ud83e\udd81",
+      "status": "live",
+      "contentCount": 0,
       "phase": 0
     },
     {
