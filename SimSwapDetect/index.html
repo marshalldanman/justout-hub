@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIM Swap Detector — JustOut Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0ff;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* Header */
+.header{position:relative;z-index:10;text-align:center;padding:2rem 1rem 1rem}
+.header h1{font-size:2.2rem;background:linear-gradient(135deg,#ff4444,#ff8844,#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;margin-bottom:.3rem}
+.header .subtitle{color:#8888cc;font-size:.95rem;letter-spacing:2px}
+.back-link{position:absolute;top:1rem;left:1rem;color:#6688ff;text-decoration:none;font-size:.85rem;padding:6px 14px;border:1px solid rgba(100,100,255,0.2);border-radius:8px;backdrop-filter:blur(8px);background:rgba(15,15,40,0.6);transition:all .2s}
+.back-link:hover{border-color:#6688ff;background:rgba(100,100,255,0.1)}
+
+/* Threat Level Banner */
+.threat-banner{position:relative;z-index:10;max-width:700px;margin:1.5rem auto;padding:1.2rem 2rem;border-radius:16px;text-align:center;transition:all .5s;backdrop-filter:blur(12px)}
+.threat-safe{background:rgba(0,255,100,0.08);border:1px solid rgba(0,255,100,0.25);color:#44ff88}
+.threat-warning{background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.25);color:#ffcc44}
+.threat-danger{background:rgba(255,50,50,0.08);border:1px solid rgba(255,50,50,0.25);color:#ff4444}
+.threat-level{font-size:1.4rem;font-weight:800;margin-bottom:.3rem}
+.threat-msg{font-size:.85rem;opacity:.85}
+
+/* Checklist */
+.check-section{position:relative;z-index:5;max-width:700px;margin:1.5rem auto;padding:0 1rem}
+.section-title{font-size:.8rem;color:#6688cc;text-transform:uppercase;letter-spacing:3px;margin-bottom:1rem;padding-left:.5rem}
+.check-card{background:rgba(15,15,40,0.7);backdrop-filter:blur(12px);border:1px solid rgba(100,100,255,0.12);border-radius:14px;padding:1rem 1.2rem;margin-bottom:.7rem;display:flex;align-items:flex-start;gap:1rem;cursor:pointer;transition:all .25s;user-select:none}
+.check-card:hover{border-color:rgba(100,100,255,0.35);transform:translateX(4px)}
+.check-card.flagged{border-color:rgba(255,50,50,0.4);background:rgba(255,30,30,0.06)}
+.check-box{width:28px;height:28px;border-radius:8px;border:2px solid rgba(100,100,255,0.3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s;margin-top:2px}
+.check-card.flagged .check-box{border-color:#ff4444;background:rgba(255,50,50,0.15);color:#ff4444}
+.check-info{flex:1}
+.check-title{font-size:.95rem;font-weight:600;color:#fff;margin-bottom:.25rem}
+.check-desc{font-size:.78rem;color:#8888aa;line-height:1.5}
+.check-card.flagged .check-title{color:#ff8866}
+.severity-tag{display:inline-block;font-size:.6rem;padding:2px 7px;border-radius:10px;margin-left:.5rem;vertical-align:middle}
+.sev-critical{background:rgba(255,50,50,0.15);color:#ff6666}
+.sev-high{background:rgba(255,150,0,0.15);color:#ffaa44}
+.sev-medium{background:rgba(255,200,0,0.15);color:#ffcc44}
+
+/* Action Panel */
+.action-panel{position:relative;z-index:5;max-width:700px;margin:2rem auto;padding:0 1rem}
+.action-card{background:rgba(15,15,40,0.7);backdrop-filter:blur(12px);border:1px solid rgba(100,100,255,0.12);border-radius:14px;padding:1.5rem;margin-bottom:.7rem}
+.action-card h3{font-size:.85rem;color:#6688cc;text-transform:uppercase;letter-spacing:2px;margin-bottom:.8rem}
+.action-step{display:flex;align-items:flex-start;gap:.8rem;margin-bottom:.8rem;font-size:.85rem;line-height:1.6;color:#ccd}
+.action-num{width:24px;height:24px;border-radius:50%;background:rgba(100,100,255,0.15);color:#88aaff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.action-card.emergency{border-color:rgba(255,50,50,0.3)}
+.action-card.emergency h3{color:#ff6666}
+.action-card.emergency .action-num{background:rgba(255,50,50,0.15);color:#ff6666}
+
+/* Reset Button */
+.reset-btn{display:block;margin:1.5rem auto 0;padding:10px 28px;background:rgba(100,100,255,0.1);border:1px solid rgba(100,100,255,0.2);border-radius:10px;color:#88aaff;font-size:.8rem;cursor:pointer;transition:all .2s}
+.reset-btn:hover{border-color:#88aaff;background:rgba(100,100,255,0.15)}
+
+/* Knowledge Section */
+.knowledge{position:relative;z-index:5;max-width:700px;margin:2rem auto;padding:0 1rem}
+.knowledge-card{background:rgba(15,15,40,0.5);backdrop-filter:blur(12px);border:1px solid rgba(100,100,255,0.1);border-radius:14px;padding:1.5rem;margin-bottom:.7rem}
+.knowledge-card h3{font-size:.9rem;color:#fff;margin-bottom:.6rem}
+.knowledge-card p{font-size:.82rem;color:#8888aa;line-height:1.7}
+.knowledge-card strong{color:#ccccee}
+
+/* Timestamp */
+.scan-bar{position:relative;z-index:10;text-align:center;padding:.8rem;font-size:.72rem;color:#44ff88;opacity:.7;margin-bottom:.5rem}
+.scan-bar::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#44ff88;margin-right:6px;animation:pulse 2s infinite}
+
+/* Footer */
+.footer{position:relative;z-index:10;text-align:center;padding:2rem;font-size:.7rem;color:#333}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Responsive */
+@media(max-width:600px){
+  .header h1{font-size:1.5rem}
+  .check-card{padding:.8rem 1rem}
+  .threat-banner{margin:1rem;padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<a href="../" class="back-link">JustOut Hub</a>
+
+<div class="header">
+  <h1>SIM Swap Detector</h1>
+  <div class="subtitle">Check if your iPhone number has been compromised</div>
+</div>
+
+<div class="scan-bar">
+  Shield Active — Scan started: <span id="scanTime"></span>
+</div>
+
+<!-- Threat Level -->
+<div class="threat-banner threat-safe" id="threatBanner">
+  <div class="threat-level" id="threatLevel">SECURE</div>
+  <div class="threat-msg" id="threatMsg">No warning signs detected. Tap any symptoms you're experiencing below.</div>
+</div>
+
+<!-- Checklist: Immediate Signs -->
+<div class="check-section">
+  <div class="section-title">Immediate Warning Signs</div>
+  <div id="immediateChecks"></div>
+</div>
+
+<!-- Checklist: Secondary Indicators -->
+<div class="check-section">
+  <div class="section-title">Secondary Indicators</div>
+  <div id="secondaryChecks"></div>
+</div>
+
+<!-- Checklist: Account Compromise -->
+<div class="check-section">
+  <div class="section-title">Account Compromise Signals</div>
+  <div id="accountChecks"></div>
+</div>
+
+<button class="reset-btn" id="resetBtn">Reset All Checks</button>
+
+<!-- Emergency Actions (shown when flags detected) -->
+<div class="action-panel" id="emergencyActions" style="display:none">
+  <div class="action-card emergency">
+    <h3>Emergency Response Steps</h3>
+    <div class="action-step"><span class="action-num">1</span><span>Call your carrier immediately (AT&T: 611, T-Mobile: 611, Verizon: *611) — tell them you suspect a SIM swap and request an immediate freeze on your account.</span></div>
+    <div class="action-step"><span class="action-num">2</span><span>Change your Apple ID password from a trusted device (not the compromised phone). Go to appleid.apple.com from a computer.</span></div>
+    <div class="action-step"><span class="action-num">3</span><span>Change passwords on all financial accounts (bank, crypto, PayPal, Venmo) — start with the highest-value accounts first.</span></div>
+    <div class="action-step"><span class="action-num">4</span><span>Switch all accounts from SMS-based 2FA to an authenticator app (Google Authenticator, Authy, or Apple's built-in Passwords app).</span></div>
+    <div class="action-step"><span class="action-num">5</span><span>Contact your bank and credit card companies — request a fraud alert and temporary account freeze.</span></div>
+    <div class="action-step"><span class="action-num">6</span><span>File an identity theft report at identitytheft.gov and a police report with your local department.</span></div>
+    <div class="action-step"><span class="action-num">7</span><span>Place a credit freeze at all three bureaus: Equifax (1-800-685-1111), Experian (1-888-397-3742), TransUnion (1-888-909-8872).</span></div>
+  </div>
+</div>
+
+<!-- Prevention Guide (always shown) -->
+<div class="action-panel">
+  <div class="action-card">
+    <h3>Prevention — Lock Down Your iPhone Number</h3>
+    <div class="action-step"><span class="action-num">1</span><span>Set a carrier PIN/passcode with your provider. AT&T: "Extra Security" in myAT&T app. T-Mobile: call 611 to set account PIN. Verizon: set "Account PIN" in My Verizon app.</span></div>
+    <div class="action-step"><span class="action-num">2</span><span>Enable BOTH a SIM lock AND a port-out lock. A SIM lock blocks SIM/eSIM changes on your current carrier. A port-out lock prevents your number from being transferred to another carrier. Attackers use whichever route is easier — you need both. T-Mobile: "Account Takeover Protection" in app. AT&T: "Number Transfer Freeze."</span></div>
+    <div class="action-step"><span class="action-num">3</span><span>iPhone SIM PIN (Settings > Cellular > SIM PIN) only protects against physical SIM theft — it does NOT prevent remote SIM swap fraud. Set it anyway (default is 1111), but know that your real protection is at the carrier level.</span></div>
+    <div class="action-step"><span class="action-num">4</span><span>Convert to eSIM if possible (Settings > Cellular > Convert to eSIM). eSIMs prevent physical theft, but are NOT immune to remote SIM swaps — a hacker can still convince your carrier to issue a new eSIM. Note: T-Mobile's "SIM Protection" does not cover eSIM transfers on iPhones.</span></div>
+    <div class="action-step"><span class="action-num">5</span><span>Replace SMS 2FA with phishing-resistant methods everywhere. Best: hardware security keys (YubiKey) or FIDO2 passkeys (immune to SIM swap AND phishing). Good: authenticator apps (Apple Passwords app, Google Authenticator). Worst: SMS-based 2FA — avoid for all important accounts.</span></div>
+    <div class="action-step"><span class="action-num">6</span><span>Enable Apple's Advanced Data Protection: Settings > [Your Name] > iCloud > Advanced Data Protection. This adds end-to-end encryption to your iCloud data. Also review Settings > [Your Name] > Sign-In & Security to audit your trusted phone numbers.</span></div>
+    <div class="action-step"><span class="action-num">7</span><span>Secure your carrier account's online portal separately — use a unique strong password and app-based 2FA for your carrier login. Some attackers skip phone calls entirely and do the SIM swap through the carrier's website using stolen credentials.</span></div>
+  </div>
+</div>
+
+<!-- Detection Tools & Services -->
+<div class="action-panel">
+  <div class="action-card">
+    <h3>Detection Tools & Services</h3>
+    <div class="action-step"><span class="action-num">1</span><span><strong>iVerify SIM Swap Detection</strong> (Coming Q2 2026) — Near-real-time SIM swap detection for iOS and Android. Works with Verizon and T-Mobile. Requires MDM enrollment. Designed for organizations to give SOC teams visibility into SIM swap events.</span></div>
+    <div class="action-step"><span class="action-num">2</span><span><strong>Carrier SIM Swap APIs</strong> — If you're a developer, services like Twilio Lookup, Vonage, and the CAMARA standard API let you check if a phone number's SIM was recently swapped. One bank reduced SIM swap fraud "to nearly zero overnight" by checking before sending OTP codes.</span></div>
+    <div class="action-step"><span class="action-num">3</span><span><strong>Efani (Secure Carrier)</strong> — A security-focused mobile carrier that adds 11 layers of SIM swap protection. Designed for high-risk individuals like crypto holders, executives, and journalists. Monthly subscription with insurance against SIM swap losses.</span></div>
+    <div class="action-step"><span class="action-num">4</span><span><strong>Self-Check: Carrier Account Audit</strong> — Log into your carrier's app or website RIGHT NOW and verify: (a) no recent SIM or device changes you didn't make, (b) your account PIN is set and strong, (c) "Number Lock" / "Port Freeze" is enabled, (d) no authorized users you don't recognize.</span></div>
+  </div>
+</div>
+
+<!-- Knowledge Base -->
+<div class="knowledge">
+  <div class="section-title" style="padding-left:.5rem">How SIM Swapping Works</div>
+
+  <div class="knowledge-card">
+    <h3>What is a SIM Swap Attack?</h3>
+    <p>A SIM swap (also called SIM hijacking or SIM porting) happens when a hacker convinces your mobile carrier to transfer your phone number to a SIM card they control. Once they have your number, they receive all your calls, texts, and — critically — <strong>SMS verification codes</strong>. This lets them bypass 2FA on your bank, email, crypto, and social media accounts.</p>
+  </div>
+
+  <div class="knowledge-card">
+    <h3>How Hackers Do It</h3>
+    <p><strong>Social engineering:</strong> They call your carrier pretending to be you, using personal info gathered from data breaches, social media, or the dark web. They claim they "lost their phone" or "got a new SIM." Some hackers <strong>bribe carrier store employees</strong> directly — a T-Mobile insider was caught selling SIM swaps for $100 each. In March 2025, a California arbitrator ordered T-Mobile to pay $33 million after attackers bypassed their "NOPORT" security flag by convincing a call center agent to issue a remote eSIM QR code. Others use <strong>phishing</strong> to steal your carrier login credentials and do the swap through the carrier's website. Some attackers also barrage victims with calls or texts to make them turn off their phone or ignore real carrier alerts.</p>
+  </div>
+
+  <div class="knowledge-card">
+    <h3>iPhone-Specific Risks & The eSIM Reality</h3>
+    <p>eSIM-only iPhones (US iPhone 14+) prevent <strong>physical SIM theft</strong>, but are <strong>NOT immune to remote SIM swaps</strong>. The vulnerability is the carrier's authentication process, not the type of SIM. If a hacker convinces your carrier to issue a new eSIM, your embedded eSIM gets deactivated remotely. T-Mobile has confirmed their "SIM Protection" feature does not cover eSIM transfers on Apple iPhones. Your carrier controls your phone number and the SIM/eSIM that proves "this is your line" — <strong>your phone can be locked down like Fort Knox and you can still be SIM swapped if your carrier account is easy to hijack</strong>. Check Settings > [Your Name] > Sign-In & Security to review your trusted phone numbers.</p>
+  </div>
+
+  <div class="knowledge-card">
+    <h3>How Common Is This? (2024-2026 Data)</h3>
+    <p>The FBI reported <strong>nearly $26 million</strong> lost to SIM swap attacks in 2024 alone. The UK's 2025 Fraudscape report reveals a <strong>1,055% surge</strong> in SIM swap cases — from 289 in 2023 to nearly 3,000 in 2024. High-profile victims include Jack Dorsey (Twitter CEO's account hijacked), crypto investors (one lost $24 million, another $38 million via T-Mobile breach), and journalists. <strong>You don't need to be famous to be targeted</strong> — automated tools now let attackers attempt SIM swaps at scale, and the attack is the fastest-growing cybersecurity concern of 2026.</p>
+  </div>
+</div>
+
+<footer class="footer">SIM Swap Detector — JustOut Hub Security Tools — justout.today/SimSwapDetect</footer>
+
+<script>
+/* ============ STARFIELD ============ */
+(function(){
+  var c=document.getElementById('starfield'),x=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  var stars=[];for(var i=0;i<180;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.5+.3,s:Math.random()*.5+.1,b:Math.random()});
+  function draw(){
+    x.clearRect(0,0,c.width,c.height);
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];s.b+=s.s*.02;
+      var a=.3+Math.abs(Math.sin(s.b))*.7;
+      x.beginPath();x.arc(s.x,s.y,s.r,0,Math.PI*2);
+      x.fillStyle='rgba(180,180,255,'+a+')';x.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============ CHECK DATA ============ */
+var CHECKS = {
+  immediate: [
+    { id:'no-signal',    title:'Sudden loss of cellular signal',         desc:'Your iPhone shows "No Service" or "SOS Only" when it was working fine. This is the #1 sign — your number may have been ported to another SIM.',                                 severity:'critical' },
+    { id:'cant-call',    title:'Cannot make or receive calls/texts',     desc:'Calls go straight to voicemail and outgoing calls fail. SMS messages aren\'t sending. But WiFi still works normally.',                                                                severity:'critical' },
+    { id:'carrier-email',title:'Unexpected carrier notification',        desc:'You received an email or text from your carrier about a SIM change, number port, or device change that you didn\'t request.',                                                          severity:'critical' },
+    { id:'sim-alert',    title:'iPhone shows "SIM Not Supported" or "Invalid SIM"', desc:'Your iPhone suddenly displays a SIM error even though you haven\'t changed anything. The SIM card may have been deactivated on the carrier side.',                        severity:'critical' }
+  ],
+  secondary: [
+    { id:'2fa-codes',    title:'Not receiving SMS verification codes',   desc:'Login codes from your bank, email, or apps stopped arriving via text. Someone else may be receiving them.',                                                                            severity:'high' },
+    { id:'unusual-texts',title:'Strange texts about porting or activation', desc:'You received messages about "Welcome to [carrier]" or "Your number has been activated" that you didn\'t initiate.',                                                                 severity:'high' },
+    { id:'voicemail',    title:'Voicemail PIN changed or inaccessible',  desc:'You can\'t access your voicemail or the greeting has changed. Attackers often change voicemail first to intercept verification callbacks.',                                              severity:'high' },
+    { id:'wifi-only',    title:'Data works on WiFi but not cellular',    desc:'Your iPhone connects to WiFi fine but cellular data is completely dead. This suggests the cellular identity (SIM) has been disrupted.',                                                  severity:'medium' },
+    { id:'call-flood',   title:'Sudden flood of spam calls or texts',    desc:'Receiving a barrage of calls or texts out of nowhere? Attackers sometimes flood your phone to make you turn it off or ignore real carrier alerts about SIM changes happening in the background.',    severity:'medium' }
+  ],
+  account: [
+    { id:'locked-out',   title:'Locked out of email or bank accounts',   desc:'You suddenly can\'t log into accounts that use your phone number for recovery. Password reset emails you didn\'t request are showing up.',                                              severity:'critical' },
+    { id:'unauth-txn',   title:'Unauthorized financial transactions',    desc:'You see charges, transfers, or crypto withdrawals you didn\'t make. SIM swappers typically target financial accounts within minutes of the swap.',                                       severity:'critical' },
+    { id:'pwd-resets',   title:'Password reset notifications you didn\'t request', desc:'You\'re getting emails saying "Your password was changed" for various accounts. The attacker is using your number to reset passwords via SMS.',                                severity:'high' },
+    { id:'social-hack',  title:'Social media accounts posting without you', desc:'Friends report strange posts or messages from your accounts. Attackers sometimes use compromised socials to scam your contacts.',                                                    severity:'high' },
+    { id:'apple-id',     title:'Apple ID sign-in alerts from unknown devices', desc:'You received "Your Apple ID was used to sign in" notifications for devices you don\'t own. Check Settings > [Your Name] to see all signed-in devices.',                           severity:'high' }
+  ]
+};
+
+/* ============ STATE ============ */
+var flagged = {};
+try {
+  var saved = localStorage.getItem('simswap_flags');
+  if (saved) flagged = JSON.parse(saved);
+} catch(e){}
+
+function saveState() {
+  try { localStorage.setItem('simswap_flags', JSON.stringify(flagged)); } catch(e){}
+}
+
+/* ============ RENDER CHECKLIST ============ */
+function renderChecks(containerId, items) {
+  var container = document.getElementById(containerId);
+  items.forEach(function(item) {
+    var card = document.createElement('div');
+    card.className = 'check-card' + (flagged[item.id] ? ' flagged' : '');
+    card.style.animation = 'fadeIn .4s ease-out both';
+
+    var sevLabel = item.severity === 'critical' ? 'CRITICAL' : item.severity === 'high' ? 'HIGH' : 'MEDIUM';
+    var sevClass = 'sev-' + item.severity;
+
+    card.innerHTML =
+      '<div class="check-box">' + (flagged[item.id] ? '!' : '') + '</div>' +
+      '<div class="check-info">' +
+        '<div class="check-title">' + item.title + '<span class="severity-tag ' + sevClass + '">' + sevLabel + '</span></div>' +
+        '<div class="check-desc">' + item.desc + '</div>' +
+      '</div>';
+
+    card.addEventListener('click', function() {
+      flagged[item.id] = !flagged[item.id];
+      if (!flagged[item.id]) delete flagged[item.id];
+      saveState();
+      card.className = 'check-card' + (flagged[item.id] ? ' flagged' : '');
+      card.querySelector('.check-box').textContent = flagged[item.id] ? '!' : '';
+      updateThreatLevel();
+    });
+
+    container.appendChild(card);
+  });
+}
+
+renderChecks('immediateChecks', CHECKS.immediate);
+renderChecks('secondaryChecks', CHECKS.secondary);
+renderChecks('accountChecks', CHECKS.account);
+
+/* ============ THREAT LEVEL ============ */
+function updateThreatLevel() {
+  var count = Object.keys(flagged).length;
+  var hasCritical = false;
+  var allChecks = CHECKS.immediate.concat(CHECKS.secondary, CHECKS.account);
+  allChecks.forEach(function(item) {
+    if (flagged[item.id] && item.severity === 'critical') hasCritical = true;
+  });
+
+  var banner = document.getElementById('threatBanner');
+  var level = document.getElementById('threatLevel');
+  var msg = document.getElementById('threatMsg');
+  var emergency = document.getElementById('emergencyActions');
+
+  banner.className = 'threat-banner';
+
+  if (count === 0) {
+    banner.classList.add('threat-safe');
+    level.textContent = 'SECURE';
+    msg.textContent = 'No warning signs detected. Tap any symptoms you\'re experiencing below.';
+    emergency.style.display = 'none';
+  } else if (hasCritical || count >= 3) {
+    banner.classList.add('threat-danger');
+    level.textContent = 'DANGER — LIKELY SIM SWAP';
+    msg.textContent = count + ' warning sign' + (count > 1 ? 's' : '') + ' detected including critical indicators. Take emergency action NOW.';
+    emergency.style.display = 'block';
+  } else {
+    banner.classList.add('threat-warning');
+    level.textContent = 'WARNING — SUSPICIOUS ACTIVITY';
+    msg.textContent = count + ' warning sign' + (count > 1 ? 's' : '') + ' detected. Monitor closely and review the prevention steps below.';
+    emergency.style.display = count >= 2 ? 'block' : 'none';
+  }
+}
+
+updateThreatLevel();
+
+/* ============ RESET ============ */
+document.getElementById('resetBtn').addEventListener('click', function() {
+  flagged = {};
+  saveState();
+  var cards = document.querySelectorAll('.check-card');
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].className = 'check-card';
+    cards[i].querySelector('.check-box').textContent = '';
+  }
+  updateThreatLevel();
+});
+
+/* ============ SCAN TIME ============ */
+document.getElementById('scanTime').textContent = new Date().toLocaleString();
+</script>
+
+</body>
+</html>
