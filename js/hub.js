@@ -9,6 +9,7 @@
   var CHANNELS = [
     { id:'tax',    name:'Tax HQ',        sub:'dashboard.justout.today',          desc:'FPCS 2022 Tax Dashboard',       type:'star',    color:'#38bdf8', deep:'#0c4a6e', icon:'\uD83D\uDCCA', status:'live',    count:1185, phase:0 },
     { id:'bots',   name:'Bot HQ',        sub:'dashboard.justout.today/bots.html',desc:'Realbotville \u2014 Bot Fleet',  type:'gem',     color:'#a78bfa', deep:'#4c1d95', icon:'\uD83E\uDD16', status:'live',    count:16,   phase:0 },
+    { id:'simswap',name:'SIM Swap Detector',sub:'hub.justout.today/SimSwapDetect/',desc:'Detect & prevent SIM swap fraud', type:'crystal', color:'#ff4444', deep:'#7f1d1d', icon:'\uD83D\uDCF1', status:'live',    count:14,   phase:0 },
     { id:'notes',  name:'Ideas',         sub:'notes.justout.today',              desc:'Quick capture & organize',       type:'star',    color:'#38bdf8', deep:'#0c4a6e', icon:'\uD83D\uDCA1', status:'planned', count:0,    phase:1 },
     { id:'music',  name:'Music',         sub:'music.justout.today',              desc:'Your music library',             type:'gem',     color:'#a78bfa', deep:'#5b21b6', icon:'\uD83C\uDFB5', status:'planned', count:0,    phase:1 },
     { id:'aimusic',name:'AI Music',      sub:'aimusic.justout.today',            desc:'AI creation & experiments',      type:'crystal', color:'#f472b6', deep:'#831843', icon:'\uD83C\uDFB9', status:'planned', count:0,    phase:1 },

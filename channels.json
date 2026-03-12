@@ -55,6 +55,19 @@
       "phase": 0
     },
     {
+      "id": "simswap",
+      "name": "SIM Swap Detector",
+      "subdomain": "hub.justout.today/SimSwapDetect/",
+      "description": "Detect & prevent SIM swap fraud on your iPhone",
+      "orbType": "crystal",
+      "color": "#ff4444",
+      "colorAlt": "#7f1d1d",
+      "icon": "\ud83d\udcf1",
+      "status": "live",
+      "contentCount": 14,
+      "phase": 0
+    },
+    {
       "id": "notes",
       "name": "Ideas",
       "subdomain": "notes.justout.today",
