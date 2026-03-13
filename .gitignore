@@ -12,3 +12,9 @@ desktop.ini
 *~
 .vscode/
 .idea/
+
+# Finger — secrets & logs
+service_account.json
+.finger_log.json
+.reminder_sent.json
+finger_cron.log

@@ -1,0 +1,77 @@
+THE FINGER — Setup Guide
+========================
+
+1. GOOGLE CLOUD SERVICE ACCOUNT
+   - Go to console.cloud.google.com
+   - Create a project (or use existing)
+   - Enable: Google Sheets API + Google Drive API
+   - Go to IAM & Admin → Service Accounts → Create
+   - Download the JSON key file
+   - Save it as: service_account.json (in this folder)
+   - IMPORTANT: Add service_account.json to .gitignore (already done)
+
+2. GOOGLE SHEET SETUP
+   - Create a Google Sheet named "AI Central Command" (or set FINGER_SHEET env var)
+   - Share it with the service account email (the one ending in @...iam.gserviceaccount.com)
+   - Give it Editor access
+
+   Create these tabs:
+
+   Tab: "Tasks"
+   ┌──────────────────────────┬────────────┬──────────┬────────┐
+   │ Task                     │ Deadline   │ Priority │ Status │
+   ├──────────────────────────┼────────────┼──────────┼────────┤
+   │ File 2025 quarterly tax  │ 2026-04-15 │ high     │ active │
+   │ Reconcile bookkeeping    │ 2026-03-20 │ high     │ active │
+   │ Renew domain             │ 2026-06-01 │ med      │ active │
+   └──────────────────────────┴────────────┴──────────┴────────┘
+
+   Tab: "Commands"
+   ┌──────────────────┬──────────────────────────────────────┬─────────┬────────┐
+   │ Source           │ Text                                 │ Status  │ Result │
+   ├──────────────────┼──────────────────────────────────────┼─────────┼────────┤
+   │ Claude Code      │ [remind] Check on IRS letter         │ pending │        │
+   │ ChatGPT          │ [urgent] Tax deadline moved to 4/10  │ pending │        │
+   │ Brainstorm       │ [note] New app idea for bookkeeping  │ pending │        │
+   └──────────────────┴──────────────────────────────────────┴─────────┴────────┘
+
+   You can also add any other tabs (Brainstorm, Ledger, etc.)
+   — drop [brackets] anywhere and The Finger will find them.
+
+3. EMAIL SETUP
+   - Use a Gmail account
+   - Enable 2FA on the account
+   - Generate an App Password: myaccount.google.com → Security → App Passwords
+   - Set in finger.py or as env vars:
+     FINGER_EMAIL_TO, FINGER_EMAIL_FROM, FINGER_EMAIL_PASS
+
+4. INSTALL & RUN
+   pip install -r requirements.txt
+   python3 finger.py
+
+5. AUTOMATE (optional cron)
+   crontab -e
+   */30 * * * * cd /path/to/justout-hub && python3 finger.py >> finger_cron.log 2>&1
+
+BRACKET COMMANDS
+================
+Drop these anywhere in any cell in the Google Sheet:
+
+  [remind]   — sends you a reminder email with surrounding text
+  [urgent]   — sends a high-priority critical alert
+  [task]     — flags something as a new task
+  [note]     — logs it quietly, no email
+  [anything] — any other bracket text sends a general notification
+
+Examples:
+  "Need to call accountant [remind] before Friday"
+  "[urgent] IRS notice received, respond by March 20"
+  "[task] Set up QuickBooks integration"
+
+ENV VARS (optional, override config in finger.py)
+==================================================
+  GOOGLE_SA_KEY    — path to service account JSON
+  FINGER_SHEET     — Google Sheet name (default: "AI Central Command")
+  FINGER_EMAIL_TO  — recipient email
+  FINGER_EMAIL_FROM— sender email
+  FINGER_EMAIL_PASS— Gmail app password
