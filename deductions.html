@@ -275,7 +275,7 @@
 
   <!-- SUMMARY STATS (clickable drill-downs) -->
   <div class="stats-grid" id="summaryStats">
-    <div class="stat-card stat-link" onclick="document.getElementById('sec-years').scrollIntoView({behavior:'smooth'})" title="View by year" style="cursor:pointer"><div class="stat-val" style="color:var(--green)">$42,025 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">2022 Deductions</div></div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-years').scrollIntoView({behavior:'smooth'})" title="View by year" style="cursor:pointer"><div class="stat-val" style="color:var(--green)">$42,889.72 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">2022 Deductions</div></div>
     <div class="stat-card stat-link" onclick="document.getElementById('sec-findings').scrollIntoView({behavior:'smooth'})" title="View findings" style="cursor:pointer"><div class="stat-val" style="color:var(--yellow)">$8,200+ <span class="drill-arrow">&#8599;</span></div><div class="stat-label">New Findings</div></div>
     <div class="stat-card stat-link" onclick="document.getElementById('sec-years').scrollIntoView({behavior:'smooth'})" title="View all years" style="cursor:pointer"><div class="stat-val" style="color:var(--accent)">4 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Tax Years</div></div>
     <div class="stat-card stat-link" onclick="document.getElementById('sec-deductbot').scrollIntoView({behavior:'smooth'})" title="View bot team" style="cursor:pointer"><div class="stat-val" style="color:var(--purple)">3 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Bots Active</div></div>
@@ -407,7 +407,7 @@
       <div class="year-content">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
           <div>
-            <span style="font-size:20px;font-weight:700;color:var(--green)">$42,024.74</span>
+            <span style="font-size:20px;font-weight:700;color:var(--green)">$42,889.72</span>
             <span style="color:var(--muted);font-size:13px;margin-left:8px">confirmed deductions</span>
             <span style="color:var(--accent);font-size:13px;margin-left:8px">+ $8,200+ potential new findings</span>
           </div>
@@ -430,7 +430,7 @@
             <tr><td>--</td><td>Equipment / Depreciation</td><td class="amount" style="color:var(--yellow)">$12,654.39</td><td>26</td><td><span class="ded-status ded-review">REVIEW</span></td><td><span class="ded-status ded-review">REVIEW</span></td></tr>
             <tr><td>--</td><td>Meals (50-100% deductible)</td><td class="amount">$97.39</td><td>15</td><td><span class="ded-status ded-review">CHECK</span></td><td><span class="ded-status ded-review">CHECK</span></td></tr>
             <tr><td>--</td><td>COGS / Inventory</td><td class="amount" style="color:var(--green)">$2,595.75</td><td>11</td><td><span class="ded-status ded-ok">OK</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
-            <tr class="total-row"><td colspan="2"><strong>Confirmed Subtotal</strong></td><td class="amount" style="color:var(--accent);font-size:16px"><strong>$42,024.74</strong></td><td></td><td></td><td></td></tr>
+            <tr class="total-row"><td colspan="2"><strong>Confirmed Subtotal</strong></td><td class="amount" style="color:var(--accent);font-size:16px"><strong>$42,889.72</strong></td><td></td><td></td><td></td></tr>
           </tbody>
         </table>
 
@@ -480,10 +480,10 @@
             <tr><td>Equipment / Sec 179</td><td>Any new business equipment purchased — full expensing available</td><td class="amount" style="color:var(--yellow)">$TBD</td><td><span class="ded-status ded-missing">NEED DATA</span></td></tr>
             <tr><td>Software Subscriptions</td><td>QBO, antivirus, cloud, domains, tools — recurring costs</td><td class="amount" style="color:var(--accent)">$400+</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
             <tr><td>Depreciation Carryover</td><td>Any 2022 equipment not fully expensed — ongoing depreciation</td><td class="amount" style="color:var(--yellow)">$TBD</td><td><span class="ded-status ded-audit">CALCULATE</span></td></tr>
-            <tr><td>Net Operating Loss</td><td>2022 NOL can carry forward to offset 2023 income (up to 80%)</td><td class="amount" style="color:var(--green)">$19,942*</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+            <tr><td>Net Operating Loss</td><td>2022 NOL can carry forward to offset 2023 income (up to 80%)</td><td class="amount" style="color:var(--green)">$16,951*</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
           </tbody>
         </table>
-        <div style="margin-top:8px;font-size:12px;color:var(--muted)">* NOL carryforward estimate: 80% of $24,928 net loss = $19,942 max offset against 2023 income (TCJA rules)</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">* NOL carryforward estimate: 80% of ~$21,189 net loss = ~$16,951 max offset against 2023 income (TCJA rules)</div>
       </div>
     </div>
 
@@ -578,9 +578,9 @@
     </div>
 
     <div class="finding">
-      <div class="finding-head"><span class="finding-title" style="color:var(--green)">&#128176; NOL Carryforward Strategy</span><span class="finding-val" style="color:var(--green)">$19,942+</span></div>
+      <div class="finding-head"><span class="finding-title" style="color:var(--green)">&#128176; NOL Carryforward Strategy</span><span class="finding-val" style="color:var(--green)">$16,951+</span></div>
       <div class="finding-detail">
-        <strong>2022 Net Loss:</strong> -$24,928. Under TCJA, NOL can carry forward indefinitely (no carryback for most).<br>
+        <strong>2022 Net Loss:</strong> ~$21,189. Under TCJA, NOL can carry forward indefinitely (no carryback for most).<br>
         <strong>Limitation:</strong> Can offset up to 80% of taxable income in future years.<br>
         <strong>Strategy:</strong> File 2022 first (establishes the NOL), then apply to 2023-2025 returns to reduce tax in profitable years.<br>
         <strong>Action:</strong> Calculate exact NOL amount after all deductions finalized. Apply to subsequent years.
@@ -1158,8 +1158,8 @@ function updateLiveSummary(records) {
   var reviewCount = dedGroupKeys.filter(function(c) { return dedGrouped[c].length > 20 || dedCatTotals[c] > 5000; }).length;
   document.getElementById('lsNeedsReview').textContent = reviewCount;
 
-  // NOL estimate: total deductions minus estimated income ($3,916.50 from income page)
-  var estimatedIncome = 3916.50;
+  // NOL estimate: total deductions minus gross income (~$21,701 from consolidated data)
+  var estimatedIncome = 21701;
   var nol = grandTotal - estimatedIncome;
   var nolEl = document.getElementById('lsNolEstimate');
   if (nol > 0) {
@@ -1457,7 +1457,7 @@ function requestBotReply(noteId) {
   if (noteText.indexOf('status') !== -1 || noteText.indexOf('how') !== -1) {
     reply += 'Data is loaded from the master sheet. All amounts pulled live from FINAL_MASTER.';
   } else if (noteText.indexOf('miss') !== -1 || noteText.indexOf('need') !== -1) {
-    reply += 'Check the unmatched ledger entries — 562 rows (~$16K) may contain additional items for this category.';
+    reply += 'Check the unmatched ledger entries — 516 rows (64 still need James review) may contain additional items for this category.';
   } else if (noteText.indexOf('sqft') !== -1 || noteText.indexOf('square') !== -1 || noteText.indexOf('office') !== -1) {
     reply += 'Home office: Simplified = $5/sqft x sqft (max 300sqft = $1,500). Regular method needs mortgage, insurance, utilities prorated by office %.';
   }
@@ -2401,7 +2401,7 @@ function drillDown(type) {
       bodyHtml += (nolVal > 0 ? '-$' : '$') + Math.abs(nolVal).toLocaleString('en-US', {minimumFractionDigits:2}) + '</td></tr>';
       bodyHtml += '<tr><td colspan="2" style="padding:12px 8px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)">';
       bodyHtml += 'NOL = Business Deductions exceed Business Income. A 2022 NOL can be carried forward to offset future income (IRC §172). ';
-      bodyHtml += 'Income breakdown: AGT Mortgage $2,000 + Clients $916.50 + Misc $130 + Missing $870 = $3,916.50</td></tr>';
+      bodyHtml += 'Income: Services $14,727 + eBay $13,052 + Supplemental $3,454 = ~$21,701 gross</td></tr>';
       break;
   }
 

@@ -788,7 +788,7 @@
     if (!_coreBlocks['project_facts']) {
       CoreMemory.define('project_facts', {
         description: 'Key facts about the FPCS project that should always be available',
-        value: 'Project: FPCS 2022 Tax Prep\nDeadline: April 10, 2026 (mail by certified)\nOregon 3-year statute: April 15, 2026\nQBO Gross Income: $17,097\nTotal Deductions: $42,024.74\nNet Loss: -$24,928\nMissing Income: $1,150 (Arlene Harris $870 + Kelley Haganauer $280)\nClean rows after dedup: 1,185\nDashboard: https://dashboard.justout.today',
+        value: 'Project: FPCS 2022 Tax Prep\nDeadline: April 10, 2026 (mail by certified)\nOregon 3-year statute: April 15, 2026\nGross Income: ~$21,701 (Services $14,727 + eBay $13,052)\nTotal Deductions: $42,889.72 (309 rows)\nNet Loss: ~$21,189\nConsolidated: 1,883 clean rows (from 4,095 raw)\nFirestore: 1,871 txns + 516 unmatched\n32 financial accounts (25 Daniel + 7 Judith)\nDashboard: https://dashboard.justout.today',
         limit: 3000,
         readOnly: false
       });

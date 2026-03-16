@@ -52,16 +52,16 @@
 
   // Static responses (baseline knowledge)
   var RESPONSES = {
-    'show progress': 'Overall progress: 80% data collected, 60% tax prep, 0% filing. We need to focus on bank statements and Amazon orders next!',
-    'what\'s next?': 'Priority items: 1) Add $870 Arlene Harris missing income to QBO, 2) Full tech ledger reconciliation, 3) Bank statement cross-reference, 4) Amazon order classification.',
+    'show progress': 'Overall progress: Data 99%, Tax Prep 85%, Bots/Village 75%, Filing 0%. Priority: James answers 5 blocking questions, then TurboTax entry.',
+    'what\'s next?': 'Priority items: 1) James answers 5 blocking questions (QUESTIONS_FOR_JAMES.md), 2) Break out Schedule C line-item amounts, 3) TurboTax install + entry.',
     'deadline status': 'Deadline: April 10, 2026 (USPS Certified Mail). Oregon 3-year statute expires April 15, 2026.',
-    'missing items': 'Missing: $870 Arlene Harris (3 jobs), $280 Kelley Haganauer (Trello), plus 562 unmatched ledger entries. Bank statements & Amazon orders not started.',
-    'missing income': 'Found $1,150 in missing 2022 income: Arlene Harris $870 (3 jobs, NOT in QBO) + Kelley Haganauer $280 (Trello). Full ledger reconciliation may reveal more.',
-    'client list': 'Email clients: AGT Mortgage ($2K confirmed), Heidi Ostrom ($916.50), Angie Herrmann ($130), Arlene Harris ($870 MISSING). American Restoration ($730 UNPAID).',
-    'qbo status': 'QBO has $3,046.50 confirmed 2022 income from email clients. $870 Arlene Harris income is NOT in QBO and needs to be added.',
-    'reconciliation': 'Cross-reference complete for email sources. 4 items confirmed in QBO, 3 items missing (Arlene Harris), 1 unpaid (American Restoration). Full ledger recon pending.',
-    'top deductions': 'Top deductions: Supplies $14,339 | COGS $10,725 | Equipment $5,150 | Car/Truck $3,118 | Total: $42,024.74',
-    'key numbers': 'QBO Gross: $17,097 | Deductions: $42,025 | Net Loss: -$24,928 | Missing income: $1,150 | 1,185 clean rows after dedup.'
+    'missing items': '64 ambiguous unmatched entries need James review (~$24K). 452 of 516 unmatched already auto-resolved. 5 blocking questions pending.',
+    'missing income': 'Gross income ~$21,701: Services $14,727 + eBay $13,052 + supplemental $3,454. IRS transcript shows W-2G $1,469, 1099-G $2,355.',
+    'client list': 'Email clients: AGT Mortgage ($2K confirmed), Heidi Ostrom ($916.50), Angie Herrmann ($130), Arlene Harris ($870). American Restoration ($730).',
+    'qbo status': 'QBO data consolidated into Firestore. 1,871 transactions migrated. All income sources reconciled including 12 supplemental income entries.',
+    'reconciliation': 'Consolidation complete: 4,095 raw rows -> 1,883 clean rows. SHA-256 dedup + fuzzy match. 516 unmatched: 452 auto-resolved, 64 need James.',
+    'top deductions': 'Top deductions: Supplies $13,257 | Equipment $12,654 | Other Expenses $7,920 | Car/Truck $3,240 | COGS $2,896 | Total: $42,889.72',
+    'key numbers': 'Gross Income: ~$21,701 | Deductions: $42,889.72 | Net Loss: ~$21,189 | 1,883 clean rows | 309 deductible rows | 32 financial accounts.'
   };
 
   // ============================================================

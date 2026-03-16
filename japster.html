@@ -477,12 +477,12 @@ function getSmartResponse(msg) {
 
   // Status queries
   if (lower.match(/status|how.*going|progress|update/)) {
-    return "Fleet status report:\n\u2022 \ud83d\udfe2 DDBOT — Active, last scan found 14 missing income entries\n\u2022 \ud83d\udfe2 ForensicBot — Active, 3 duplicate alerts pending\n\u2022 \ud83d\udfe2 ShieldBot — Active, all systems nominal\n\u2022 \ud83d\udfe1 SCOUT — Idle, awaiting scan directive\n\u2022 \ud83d\udfe1 CategorizerBot — Idle, 562 unmatched entries in queue\n\u2022 \ud83d\udd34 MaintenanceBot — Offline for scheduled maintenance\n\nOverall fleet health: 83%. 5 of 6 bots operational.";
+    return "Fleet status report:\n\u2022 \ud83d\udfe2 DDBOT — Active, income reconciliation complete\n\u2022 \ud83d\udfe2 ForensicBot — Active, dedup complete (2,224 removed)\n\u2022 \ud83d\udfe2 ShieldBot — Active, all systems nominal\n\u2022 \ud83d\udfe2 SCOUT — Active, consolidated 4 sources\n\u2022 \ud83d\udfe2 CategorizerBot — Complete, 452 of 516 auto-resolved\n\u2022 \ud83d\udfe1 MaintenanceBot — Standby\n\nOverall fleet health: 94%. Project 94% complete.";
   }
 
   // Data queries
   if (lower.match(/data|numbers|income|deductions|financial/)) {
-    return "Latest data snapshot:\n\u2022 Clean rows: 1,185 (from 2,155 raw)\n\u2022 Deductible total: $32,440 across 309 rows\n\u2022 Gross income: $16,936\n\u2022 Net position: ($17,247) loss\n\u2022 Unmatched ledger: 562 entries (~$16K)\n\nData pipeline is 95% complete. Want me to pull live numbers from the Google Sheet?";
+    return "Latest data snapshot:\n\u2022 Clean rows: 1,883 (from 4,095 raw)\n\u2022 Deductible total: $42,889.72 across 309 rows\n\u2022 Gross income: ~$21,701\n\u2022 Net position: ~($21,189) loss\n\u2022 Unmatched: 516 (452 auto-resolved, 64 need James)\n\nData pipeline is 99% complete. Firestore has 1,871 transactions + 516 unmatched docs.";
   }
 
   // Bot-specific queries
@@ -499,7 +499,7 @@ function getSmartResponse(msg) {
     return "SCOUT Report:\n\u2022 Status: \ud83d\udfe1 Idle — awaiting directive\n\u2022 Last mission: eBay transaction scan\n\u2022 Capability: Scans external sources for income/expense data\n\u2022 Ready for: Bank CSV scan, PayPal history, email receipt mining\n\nSay \"activate scout\" to deploy on a new scan mission.";
   }
   if (lower.match(/categorizer|category/)) {
-    return "CategorizerBot Report:\n\u2022 Status: \ud83d\udfe1 Idle\n\u2022 Queue: 562 unmatched ledger entries\n\u2022 Categories configured: 12 IRS Schedule C categories\n\u2022 Auto-match confidence threshold: 85%\n\u2022 Manual review needed: ~120 entries\n\nCategorizerBot is ready to process the backlog. Beckon it to start the categorization run.";
+    return "CategorizerBot Report:\n\u2022 Status: \ud83d\udfe2 Complete\n\u2022 Processed: 516 unmatched ledger entries\n\u2022 Auto-resolved: 452 (387 business + 65 personal)\n\u2022 Remaining: 64 ambiguous entries (~$24K) need James\n\u2022 Categories: 12 IRS Schedule C categories\n\nCategorizerBot has finished its run. 64 entries await Commander review in Deductions HQ.";
   }
 
   // Activate commands
@@ -793,5 +793,9 @@ updateStats();
 <script src="js/offline.js"></script>
 <script src="bot-assistant.js"></script>
 <script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
 </body>
 </html>

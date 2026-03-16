@@ -272,9 +272,9 @@
     <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=system]').click()" title="View System Info"><div class="stat-number" style="color:var(--admin)">8 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Dashboard Pages</div></div>
     <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=users]').click()" title="Manage Users"><div class="stat-number" style="color:var(--green)">3 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Authorized Users</div></div>
     <div class="stat-card stat-link" onclick="window.location.href='bots.html'" title="Open Bot HQ"><div class="stat-number" style="color:#38bdf8">16 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Active Bots</div></div>
-    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=builds]').click()" title="View Build Progress"><div class="stat-number" style="color:var(--yellow)">80% <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Project Progress</div></div>
+    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=builds]').click()" title="View Build Progress"><div class="stat-number" style="color:var(--yellow)">94% <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Project Progress</div></div>
     <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=builds]').click()" title="View Build Tickets"><div class="stat-number" style="color:var(--orange)">16 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Jira Tickets</div></div>
-    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=reports]').click()" title="View Reports"><div class="stat-number" style="color:var(--green)">1,185 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Clean Data Rows</div></div>
+    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=reports]').click()" title="View Reports"><div class="stat-number" style="color:var(--green)">1,883 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Clean Data Rows</div></div>
   </div>
 
   <!-- TAB SYSTEM -->
@@ -650,23 +650,23 @@
       <div class="sys-grid">
         <div class="sys-card">
           <h3>&#128202; Data Pipeline</h3>
-          <div class="sys-item"><span class="sys-label">QBO Raw Rows</span><span class="sys-val">2,155</span></div>
-          <div class="sys-item"><span class="sys-label">Clean Rows</span><span class="sys-val" style="color:var(--green)">1,185</span></div>
-          <div class="sys-item"><span class="sys-label">Dedup Removed</span><span class="sys-val">970</span></div>
+          <div class="sys-item"><span class="sys-label">Raw Sources</span><span class="sys-val">4,095</span></div>
+          <div class="sys-item"><span class="sys-label">Clean Rows</span><span class="sys-val" style="color:var(--green)">1,883</span></div>
+          <div class="sys-item"><span class="sys-label">Dedup Removed</span><span class="sys-val">2,224</span></div>
           <div class="sys-item"><span class="sys-label">Deductible Rows</span><span class="sys-val">309</span></div>
-          <div class="sys-item"><span class="sys-label">Total Deductible</span><span class="sys-val" style="color:var(--green)">$32,440</span></div>
-          <div class="sys-item"><span class="sys-label">Ledger Matched</span><span class="sys-val">183</span></div>
-          <div class="sys-item"><span class="sys-label">Ledger Unmatched</span><span class="sys-val" style="color:var(--yellow)">562</span></div>
+          <div class="sys-item"><span class="sys-label">Total Deductible</span><span class="sys-val" style="color:var(--green)">$42,889.72</span></div>
+          <div class="sys-item"><span class="sys-label">Unmatched Auto-Resolved</span><span class="sys-val">452</span></div>
+          <div class="sys-item"><span class="sys-label">Unmatched Need James</span><span class="sys-val" style="color:var(--yellow)">64</span></div>
         </div>
 
         <div class="sys-card">
           <h3>&#128176; Financials</h3>
-          <div class="sys-item"><span class="sys-label">eBay Sales</span><span class="sys-val">$12,932</span></div>
-          <div class="sys-item"><span class="sys-label">Services Income</span><span class="sys-val">$3,921</span></div>
-          <div class="sys-item"><span class="sys-label">Other Income</span><span class="sys-val">$84</span></div>
-          <div class="sys-item"><span class="sys-label">Gross Income</span><span class="sys-val" style="color:var(--green)">$16,936</span></div>
+          <div class="sys-item"><span class="sys-label">eBay Sales</span><span class="sys-val">$13,052</span></div>
+          <div class="sys-item"><span class="sys-label">Services Income</span><span class="sys-val">$14,727</span></div>
+          <div class="sys-item"><span class="sys-label">Supplemental Income</span><span class="sys-val">$3,454</span></div>
+          <div class="sys-item"><span class="sys-label">Gross Income</span><span class="sys-val" style="color:var(--green)">~$21,701</span></div>
           <div class="sys-item"><span class="sys-label">Processor Fees</span><span class="sys-val" style="color:var(--red)">($1,742)</span></div>
-          <div class="sys-item"><span class="sys-label">Net Loss</span><span class="sys-val" style="color:var(--red)">($17,247)</span></div>
+          <div class="sys-item"><span class="sys-label">Net Loss</span><span class="sys-val" style="color:var(--red)">~($21,189)</span></div>
         </div>
 
         <div class="sys-card">
@@ -1680,7 +1680,7 @@
     var lower = msg.toLowerCase();
     setTimeout(function() {
       if (lower.includes('status') || lower.includes('progress')) {
-        addChatMessage('Project is at 80% overall. Data: 95%, Tax Prep: 60%, Dashboard: 100%, Bots: 60%, Filing: 0%. Deadline: April 10.', 'bot');
+        addChatMessage('Project is at 94% overall. Data: 99%, Tax Prep: 85%, Dashboard: 100%, Bots/Village: 75%, Filing: 0%. Deadline: April 10.', 'bot');
       } else if (lower.includes('users') || lower.includes('who')) {
         addChatMessage('3 authorized users: Commander (admin), Judith Marshall (member), Friendly Sales (member). 0 guest logins recorded.', 'bot');
       } else if (lower.includes('deadline') || lower.includes('days')) {
@@ -1692,7 +1692,7 @@
       } else if (lower.includes('jira')) {
         addChatMessage('Jira board: KAN project, 16 tickets total, 3 done. Board: friendlypc.atlassian.net/browse/KAN-1', 'bot');
       } else if (lower.includes('data') || lower.includes('numbers')) {
-        addChatMessage('1,185 clean rows. $32,440 deductible. Gross income $16,936. Net loss ($17,247). 562 unmatched ledger entries (~$16K) still to incorporate.', 'bot');
+        addChatMessage('1,883 clean rows. $42,889.72 deductible (309 rows). Gross income ~$21,701. Net loss ~($21,189). 516 unmatched (452 auto-resolved, 64 need James).', 'bot');
       } else if (lower.includes('bot')) {
         addChatMessage('16 bots in Realbotville. Opus commands, Sarge supervises. ForensicBot deployed and active. Library: 3 volumes.', 'bot');
       } else {
@@ -2094,5 +2094,9 @@
 <script src="js/offline.js"></script>
 <script src="bot-assistant.js"></script>
 <script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
 </body>
 </html>
