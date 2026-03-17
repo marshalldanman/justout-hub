@@ -887,10 +887,10 @@ body::after {
       renderLogs(entries);
     }, 200);
 
-    // If no real logs, show simulated placeholder
+    // Show "waiting for logs" if none arrive
     setTimeout(function () {
-      if (logStream.querySelector('div[style]')) {
-        renderPlaceholderLogs(a);
+      if (!logStream.querySelector('.log-line')) {
+        logStream.innerHTML = '<div style="color:var(--text-dim);padding:8px;text-align:center">No log data — agent not reporting</div>';
       }
     }, 3000);
 
@@ -993,34 +993,7 @@ body::after {
     document.getElementById('logCount').textContent = entries.length + ' entries';
   }
 
-  function renderPlaceholderLogs(agent) {
-    // Show simulated logs when no real Firestore data exists yet
-    var tags = ['SHIELD', 'SCAN', 'THREAT', 'JAIL', 'YARA', 'SIGMA', 'ML', 'HARDEN'];
-    var msgs = [
-      'SentryLion agent initialized — monitoring active',
-      'Heartbeat confirmed — all systems nominal',
-      'YARA scan completed — 0 detections in 1,247 files',
-      'Sigma rule check — 0 suspicious events in Security log',
-      'ML anomaly score: 0.12 — within normal baseline',
-      'Hardening score: ' + ((agent.hardening && agent.hardening.score) || '?') + '/100',
-      'Network connections: 23 active, 0 suspicious',
-      'CPU: ' + (agent.cpuPercent || 0) + '% | MEM: ' + (agent.memPercent || 0) + '%',
-      'Canary files intact — no tampering detected',
-      'Threat intel feeds refreshed — 12,847 IOCs loaded',
-      'Process tree analysis — no anomalous parent-child chains',
-      'Registry integrity check — all security keys intact'
-    ];
-    var entries = [];
-    var now = Date.now();
-    for (var i = 0; i < msgs.length; i++) {
-      entries.push({
-        timestamp: now - (i * 5000),
-        tag: tags[i % tags.length],
-        message: msgs[i]
-      });
-    }
-    renderLogs(entries);
-  }
+  // Placeholder logs removed — console shows only real agent data
 
   // ════════════════════════════════════════════════════════
   //  COMMAND PANEL
@@ -1308,21 +1281,17 @@ body::after {
 
     // Override confirm button for this dialog
     var yesBtn = document.getElementById('confirmYes');
-    yesBtn.textContent = 'Clear Demo Data';
-    yesBtn.style.background = 'var(--red)';
+    yesBtn.textContent = 'Understood';
+    yesBtn.style.background = '';
     confirmOverlay.classList.add('active');
 
-    // One-time handler to clear demo data
-    var clearHandler = function () {
-      SentryFleet.clearDemoAgents().then(function () {
-        console.log('[Console] Demo agents cleared');
-      });
+    // Dismiss handler
+    var dismissHandler = function () {
       confirmOverlay.classList.remove('active');
       yesBtn.textContent = 'Execute';
-      yesBtn.style.background = '';
-      yesBtn.removeEventListener('click', clearHandler);
+      yesBtn.removeEventListener('click', dismissHandler);
     };
-    yesBtn.addEventListener('click', clearHandler);
+    yesBtn.addEventListener('click', dismissHandler);
   });
 
   // ════════════════════════════════════════════════════════
@@ -1364,5 +1333,9 @@ body::after {
 
 })();
 </script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
 </body>
 </html>

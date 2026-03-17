@@ -1310,13 +1310,17 @@ function escDed(s) {
   return d.innerHTML;
 }
 
-// --- Auto-load on auth ---
+// --- Auto-load on auth (guarded against double-init) ---
+var _deductionsLoading = false;
+function safeLoadDeductions() {
+  if (_deductionsLoading || dedRecords.length > 0) return;
+  _deductionsLoading = true;
+  loadDeductionRecords();
+}
 document.addEventListener('fpcs-authed', function() {
-  setTimeout(loadDeductionRecords, 300);
+  setTimeout(safeLoadDeductions, 300);
 });
-setTimeout(function() {
-  if (dedRecords.length === 0) loadDeductionRecords();
-}, 4000);
+setTimeout(safeLoadDeductions, 4000);
 
 // ============================================================
 //  NOTES PANEL — Category notes with bot replies
@@ -1643,20 +1647,30 @@ function loadUnmatchedData() {
         });
         unmatchedAllEntries = [];
         var liveTotal = 0;
+        var restoredCount = 0;
         unmatchedGroups.forEach(function(g) {
           g.entries.forEach(function(e) {
             unmatchedAllEntries.push(e);
             liveTotal++;
+            // Restore resolved state from Firestore status field
+            if (e.status === 'resolved') {
+              var resType = e.isDeductible ? 'deductible' : (e.resolvedCategory || 'personal');
+              unmatchedResolved[e.id] = resType;
+              restoredCount++;
+            }
           });
         });
         unmatchedTotalCount = liveTotal;
-        console.log('[Unmatched] Loaded ' + liveTotal + ' entries from Firestore');
+        if (restoredCount > 0) {
+          console.log('[Unmatched] Restored ' + restoredCount + ' previously resolved entries from Firestore');
+        }
+        console.log('[Unmatched] Loaded ' + liveTotal + ' entries from Firestore (' + (liveTotal - restoredCount) + ' unresolved)');
         renderUnmatchedGroups(unmatchedGroups);
         updateUnmatchedStats();
         updateResolutionProgress();
-        // Update the alert banner with live count
+        // Update the alert banner with unresolved count
         var alertCount = document.getElementById('unmatchedAlertCount');
-        if (alertCount) alertCount.textContent = liveTotal + ' Unmatched Entries';
+        if (alertCount) alertCount.textContent = (liveTotal - restoredCount) + ' Unmatched Entries';
         return;
       }
       // Empty Firestore result — fall through to seed
@@ -1757,7 +1771,7 @@ function renderUnmatchedGroups(groups) {
     html += '<span class="cat-arrow">&#9654;</span>';
     html += '<span style="font-weight:700;font-size:13px;flex:1">' + escDed(g.vendor) + badge + '</span>';
     html += '<span style="font-size:11px;color:var(--muted);margin-right:8px">' + escDed(g.category) + '</span>';
-    html += '<span class="cat-count">' + g.entries.length + '</span>';
+    html += '<span class="cat-count">' + unresolvedCount + '/' + g.entries.length + '</span>';
     html += '<span class="cat-amount" style="color:var(--yellow)">$' + g.total.toLocaleString('en-US', {minimumFractionDigits:2}) + '</span>';
     if (unresolvedCount < g.entries.length) {
       var pct = Math.round(((g.entries.length - unresolvedCount) / g.entries.length) * 100);
@@ -1831,9 +1845,17 @@ function toggleUnmatchedGroup(headerEl) {
 function resolveEntry(id, resolution) {
   unmatchedResolved[id] = resolution;
 
-  // Try Firestore persist
+  // Persist to Firestore with proper object format
   if (window.FPCSFirestore && typeof window.FPCSFirestore.resolveUnmatched === 'function') {
-    try { window.FPCSFirestore.resolveUnmatched(id, resolution); } catch(e) {}
+    var firestoreRes = {
+      isDeductible: (resolution === 'deductible'),
+      category: resolution,
+      notes: 'Resolved via Deductions HQ',
+      resolvedBy: (window.FPCS_USER ? window.FPCS_USER.email : 'dashboard-user')
+    };
+    window.FPCSFirestore.resolveUnmatched(id, firestoreRes).catch(function(e) {
+      console.warn('[Resolve] Firestore write failed for ' + id + ':', e);
+    });
   }
 
   renderUnmatchedGroups(unmatchedGroups);
@@ -1842,18 +1864,38 @@ function resolveEntry(id, resolution) {
 }
 
 function bulkResolveGroup(vendor, category, resolution) {
+  var idsToResolve = [];
   unmatchedGroups.forEach(function(g) {
     if (g.vendor === vendor && g.category === category) {
       g.entries.forEach(function(e) {
         if (!unmatchedResolved[e.id]) {
           unmatchedResolved[e.id] = resolution;
-          if (window.FPCSFirestore && typeof window.FPCSFirestore.resolveUnmatched === 'function') {
-            try { window.FPCSFirestore.resolveUnmatched(e.id, resolution); } catch(ex) {}
-          }
+          idsToResolve.push(e.id);
         }
       });
     }
   });
+
+  // Batch persist to Firestore
+  if (idsToResolve.length > 0 && window.FPCSFirestore) {
+    var firestoreRes = {
+      isDeductible: (resolution === 'deductible'),
+      category: resolution,
+      notes: 'Bulk resolved via Deductions HQ',
+      resolvedBy: (window.FPCS_USER ? window.FPCS_USER.email : 'dashboard-user')
+    };
+    if (typeof window.FPCSFirestore.bulkResolve === 'function') {
+      window.FPCSFirestore.bulkResolve(idsToResolve, firestoreRes).catch(function(e) {
+        console.warn('[BulkResolve] Firestore batch write failed:', e);
+      });
+    } else if (typeof window.FPCSFirestore.resolveUnmatched === 'function') {
+      idsToResolve.forEach(function(id) {
+        window.FPCSFirestore.resolveUnmatched(id, firestoreRes).catch(function(e) {
+          console.warn('[BulkResolve] Firestore write failed for ' + id + ':', e);
+        });
+      });
+    }
+  }
 
   renderUnmatchedGroups(unmatchedGroups);
   updateUnmatchedStats();
@@ -2153,13 +2195,17 @@ function toggleJasperChat() {
   icon.innerHTML = chat.classList.contains('open') ? '&#9660;' : '&#9654;';
 }
 
-// --- Auto-load unmatched data after auth ---
+// --- Auto-load unmatched data after auth (guarded against double-init) ---
+var _unmatchedLoading = false;
+function safeLoadUnmatched() {
+  if (_unmatchedLoading || unmatchedGroups.length > 0) return;
+  _unmatchedLoading = true;
+  loadUnmatchedData();
+}
 document.addEventListener('fpcs-authed', function() {
-  setTimeout(loadUnmatchedData, 600);
+  setTimeout(safeLoadUnmatched, 600);
 });
-setTimeout(function() {
-  if (unmatchedGroups.length === 0) loadUnmatchedData();
-}, 5000);
+setTimeout(safeLoadUnmatched, 5000);
 </script>
 
 <!-- Category Detail Modal -->

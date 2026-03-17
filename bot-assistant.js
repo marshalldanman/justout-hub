@@ -21,14 +21,14 @@
 
   // Config per page
   var PAGE_CONFIG = {
-    'index.html':      { name: 'Sarge', greeting: "Commander! What's the mission?", context: 'Tax HQ' },
+    'index.html':      { name: 'Sarge', greeting: "Commander! Village is online. What's the mission?", context: 'Village HQ' },
     'bots.html':       { name: 'Sarge', greeting: "Bot fleet reporting for duty!", context: 'Bot HQ' },
-    'deductions.html': { name: 'Penny', greeting: "Let's find those write-offs!", context: 'Deductions' },
     'memory.html':     { name: 'Sarge', greeting: "Memory banks online.", context: 'Memory Bank' },
     'japster.html':    { name: 'Japster', greeting: "Inter-AI comms ready!", context: 'Japster Hub' },
     'helpdesk.html':   { name: 'Sarge', greeting: "Tickets are my thing!", context: 'Helpdesk' },
-    'income.html':     { name: 'Cruncher', greeting: "Numbers don't lie. Let's drill down!", context: 'Income' },
-    'library.html':    { name: 'Sarge', greeting: "Welcome to the library, Commander.", context: 'Library' }
+    'library.html':    { name: 'Sarge', greeting: "Welcome to the library, Commander.", context: 'Library' },
+    'sentrylion.html': { name: 'Sarge', greeting: "SentryLion monitoring active.", context: 'SentryLion' },
+    'stats-board.html':{ name: 'Sarge', greeting: "Stats board loaded. What do you want to see?", context: 'Stats' }
   };
 
   var page = location.pathname.split('/').pop() || 'index.html';
@@ -36,32 +36,29 @@
 
   // Quick replies per context
   var QUICK_REPLIES = {
-    'Tax HQ': ['Show progress', 'What\'s next?', 'Deadline status', '/sheets'],
+    'Village HQ': ['Bot status', 'Active projects', 'Village health', '/help'],
     'Bot HQ': ['Bot status', 'Deploy a bot', 'Run DDBOT', 'Fleet report'],
-    'Deductions': ['/lookup supplies', '/notes', 'Home office', '/sheets'],
-    'Memory Bank': ['Memory stats', 'Key numbers', 'Data gaps', '/offline'],
-    'Japster Hub': ['Start chat', 'AI status', 'Sheet link', 'New topic'],
+    'Memory Bank': ['/memory', '/stats', '/recall', '/offline'],
+    'Japster Hub': ['Start chat', 'AI status', 'New topic', '/help'],
     'Helpdesk': ['Open tickets', 'New ticket', 'Priority list', 'Overdue items'],
-    'Income': ['Missing income', 'Client list', 'QBO status', '/lookup income'],
-    'Library': ['/memory', '/stats', 'Key numbers', '/help']
+    'Library': ['/memory', '/stats', 'Recent volumes', '/help'],
+    'SentryLion': ['Run scan', 'Alert status', 'Fleet health', '/help'],
+    'Stats': ['Village stats', 'Bot XP', 'Session log', '/help']
   };
 
   // ============================================================
   //  RESPONSE ENGINE — Memory-aware response generation
   // ============================================================
 
-  // Static responses (baseline knowledge)
+  // Static responses (baseline knowledge — live data lives in Firestore/Sheets)
   var RESPONSES = {
-    'show progress': 'Overall progress: Data 99%, Tax Prep 85%, Bots/Village 75%, Filing 0%. Priority: James answers 5 blocking questions, then TurboTax entry.',
-    'what\'s next?': 'Priority items: 1) James answers 5 blocking questions (QUESTIONS_FOR_JAMES.md), 2) Break out Schedule C line-item amounts, 3) TurboTax install + entry.',
-    'deadline status': 'Deadline: April 10, 2026 (USPS Certified Mail). Oregon 3-year statute expires April 15, 2026.',
-    'missing items': '64 ambiguous unmatched entries need James review (~$24K). 452 of 516 unmatched already auto-resolved. 5 blocking questions pending.',
-    'missing income': 'Gross income ~$21,701: Services $14,727 + eBay $13,052 + supplemental $3,454. IRS transcript shows W-2G $1,469, 1099-G $2,355.',
-    'client list': 'Email clients: AGT Mortgage ($2K confirmed), Heidi Ostrom ($916.50), Angie Herrmann ($130), Arlene Harris ($870). American Restoration ($730).',
-    'qbo status': 'QBO data consolidated into Firestore. 1,871 transactions migrated. All income sources reconciled including 12 supplemental income entries.',
-    'reconciliation': 'Consolidation complete: 4,095 raw rows -> 1,883 clean rows. SHA-256 dedup + fuzzy match. 516 unmatched: 452 auto-resolved, 64 need James.',
-    'top deductions': 'Top deductions: Supplies $13,257 | Equipment $12,654 | Other Expenses $7,920 | Car/Truck $3,240 | COGS $2,896 | Total: $42,889.72',
-    'key numbers': 'Gross Income: ~$21,701 | Deductions: $42,889.72 | Net Loss: ~$21,189 | 1,883 clean rows | 309 deductible rows | 32 financial accounts.'
+    'bot status': 'Bot fleet is online. 13 identities loaded. Check Bot HQ for individual status and XP rankings.',
+    'active projects': 'Active: FPCS Taxes (in progress), Village Dashboard (live), Japster Store (building), SentryLion (beta). Check index for full project board.',
+    'village health': 'Village systems: Dashboard live, Firestore connected, Library at 9+ volumes, Helpdesk active. Use /stats for memory details.',
+    'fleet report': 'Fleet: Commander (Opus) at the helm. 13 named identities across all departments. BIRDBOT permanent on shoulder.',
+    'deploy a bot': 'To deploy a bot: open Bot HQ, select identity, and configure mission. Use +@name syntax to create new identities.',
+    'run ddbot': 'DDBot is archived (tax data migrated to Firestore + Sheets). For live data, check the Tax Sheet linked in Admin HQ.',
+    'tax work': 'Tax work lives in Google Sheets (linked from Admin HQ). Data synced from Firestore. Check the FPCS 2022 Tax Data sheet for live numbers.'
   };
 
   // ============================================================
@@ -272,13 +269,12 @@
     }
 
     // 4. Fuzzy keyword matching
-    if (lower.indexOf('progress') !== -1) return RESPONSES['show progress'];
-    if (lower.indexOf('next') !== -1 || lower.indexOf('todo') !== -1) return RESPONSES['what\'s next?'];
-    if (lower.indexOf('deadline') !== -1 || lower.indexOf('date') !== -1) return RESPONSES['deadline status'];
-    if (lower.indexOf('missing') !== -1) return RESPONSES['missing income'];
-    if (lower.indexOf('client') !== -1) return RESPONSES['client list'];
-    if (lower.indexOf('deduct') !== -1) return RESPONSES['top deductions'];
-    if (lower.indexOf('number') !== -1 || lower.indexOf('stats') !== -1) return RESPONSES['key numbers'];
+    if (lower.indexOf('bot') !== -1 || lower.indexOf('fleet') !== -1) return RESPONSES['bot status'];
+    if (lower.indexOf('project') !== -1 || lower.indexOf('active') !== -1) return RESPONSES['active projects'];
+    if (lower.indexOf('health') !== -1 || lower.indexOf('village') !== -1) return RESPONSES['village health'];
+    if (lower.indexOf('tax') !== -1 || lower.indexOf('deduct') !== -1 || lower.indexOf('income') !== -1) return RESPONSES['tax work'];
+    if (lower.indexOf('deploy') !== -1) return RESPONSES['deploy a bot'];
+    if (lower.indexOf('ddbot') !== -1) return RESPONSES['run ddbot'];
 
     // 4b. Sheets-aware: detect tax category questions and auto-lookup
     if (_sheetData && _sheetColMap && _sheetColMap.account !== undefined) {
@@ -575,7 +571,7 @@
 
     // Initialize quick replies
     var quickDiv = document.getElementById('botQuick');
-    var replies = QUICK_REPLIES[cfg.context] || QUICK_REPLIES['Tax HQ'];
+    var replies = QUICK_REPLIES[cfg.context] || QUICK_REPLIES['Village HQ'];
     replies.forEach(function(r){
       var btn = document.createElement('button');
       btn.className = 'bot-quick-btn';

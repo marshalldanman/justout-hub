@@ -1,16 +1,12 @@
 /* ============================================================
-   FPCS Nav Rail — Shared navigation sidebar injection
-   Part of TRAILS: Technology · Robotics · AI · Language · Skills
+   FPCS Top Nav — Shared horizontal navigation bar injection
+   Realbotville Village Command Center
 
    USAGE: Each page sets nav config before this script loads:
 
    <script>
      window.FPCS_NAV = {
-       active: 'bots',   // Which page is active (matches key below)
-       sections: [        // In-page section links (optional)
-         { icon: '&#128101;', label: 'Bot Roster', href: '#sec-roster' },
-         { icon: '&#127968;', label: 'Realbotville', href: '#sec-village' }
-       ]
+       active: 'home',   // Which page is active (matches key below)
      };
    </script>
    <script src="js/nav.js"></script>
@@ -18,129 +14,145 @@
 (function () {
   'use strict';
 
-  // --- Page Registry ---
+  // --- Page Registry (village only — no tax pages) ---
   var PAGES = [
-    { key: 'tax',        icon: '&#128202;', label: 'Tax HQ (Page 1)',   href: 'index.html',      color: '' },
-    { key: 'bots',       icon: '&#129302;', label: 'Bot HQ (Page 2)',   href: 'bots.html',       color: '' },
-    { key: 'deductions', icon: '&#128269;', label: 'Deductions (Page 3)', href: 'deductions.html', color: 'var(--green)' },
-    { key: 'income',     icon: '&#128176;', label: 'Income (Page 4)',    href: 'income.html',     color: '' },
-    { key: 'memory',     icon: '&#128218;', label: 'Memory Bank (Page 5)', href: 'memory.html',   color: '' },
-    { key: 'japster',    icon: '&#128172;', label: 'Japster Hub (Page 6)', href: 'japster.html',  color: '#22d3ee' },
-    { key: 'helpdesk',   icon: '&#127915;', label: 'Helpdesk (Page 7)',  href: 'helpdesk.html',   color: 'var(--orange)' },
-    { key: 'admin',      icon: '&#128274;', label: 'Admin HQ (Page 8)', href: 'admin.html',      color: 'var(--purple)' },
-    { key: 'village',    icon: '&#127968;', label: 'Realbotville (Page 9)', href: 'realbotville.html', color: '#38bdf8' },
-    { key: 'library',   icon: '&#128218;', label: 'Library (Page 10)',     href: 'library.html',      color: '#f59e0b' },
-    { key: 'stats-board', icon: '&#127942;', label: 'Stats Board',         href: 'stats-board.html',  color: 'var(--purple)' },
-    { key: 'sentrylion', icon: '&#128737;', label: 'SentryLion',           href: 'sentrylion.html',   color: '#f59e0b' },
-    { key: 'fleet',      icon: '&#127981;', label: 'Fleet Console',         href: 'sentrylion-console.html', color: '#ef4444' }
+    { key: 'home',     icon: '\u{1F3E0}', label: 'Home',      href: 'index.html' },
+    { key: 'bots',     icon: '\u{1F916}', label: 'Bots',      href: 'bots.html' },
+    { key: 'library',  icon: '\u{1F4DA}', label: 'Library',   href: 'library.html' },
+    { key: 'helpdesk', icon: '\u{1F39B}', label: 'Helpdesk',  href: 'helpdesk.html' },
+    { key: 'stats',    icon: '\u{1F3C6}', label: 'Stats',     href: 'stats-board.html' },
+    { key: 'sentry',   icon: '\u{1F981}', label: 'SentryLion', href: 'sentrylion.html' },
+    { key: 'japster',  icon: '\u{1F4BC}', label: 'Japster',   href: 'japster.html' }
   ];
 
   // --- Read page config ---
   var navConfig = window.FPCS_NAV || {};
   var activeKey = navConfig.active || '';
-  var sections = navConfig.sections || [];
 
-  // --- Build nav HTML ---
-  function buildNav() {
-    var html = [];
+  // --- Create a nav link element ---
+  function createLink(page) {
+    var a = document.createElement('a');
+    a.className = 'nav-link' + (page.key === activeKey ? ' active' : '');
+    a.href = page.href;
 
-    // Main page link (Tax HQ — always first)
-    html.push(buildLink(PAGES[0]));
-    html.push('<div class="nav-sep"></div>');
+    var iconSpan = document.createElement('span');
+    iconSpan.className = 'nav-icon';
+    iconSpan.textContent = page.icon;
 
-    // Active page link (if not Tax HQ)
-    if (activeKey && activeKey !== 'tax') {
-      var activePage = PAGES.find(function (p) { return p.key === activeKey; });
-      if (activePage) {
-        html.push(buildLink(activePage, true));
-      }
-    }
+    var labelSpan = document.createElement('span');
+    labelSpan.className = 'nav-label';
+    labelSpan.textContent = page.label;
 
-    // In-page section links — handles multiple config formats:
-    //   { icon, label, href }    ← full format (admin, bots, deductions, japster, index)
-    //   { id, icon, label }      ← memory format (auto-generates href)
-    //   { id, label }            ← income format (auto-generates icon + href)
-    //   'section-id'             ← string shorthand (auto-generates everything)
-    sections.forEach(function (sec) {
-      // Normalize: if sec is a plain string, wrap it
-      if (typeof sec === 'string') {
-        sec = { id: sec, label: sec.replace(/^sec-/, '').replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }) };
-      }
-      var href = sec.href || (sec.id ? '#' + sec.id : '#');
-      var icon = sec.icon || '&#9654;';
-      var label = sec.label || sec.id || 'Section';
-      html.push(
-        '<a class="nav-link" href="' + href + '">' +
-        '<span class="nav-icon">' + icon + '</span>' +
-        '<span class="nav-label">' + label + '</span>' +
-        '</a>'
-      );
-    });
+    a.appendChild(iconSpan);
+    a.appendChild(labelSpan);
+    return a;
+  }
 
-    // Separator before other pages
-    if (sections.length > 0) {
-      html.push('<div class="nav-sep"></div>');
-    }
+  // --- Build top nav bar using DOM methods ---
+  function buildTopNav() {
+    var frag = document.createDocumentFragment();
 
-    // Other page links
+    // Brand
+    var brand = document.createElement('a');
+    brand.className = 'nav-brand';
+    brand.href = 'index.html';
+    var brandIcon = document.createElement('span');
+    brandIcon.className = 'nav-brand-icon';
+    brandIcon.textContent = '\u{1F3D9}';
+    brand.appendChild(brandIcon);
+    brand.appendChild(document.createTextNode('Realbotville'));
+    frag.appendChild(brand);
+
+    // Page links
     PAGES.forEach(function (page) {
-      if (page.key === activeKey || page.key === 'tax') return; // Already shown above
-      html.push(buildLink(page));
+      frag.appendChild(createLink(page));
     });
 
-    // Back to Tax HQ at bottom
-    html.push('<div class="nav-sep"></div>');
-    html.push(
-      '<a class="nav-link" href="index.html" style="color:var(--accent)">' +
-      '<span class="nav-icon">&#8592;</span>' +
-      '<span class="nav-label">Back to Tax HQ</span>' +
-      '</a>'
-    );
+    // Right side container
+    var right = document.createElement('div');
+    right.className = 'nav-right';
 
-    // Radio indicator (shows when radio is playing)
-    html.push(
-      '<div class="nav-radio-indicator" id="navRadioIndicator" style="display:none;padding:6px 12px;font-size:11px;color:var(--muted);text-align:center;cursor:pointer" title="Radio is playing" onclick="if(window.toggleRadio)window.toggleRadio()">' +
-      '<span style="animation:navPulse 1.5s ease-in-out infinite">&#9835;</span>' +
-      '<span class="nav-label" style="margin-left:4px;font-size:10px">Radio On</span>' +
-      '</div>'
-    );
+    // Radio indicator
+    var radio = document.createElement('div');
+    radio.className = 'nav-radio-indicator';
+    radio.id = 'navRadioIndicator';
+    radio.style.display = 'none';
+    radio.title = 'Radio is playing';
+    radio.onclick = function () { if (window.toggleRadio) window.toggleRadio(); };
+    var radioNote = document.createElement('span');
+    radioNote.textContent = '\u266B';
+    radio.appendChild(radioNote);
+    var radioLabel = document.createElement('span');
+    radioLabel.textContent = 'Radio';
+    radio.appendChild(radioLabel);
+    right.appendChild(radio);
 
-    return html.join('\n');
+    // EP meter
+    var epMeter = document.createElement('div');
+    epMeter.className = 'nav-ep-meter';
+    epMeter.id = 'navEpMeter';
+    var epBolt = document.createElement('span');
+    epBolt.textContent = '\u26A1';
+    epMeter.appendChild(epBolt);
+    var epBar = document.createElement('div');
+    epBar.className = 'nav-ep-bar';
+    var epFill = document.createElement('div');
+    epFill.className = 'nav-ep-fill';
+    epFill.id = 'navEpFill';
+    epFill.style.width = '100%';
+    epBar.appendChild(epFill);
+    epMeter.appendChild(epBar);
+    var epLabel = document.createElement('span');
+    epLabel.id = 'navEpLabel';
+    epLabel.textContent = '100%';
+    epMeter.appendChild(epLabel);
+    right.appendChild(epMeter);
+
+    // Identity badge
+    var identity = document.createElement('div');
+    identity.className = 'nav-identity';
+    identity.id = 'navIdentity';
+    identity.textContent = 'Guest';
+    right.appendChild(identity);
+
+    frag.appendChild(right);
+
+    // Hamburger for mobile
+    var hamburger = document.createElement('button');
+    hamburger.className = 'nav-hamburger';
+    hamburger.id = 'navHamburger';
+    hamburger.textContent = '\u2630';
+    hamburger.onclick = function () {
+      var menu = document.getElementById('navMobileMenu');
+      if (menu) menu.classList.toggle('open');
+    };
+    frag.appendChild(hamburger);
+
+    return frag;
   }
 
-  // --- Build single nav link ---
-  function buildLink(page, isActive) {
-    var cls = 'nav-link' + (isActive ? ' active' : '');
-    var style = page.color ? ' style="color:' + page.color + '"' : '';
-    return (
-      '<a class="' + cls + '" href="' + page.href + '"' + style + '>' +
-      '<span class="nav-icon">' + page.icon + '</span>' +
-      '<span class="nav-label">' + page.label + '</span>' +
-      '</a>'
-    );
-  }
-
-  // --- Inject nav rail into dashContent ---
+  // --- Inject top nav bar ---
   function injectNav() {
-    var dashContent = document.getElementById('dashContent');
-    if (!dashContent) {
-      console.error('[FPCS Nav] Missing #dashContent element');
-      return;
-    }
-
     var nav = document.createElement('nav');
-    nav.className = 'nav-rail';
-    nav.innerHTML = buildNav();
+    nav.className = 'nav-topbar';
+    nav.appendChild(buildTopNav());
+    document.body.insertBefore(nav, document.body.firstChild);
 
-    // Insert as first child of dashContent
-    dashContent.insertBefore(nav, dashContent.firstChild);
+    // Mobile menu
+    var mobileMenu = document.createElement('div');
+    mobileMenu.className = 'nav-mobile-menu';
+    mobileMenu.id = 'navMobileMenu';
+    PAGES.forEach(function (page) {
+      mobileMenu.appendChild(createLink(page));
+    });
+    document.body.insertBefore(mobileMenu, nav.nextSibling);
   }
 
-  // --- Radio indicator: listen for custom events from radio module ---
+  // --- Radio indicator events ---
   function setupRadioIndicator() {
     document.addEventListener('fpcs-radio-playing', function () {
       var el = document.getElementById('navRadioIndicator');
-      if (el) el.style.display = 'block';
+      if (el) el.style.display = 'flex';
     });
     document.addEventListener('fpcs-radio-stopped', function () {
       var el = document.getElementById('navRadioIndicator');
@@ -148,7 +160,26 @@
     });
   }
 
-  // --- Inject pulse animation style ---
+  // --- Public: Update EP meter ---
+  window.updateNavEP = function (pct) {
+    var fill = document.getElementById('navEpFill');
+    var label = document.getElementById('navEpLabel');
+    if (fill) fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    if (label) label.textContent = Math.round(pct) + '%';
+    if (fill) {
+      if (pct > 60) fill.style.background = 'var(--green)';
+      else if (pct > 30) fill.style.background = 'var(--yellow)';
+      else fill.style.background = 'var(--red)';
+    }
+  };
+
+  // --- Public: Update identity badge ---
+  window.updateNavIdentity = function (name) {
+    var el = document.getElementById('navIdentity');
+    if (el) el.textContent = name || 'Guest';
+  };
+
+  // --- Inject pulse animation ---
   function injectNavStyles() {
     var style = document.createElement('style');
     style.textContent = '@keyframes navPulse{0%,100%{opacity:.5}50%{opacity:1}}';

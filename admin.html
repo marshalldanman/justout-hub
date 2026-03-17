@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
-<title>Admin HQ — FPCS Command Center</title>
+<title>Admin HQ — Realbotville Command Center</title>
 <link rel="stylesheet" href="css/core.css">
 <link rel="stylesheet" href="css/nav.css">
 <link rel="stylesheet" href="css/auth.css">
@@ -274,7 +274,7 @@
     <div class="stat-card stat-link" onclick="window.location.href='bots.html'" title="Open Bot HQ"><div class="stat-number" style="color:#38bdf8">16 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Active Bots</div></div>
     <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=builds]').click()" title="View Build Progress"><div class="stat-number" style="color:var(--yellow)">94% <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Project Progress</div></div>
     <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=builds]').click()" title="View Build Tickets"><div class="stat-number" style="color:var(--orange)">16 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Jira Tickets</div></div>
-    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=reports]').click()" title="View Reports"><div class="stat-number" style="color:var(--green)">1,883 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Clean Data Rows</div></div>
+    <div class="stat-card stat-link" onclick="window.open('https://docs.google.com/spreadsheets/d/1F755ibxaSksNyEih6E7LometYWitRNUoiWoDJVXEwhY','_blank')" title="Open Tax Sheet"><div class="stat-number" style="color:var(--green)">&#128202; <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Tax Sheet</div></div>
   </div>
 
   <!-- TAB SYSTEM -->
@@ -649,33 +649,21 @@
 
       <div class="sys-grid">
         <div class="sys-card">
-          <h3>&#128202; Data Pipeline</h3>
-          <div class="sys-item"><span class="sys-label">Raw Sources</span><span class="sys-val">4,095</span></div>
-          <div class="sys-item"><span class="sys-label">Clean Rows</span><span class="sys-val" style="color:var(--green)">1,883</span></div>
-          <div class="sys-item"><span class="sys-label">Dedup Removed</span><span class="sys-val">2,224</span></div>
-          <div class="sys-item"><span class="sys-label">Deductible Rows</span><span class="sys-val">309</span></div>
-          <div class="sys-item"><span class="sys-label">Total Deductible</span><span class="sys-val" style="color:var(--green)">$42,889.72</span></div>
-          <div class="sys-item"><span class="sys-label">Unmatched Auto-Resolved</span><span class="sys-val">452</span></div>
-          <div class="sys-item"><span class="sys-label">Unmatched Need James</span><span class="sys-val" style="color:var(--yellow)">64</span></div>
-        </div>
-
-        <div class="sys-card">
-          <h3>&#128176; Financials</h3>
-          <div class="sys-item"><span class="sys-label">eBay Sales</span><span class="sys-val">$13,052</span></div>
-          <div class="sys-item"><span class="sys-label">Services Income</span><span class="sys-val">$14,727</span></div>
-          <div class="sys-item"><span class="sys-label">Supplemental Income</span><span class="sys-val">$3,454</span></div>
-          <div class="sys-item"><span class="sys-label">Gross Income</span><span class="sys-val" style="color:var(--green)">~$21,701</span></div>
-          <div class="sys-item"><span class="sys-label">Processor Fees</span><span class="sys-val" style="color:var(--red)">($1,742)</span></div>
-          <div class="sys-item"><span class="sys-label">Net Loss</span><span class="sys-val" style="color:var(--red)">~($21,189)</span></div>
-        </div>
-
-        <div class="sys-card">
           <h3>&#129302; Bot Fleet</h3>
-          <div class="sys-item"><span class="sys-label">Total Bots</span><span class="sys-val">16</span></div>
-          <div class="sys-item"><span class="sys-label">Commander</span><span class="sys-val">Opus</span></div>
-          <div class="sys-item"><span class="sys-label">Supervisor</span><span class="sys-val">The Sarge</span></div>
-          <div class="sys-item"><span class="sys-label">ForensicBot</span><span class="sys-val" style="color:var(--green)">DEPLOYED</span></div>
-          <div class="sys-item"><span class="sys-label">Library Volumes</span><span class="sys-val">3</span></div>
+          <div class="sys-item"><span class="sys-label">Total Bots</span><span class="sys-val" id="sysFleetTotal">--</span></div>
+          <div class="sys-item"><span class="sys-label">Active</span><span class="sys-val" id="sysFleetActive" style="color:var(--green)">--</span></div>
+          <div class="sys-item"><span class="sys-label">Identities Loaded</span><span class="sys-val">13</span></div>
+          <div class="sys-item"><span class="sys-label">Library Volumes</span><span class="sys-val">9+</span></div>
+          <div class="sys-item"><span class="sys-label">Highest Rank</span><span class="sys-val">Commander (Opus)</span></div>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#128202; Tax Work</h3>
+          <p style="color:var(--muted);font-size:12px;margin-bottom:10px;">Live data lives in Google Sheets — linked to Firestore.</p>
+          <div class="sys-item"><span class="sys-label">Sheet</span><span class="sys-val"><a href="https://docs.google.com/spreadsheets/d/1F755ibxaSksNyEih6E7LometYWitRNUoiWoDJVXEwhY" target="_blank" style="color:var(--admin);text-decoration:none">Open Tax Sheet &#8599;</a></span></div>
+          <div class="sys-item"><span class="sys-label">Tabs</span><span class="sys-val">Transactions, Deductions, Income, Unmatched</span></div>
+          <div class="sys-item"><span class="sys-label">Mail Deadline</span><span class="sys-val" style="color:var(--red)">Apr 10, 2026</span></div>
+          <div class="sys-item"><span class="sys-label">OR Statute</span><span class="sys-val" style="color:var(--red)">Apr 15, 2026</span></div>
         </div>
 
         <div class="sys-card">
@@ -684,7 +672,6 @@
           <div class="sys-item"><span class="sys-label">Auth</span><span class="sys-val">Firebase</span></div>
           <div class="sys-item"><span class="sys-label">Domain</span><span class="sys-val">dashboard.justout.today</span></div>
           <div class="sys-item"><span class="sys-label">Repo</span><span class="sys-val">fpcs-dashboard</span></div>
-          <div class="sys-item"><span class="sys-label">Jira Board</span><span class="sys-val">KAN (16 tickets)</span></div>
           <div class="sys-item"><span class="sys-label">Cost</span><span class="sys-val" style="color:var(--green)">$0/mo</span></div>
         </div>
 
@@ -701,22 +688,12 @@
         </div>
 
         <div class="sys-card">
-          <h3>&#128197; Deadlines</h3>
-          <div class="sys-item"><span class="sys-label">Mail By</span><span class="sys-val" style="color:var(--red)">Apr 10, 2026</span></div>
-          <div class="sys-item"><span class="sys-label">OR Statute</span><span class="sys-val" style="color:var(--red)">Apr 15, 2026</span></div>
-          <div class="sys-item"><span class="sys-label">QBO Expires</span><span class="sys-val" style="color:var(--yellow)">~Apr 2, 2026</span></div>
-          <div class="sys-item"><span class="sys-label">TurboTax Ready</span><span class="sys-val">Mar 15-22</span></div>
-          <div class="sys-item"><span class="sys-label">Days Remaining</span><span class="sys-val" id="daysRemaining" style="color:var(--yellow)">--</span></div>
-        </div>
-
-        <div class="sys-card">
-          <h3>&#128640; Progress</h3>
-          <div class="sys-item"><span class="sys-label">Data Processing</span><span class="sys-val" style="color:var(--green)">95%</span></div>
-          <div class="sys-item"><span class="sys-label">Tax Prep</span><span class="sys-val" style="color:var(--yellow)">60%</span></div>
-          <div class="sys-item"><span class="sys-label">Dashboard</span><span class="sys-val" style="color:var(--green)">100%</span></div>
-          <div class="sys-item"><span class="sys-label">Realbotville</span><span class="sys-val" style="color:var(--yellow)">60%</span></div>
-          <div class="sys-item"><span class="sys-label">Filing</span><span class="sys-val" style="color:var(--red)">0%</span></div>
-          <div class="sys-item"><span class="sys-label">Overall</span><span class="sys-val" style="color:var(--yellow)">80%</span></div>
+          <h3>&#128640; Projects</h3>
+          <div class="sys-item"><span class="sys-label">FPCS Taxes</span><span class="sys-val" style="color:var(--yellow)">In Progress</span></div>
+          <div class="sys-item"><span class="sys-label">Village Dashboard</span><span class="sys-val" style="color:var(--green)">Live</span></div>
+          <div class="sys-item"><span class="sys-label">Japster Store</span><span class="sys-val" style="color:var(--yellow)">Building</span></div>
+          <div class="sys-item"><span class="sys-label">SentryLion</span><span class="sys-val" style="color:var(--yellow)">Beta</span></div>
+          <div class="sys-item"><span class="sys-label">Realbotville</span><span class="sys-val" style="color:var(--green)">Evolving</span></div>
         </div>
       </div>
     </div>

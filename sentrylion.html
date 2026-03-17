@@ -1892,16 +1892,12 @@ function trackIP(ip, tag) {
   scheduleIPSave();
 }
 
-// Hostname resolution (simulated mapping for demo + real for known public IPs)
+// Hostname resolution — known public IPs only (no fake local entries)
 const hostnameMap = {
-  '8.8.8.8': 'dns.google', '1.1.1.1': 'one.one.one.one',
+  '8.8.8.8': 'dns.google', '8.8.4.4': 'dns.google',
+  '1.1.1.1': 'one.one.one.one', '1.0.0.1': 'one.one.one.one',
   '45.33.32.156': 'scanme.nmap.org', '104.26.10.78': 'cdn.cloudflare.com',
-  '93.184.216.34': 'example.com',
-  '192.168.1.12': 'workstation-12.local', '192.168.1.45': 'nas-server.local',
-  '10.0.0.8': 'iot-hub.local', '172.16.0.22': 'printer-office.local',
-  '192.168.1.100': 'camera-3.local', '10.0.0.55': 'media-server.local',
-  '192.168.2.7': 'ap-main.local', '172.16.1.33': 'switch-core.local',
-  '10.10.0.14': 'db-primary.local', '192.168.1.201': 'mobile-7.local'
+  '93.184.216.34': 'example.com'
 };
 
 function resolveHostname(ip) {
@@ -2684,5 +2680,9 @@ init();
 </script>
 <script src="js/auth.js"></script>
 <script src="js/nav.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
 </body>
 </html>

@@ -54,8 +54,6 @@
   var PAGE_ACCESS = {
     'index.html':        'member',
     'bots.html':         'member',
-    'deductions.html':   'member',
-    'income.html':       'member',
     'memory.html':       'member',
     'japster.html':      'member',
     'helpdesk.html':     'member',
@@ -144,7 +142,7 @@
 
   // --- Filter nav rail links by user role ---
   function filterNavByRole(role) {
-    var navLinks = document.querySelectorAll('.nav-rail .nav-link');
+    var navLinks = document.querySelectorAll('.nav-topbar .nav-link');
     for (var i = 0; i < navLinks.length; i++) {
       var link = navLinks[i];
       var href = link.getAttribute('href');

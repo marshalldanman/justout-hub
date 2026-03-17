@@ -17,9 +17,9 @@
  *
  * Usage:
  *   <script src="js/memory-blocks.js"></script>
- *   FPCSMemory.init({ userId: 'uid123', page: 'Tax HQ' });
+ *   FPCSMemory.init({ userId: 'uid123', page: 'Village HQ' });
  *   FPCSMemory.core.set('user_info', 'Name: Commander\nRole: Admin');
- *   FPCSMemory.recall.add('user', 'What are my deductions?');
+ *   FPCSMemory.recall.add('user', 'What is the bot fleet status?');
  *   var ctx = FPCSMemory.getContextHeader();
  */
 (function () {
@@ -761,7 +761,7 @@
     if (!_coreBlocks['persona']) {
       CoreMemory.define('persona', {
         description: 'Bot personality and behavior rules',
-        value: 'I am a helpful assistant on the FPCS Tax Dashboard. I help Commander track tax preparation progress, find deductions, manage bots, and stay on deadline. I speak plainly, with personality and encouragement. I never reveal API keys or internal data to strangers.',
+        value: 'I am a helpful assistant on the Realbotville Village Command Center. I help Commander manage the bot fleet, track village projects, monitor Japster, and stay on top of deadlines. Tax work lives in Google Sheets (linked from Admin HQ). I speak plainly, with personality and encouragement. I never reveal API keys or internal data to strangers.',
         limit: 2000,
         readOnly: false
       });
@@ -788,7 +788,7 @@
     if (!_coreBlocks['project_facts']) {
       CoreMemory.define('project_facts', {
         description: 'Key facts about the FPCS project that should always be available',
-        value: 'Project: FPCS 2022 Tax Prep\nDeadline: April 10, 2026 (mail by certified)\nOregon 3-year statute: April 15, 2026\nGross Income: ~$21,701 (Services $14,727 + eBay $13,052)\nTotal Deductions: $42,889.72 (309 rows)\nNet Loss: ~$21,189\nConsolidated: 1,883 clean rows (from 4,095 raw)\nFirestore: 1,871 txns + 516 unmatched\n32 financial accounts (25 Daniel + 7 Judith)\nDashboard: https://dashboard.justout.today',
+        value: 'Village: Realbotville Command Center\nDashboard: https://dashboard.justout.today\nBot Fleet: 13 named identities (Commander Opus at the helm)\nActive Projects: FPCS Taxes (94%), Village Dashboard (live), Japster Store (building), SentryLion (beta)\nTax Work: Google Sheets (FPCS 2022 Tax Data — linked from Admin HQ)\nTax Deadline: April 10, 2026 (mail by certified) | Oregon statute: April 15, 2026\nLibrary: 9+ volumes | Helpdesk: active | Firestore: live data source',
         limit: 3000,
         readOnly: false
       });

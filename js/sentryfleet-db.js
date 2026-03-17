@@ -503,151 +503,16 @@
   }
 
   // ============================================================
-  //  DEMO / MOCK DATA (for testing without real agents)
+  //  AGENT MANAGEMENT
   // ============================================================
 
   /**
-   * Seed RTDB with demo agents for console testing.
-   * Call from browser DevTools: SentryFleet.seedDemoAgents()
+   * Clear all agent data from RTDB (admin only).
    */
-  function seedDemoAgents() {
-    if (!_initialized) { warn('Not initialized'); return; }
-
-    var now = Date.now();
-    var demos = {
-      'agent-commander-pc': {
-        hostname: 'COMMANDER-PC',
-        ip: '192.168.1.100',
-        os: 'Windows 11 Pro 23H2',
-        status: 'online',
-        lastHeartbeat: now,
-        cpuPercent: 23,
-        memPercent: 54,
-        threatLevel: 'LOW',
-        agentVersion: '0.1.0',
-        installedTools: ['adwcleaner', 'emsisoft', 'yara', 'sigma'],
-        aiTrainingStatus: 'trained',
-        hardening: { score: 87, lastAudit: now - 3600000 },
-        processCount: 195,
-        memTotalMb: 32768,
-        memUsedMb: 17695,
-        uptimeSecs: 432000
-      },
-      'agent-workstation-2': {
-        hostname: 'WORKSTATION-2',
-        ip: '192.168.1.105',
-        os: 'Windows 10 Pro 22H2',
-        status: 'online',
-        lastHeartbeat: now - 5000,
-        cpuPercent: 67,
-        memPercent: 78,
-        threatLevel: 'MODERATE',
-        agentVersion: '0.1.0',
-        installedTools: ['adwcleaner', 'yara'],
-        aiTrainingStatus: 'training',
-        hardening: { score: 52, lastAudit: now - 7200000 },
-        processCount: 312,
-        memTotalMb: 16384,
-        memUsedMb: 12780,
-        uptimeSecs: 86400
-      },
-      'agent-laptop-field': {
-        hostname: 'LAPTOP-FIELD',
-        ip: '192.168.1.112',
-        os: 'Windows 11 Home 23H2',
-        status: 'jailed',
-        lastHeartbeat: now - 2000,
-        cpuPercent: 91,
-        memPercent: 88,
-        threatLevel: 'CRITICAL',
-        agentVersion: '0.1.0',
-        installedTools: ['adwcleaner'],
-        aiTrainingStatus: 'pre-trained',
-        hardening: { score: 31, lastAudit: now - 86400000 },
-        processCount: 487,
-        memTotalMb: 8192,
-        memUsedMb: 7209,
-        uptimeSecs: 259200
-      },
-      'agent-server-nas': {
-        hostname: 'SERVER-NAS',
-        ip: '192.168.1.50',
-        os: 'Windows Server 2022',
-        status: 'online',
-        lastHeartbeat: now - 1000,
-        cpuPercent: 12,
-        memPercent: 34,
-        threatLevel: 'LOW',
-        agentVersion: '0.1.0',
-        installedTools: ['adwcleaner', 'emsisoft', 'yara', 'sigma'],
-        aiTrainingStatus: 'trained',
-        hardening: { score: 94, lastAudit: now - 1800000 },
-        processCount: 142,
-        memTotalMb: 65536,
-        memUsedMb: 22282,
-        uptimeSecs: 2592000
-      },
-      'agent-usb-deploy': {
-        hostname: 'USB-DEPLOY-TEST',
-        ip: '10.0.0.15',
-        os: 'Windows 10 Home 21H2',
-        status: 'offline',
-        lastHeartbeat: now - 300000,
-        cpuPercent: 0,
-        memPercent: 0,
-        threatLevel: 'UNKNOWN',
-        agentVersion: '0.1.0',
-        installedTools: ['adwcleaner'],
-        aiTrainingStatus: 'pre-trained',
-        hardening: { score: 18, lastAudit: now - 604800000 },
-        processCount: 0,
-        memTotalMb: 4096,
-        memUsedMb: 0,
-        uptimeSecs: 0
-      },
-      'agent-probation-pc': {
-        hostname: 'PROBATION-PC',
-        ip: '192.168.1.130',
-        os: 'Windows 10 Pro 22H2',
-        status: 'probation',
-        lastHeartbeat: now - 3000,
-        cpuPercent: 45,
-        memPercent: 61,
-        threatLevel: 'LOW',
-        agentVersion: '0.1.0',
-        installedTools: ['adwcleaner', 'emsisoft'],
-        aiTrainingStatus: 'trained',
-        hardening: { score: 65, lastAudit: now - 900000 },
-        processCount: 223,
-        memTotalMb: 16384,
-        memUsedMb: 9994,
-        uptimeSecs: 7200
-      }
-    };
-
-    return _rtdb.ref(RTDB_AGENTS_PATH).set(demos).then(function () {
-      log('Demo agents seeded (' + Object.keys(demos).length + ' agents)');
-
-      // Also seed a probation record
-      return _fs.collection(FS_PROBATION).doc('agent-probation-pc').set({
-        startTime: now - 90000, // started 90s ago
-        endTime: now + 90000,   // 90s remaining
-        stage: 4,
-        violations: [],
-        status: 'active'
-      });
-    }).then(function () {
-      log('Demo data seeded successfully');
-    });
-  }
-
-  /**
-   * Clear all demo data.
-   */
-  function clearDemoAgents() {
+  function clearAllAgents() {
     if (!_initialized) return;
     return _rtdb.ref(RTDB_AGENTS_PATH).remove().then(function () {
-      log('Demo agents cleared');
+      log('All agent data cleared');
     });
   }
 
@@ -712,9 +577,8 @@
     // Hardening
     getHardeningReport: getHardeningReport,
 
-    // Demo
-    seedDemoAgents: seedDemoAgents,
-    clearDemoAgents: clearDemoAgents,
+    // Admin
+    clearAllAgents: clearAllAgents,
 
     // Constants (for UI use)
     PROBATION_DURATION_MS: PROBATION_DURATION_MS,

@@ -6,2000 +6,389 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
-<title>FPCS Tax HQ - 2022 Tax Prep Dashboard</title>
+<title>Realbotville — Village Command Center</title>
 <link rel="stylesheet" href="css/core.css">
 <link rel="stylesheet" href="css/nav.css">
 <link rel="stylesheet" href="css/auth.css">
-<link rel="stylesheet" href="css/suno-radio.css">
 <style>
-  /* === Page-Specific: Tax HQ (index.html) === */
-  .deadline-bar { background: linear-gradient(90deg, #991b1b, #dc2626); padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .deadline-bar .label { font-weight: 700; color: #fecaca; font-size: 15px; }
-  .deadline-bar .countdown { font-size: 22px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
-  .income-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .income-table th { text-align: left; padding: 8px; color: var(--muted); font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--border); }
-  .income-table td { padding: 8px; border-bottom: 1px solid var(--border); }
-  .income-table .amount { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-  .ddbot-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .ddbot-finding { padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid; }
-  .ddbot-finding.critical { border-color: var(--red); background: rgba(248,113,113,0.08); }
-  .ddbot-finding.warning { border-color: var(--yellow); background: rgba(251,191,36,0.08); }
-  .ddbot-finding.info { border-color: var(--accent); background: rgba(56,189,248,0.08); }
-  .ddbot-finding .f-id { font-size: 11px; font-weight: 700; color: var(--muted); }
-  .ddbot-finding .f-title { font-size: 14px; font-weight: 600; margin: 4px 0; }
-  .ddbot-finding .f-detail { font-size: 12px; color: var(--muted); }
-  .ddbot-finding .f-fix { font-size: 12px; color: var(--green); margin-top: 4px; font-style: italic; }
-  .ddbot-finding.resolved { border-color: var(--green); background: rgba(74,222,128,0.06); opacity: 0.7; }
-  .ddbot-finding.resolved .f-title { color: var(--green); text-decoration: line-through; }
-  .ddbot-finding.critical .f-title { color: var(--red); }
-  .ddbot-finding.warning .f-title { color: var(--yellow); }
-  .ddbot-stat { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
-  .ddbot-stat.crit { background: rgba(248,113,113,0.2); color: var(--red); }
-  .ddbot-stat.warn { background: rgba(251,191,36,0.2); color: var(--yellow); }
-  .ddbot-stat.info-s { background: rgba(56,189,248,0.2); color: var(--accent); }
-  .token-panel { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid var(--purple); }
-  .token-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-  .token-metric { background: rgba(167,139,250,0.08); border-radius: 8px; padding: 14px; text-align: center; border: 1px solid rgba(167,139,250,0.2); }
-  .token-metric .t-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--purple); margin-bottom: 6px; }
-  .token-metric .t-value { font-size: 22px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
-  .token-metric .t-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-  .token-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin: 16px 0 8px; }
-  .token-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-  .agent-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-  .agent-table th { text-align: left; padding: 8px; color: var(--purple); font-size: 11px; text-transform: uppercase; border-bottom: 1px solid rgba(167,139,250,0.3); }
-  .agent-table td { padding: 8px; font-size: 13px; border-bottom: 1px solid var(--border); }
-  .agent-status { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-  .agent-status.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .agent-status.idle { background: var(--muted); }
-  .agent-status.sleeping { background: var(--yellow); }
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--card); border-radius: 16px; padding: 32px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border: 2px solid var(--purple); }
-  .modal h2 { color: var(--purple); margin-bottom: 20px; }
-  .modal-section { margin-bottom: 24px; }
-  .modal-section h3 { color: var(--accent); font-size: 15px; margin-bottom: 12px; }
-  .control-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
-  .control-row label { font-size: 14px; }
-  .control-row input[type=range] { width: 200px; accent-color: var(--purple); }
-  .control-row select, .control-row input[type=number] { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-  .plan-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 999px; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; font-weight: 700; font-size: 13px; }
-  .reading-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; font-size: 13px; }
-  .reading-row .ts { color: var(--muted); min-width: 120px; }
-  .reading-row .val { color: var(--accent); font-weight: 700; }
-  .rule-card { padding: 14px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid var(--orange); background: rgba(251,146,60,0.06); position: relative; }
-  .rule-card.paused { opacity: 0.5; border-color: var(--muted); }
-  .rule-card .r-title { font-size: 15px; font-weight: 700; color: var(--orange); }
-  .rule-card.paused .r-title { color: var(--muted); }
-  .rule-card .r-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .rule-card .r-meta { font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .rule-cat { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 600; background: rgba(251,146,60,0.15); color: var(--orange); }
-  .rule-priority-high { color: var(--red) !important; }
-  .rule-priority-low { color: var(--muted) !important; }
-  .rule-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
-  .rule-actions button { background: none; border: 1px solid var(--border); color: var(--muted); padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-  .rule-actions button:hover { color: var(--text); border-color: var(--text); }
-  .chunk-bar { display: flex; height: 32px; border-radius: 8px; overflow: hidden; margin: 12px 0; font-size: 11px; font-weight: 700; }
-  .chunk-bar > div { display: flex; align-items: center; justify-content: center; color: #000; white-space: nowrap; padding: 0 8px; }
-  .data-row { display: grid; grid-template-columns: 1fr 140px 100px 1fr; gap: 8px; padding: 8px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: center; }
-  .data-row:hover { background: rgba(56,189,248,0.04); }
-  .data-row .d-name { font-weight: 600; }
-  .data-row .d-status { font-size: 11px; padding: 2px 8px; border-radius: 999px; text-align: center; font-weight: 600; }
-  .d-done { background: #166534; color: #bbf7d0; }
-  .d-partial { background: #854d0e; color: #fef08a; }
-  .d-needed { background: #7f1d1d; color: #fecaca; }
-  .d-review { background: #1e3a5f; color: #93c5fd; }
-  .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .check-item:last-child { border-bottom: none; }
-  .check-mark { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
-  .check-info { flex: 1; }
-  .check-info .c-title { font-weight: 600; }
-  .check-info .c-loc { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .tt-step { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
-  .tt-step:last-child { border-bottom: none; }
-  .tt-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
-  .tt-done { background: var(--green); color: #000; }
-  .tt-current { background: var(--yellow); color: #000; }
-  .tt-pending { background: var(--border); color: var(--muted); }
-  .scout-rec { padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid var(--accent); background: rgba(56,189,248,0.06); font-size: 13px; }
-  .scout-rec .s-title { font-weight: 700; color: var(--accent); margin-bottom: 4px; }
-  .scout-rec .s-detail { color: var(--muted); }
-  .bot-card { background: var(--bg); border-radius: 8px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
-  .bot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-  .bot-name { font-weight: 700; font-size: 15px; }
-  .bot-ver { font-size: 11px; color: var(--muted); background: var(--card); padding: 2px 8px; border-radius: 4px; }
-  .bot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; font-size: 12px; }
-  .bot-metric { text-align: center; padding: 8px; background: var(--card); border-radius: 6px; }
-  .bot-metric .bm-label { color: var(--muted); font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
-  .bot-metric .bm-val { font-weight: 700; font-size: 14px; }
-  .chat-box { position: fixed; bottom: 20px; right: 20px; width: 380px; max-height: 500px; background: var(--card); border: 2px solid var(--purple); border-radius: 16px; z-index: 800; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-  .chat-box.minimized { height: 48px; overflow: hidden; border-radius: 24px; width: 200px; cursor: pointer; }
-  .chat-header { padding: 12px 16px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 14px 14px 0 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--purple); }
-  .chat-header h3 { font-size: 14px; color: var(--purple); margin: 0; }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; max-height: 340px; min-height: 100px; }
-  .chat-msg { padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 13px; max-width: 85%; word-wrap: break-word; }
-  .chat-msg.user { background: rgba(167,139,250,0.15); color: var(--text); margin-left: auto; border-bottom-right-radius: 4px; }
-  .chat-msg.bot { background: rgba(56,189,248,0.1); color: var(--text); margin-right: auto; border-bottom-left-radius: 4px; }
-  .chat-msg .msg-name { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
-  .chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
-  .chat-input-row input { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 13px; }
-  .chat-input-row button { background: var(--purple); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; }
-  .chat-input-row button:hover { opacity: 0.85; }
-  .chat-status { font-size: 10px; padding: 4px 12px; color: var(--muted); text-align: center; background: var(--bg); }
-  @media (max-width: 768px) { .chat-box { width: 95%; right: 2.5%; } }
-  @media (max-width: 600px) { .container { padding: 12px; } .header h1 { font-size: 20px; } .token-grid { grid-template-columns: 1fr 1fr; } .data-row { grid-template-columns: 1fr; } }
-  .heartbeat-wrap { background: var(--bg); border-radius: 8px; padding: 12px; margin-top: 16px; border: 1px solid var(--border); }
-  .heartbeat-wrap h3 { font-size: 13px; color: var(--green); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-  .heartbeat-wrap canvas { width: 100%; height: 80px; border-radius: 6px; }
-  .hb-stats { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
-  .hb-stat { font-size: 11px; color: var(--muted); }
-  .hb-stat b { color: var(--green); font-size: 13px; }
-  .item-actions{display:none;gap:4px;align-items:center;margin-left:auto;flex-shrink:0}
-  .check-item:hover .item-actions,.milestone:hover .item-actions,.tt-step:hover .item-actions{display:flex}
-  .item-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:2px 6px;border-radius:4px;cursor:pointer;font-size:10px;white-space:nowrap}
-  .item-btn:hover{color:var(--text);border-color:var(--text)}
-  .priority-arrows{display:flex;flex-direction:column;gap:0;margin-left:4px}
-  .priority-arrows button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:9px;padding:0;line-height:1}
-  .priority-arrows button:hover{color:var(--accent)}
-  .item-note{margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--muted);display:none}
-  .item-note.open{display:block}
-  .item-comments{margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border);display:none}
-  .item-comments.open{display:block}
-  .item-comments .comment{padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
-  .item-comments .comment:last-child{border-bottom:none}
-  .item-comments .c-author{font-weight:700;color:var(--accent);font-size:10px}
-  .item-comments .c-time{font-size:9px;color:var(--muted);margin-left:6px}
-  .comment-input-row{display:flex;gap:6px;margin-top:6px}
-  .comment-input-row input{flex:1;background:var(--card);color:var(--text);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-size:11px}
-  .comment-input-row button{background:var(--accent);color:#000;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer}
+  /* === Village HQ Styles === */
+  body { --page-accent: var(--accent); }
 
-  /* === Drill-Down Interactive States === */
-  .stat-link{cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
-  .stat-link:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.4);box-shadow:0 4px 20px rgba(56,189,248,.1)}
-  .drill-arrow{font-size:14px;opacity:0;transition:opacity .15s;margin-left:4px}
-  .stat-link:hover .drill-arrow{opacity:.6}
-  .drill-row{cursor:pointer;transition:background .15s}
-  .drill-row:hover{background:rgba(56,189,248,.06) !important}
-  .drill-row:hover .drill-amount{text-shadow:0 0 8px currentColor}
-  .drill-amount{transition:text-shadow .15s}
+  .village-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    padding: 24px 32px 20px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .village-header h1 {
+    font-size: 26px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .village-header .subtitle {
+    color: var(--muted);
+    margin-top: 4px;
+    font-size: 14px;
+  }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .card h3 {
+    font-size: 14px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card .big-number {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .sub-text {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .bot-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .bot-row:last-child { border-bottom: none; }
+  .bot-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .bot-dot.active { background: var(--green); box-shadow: 0 0 6px rgba(74,222,128,.5); }
+  .bot-dot.sleeping { background: var(--yellow); }
+  .bot-dot.idle { background: var(--muted); }
+  .bot-name { font-weight: 600; flex: 1; }
+  .bot-rank { font-size: 11px; color: var(--purple); }
+
+  .quick-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+    margin-bottom: 8px;
+  }
+  .quick-link:hover {
+    background: rgba(56, 189, 248, 0.06);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .quick-link .ql-icon { font-size: 18px; }
+  .quick-link .ql-desc { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+  .activity-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-time { color: var(--muted); min-width: 70px; font-size: 11px; }
+  .activity-text { flex: 1; }
+
+  .project-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .project-pct {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .project-info { flex: 1; }
+  .project-info .p-name { font-weight: 700; font-size: 14px; }
+  .project-info .p-status { font-size: 12px; color: var(--muted); margin-top: 2px; }
 </style>
 </head>
-<body class="theme-tax">
-<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<body class="theme-village">
+
+<!-- Auth gate -->
+<div id="authGate" style="display:flex;justify-content:center;align-items:center;min-height:100vh">
+  <div style="text-align:center;padding:40px">
+    <div style="font-size:48px;margin-bottom:16px">&#127961;</div>
+    <h1 style="color:var(--accent);font-size:28px;margin-bottom:8px">Realbotville</h1>
+    <p style="color:var(--muted);margin-bottom:24px">Village Command Center</p>
+    <button id="googleSignIn" class="btn btn-accent" style="font-size:16px;padding:12px 32px">Sign In with Google</button>
+  </div>
+</div>
+
+<!-- Main content (hidden until auth) -->
 <div id="dashContent" style="display:none">
 
-<!-- CHAT BOX (Commander Channel via The Sarge) -->
-<div class="chat-box minimized" id="chatBox" onclick="if(this.classList.contains('minimized')){toggleChat()}">
-  <div class="chat-header" onclick="toggleChat()">
-    <h3>&#128172; The Sarge &mdash; Command Channel</h3>
-    <span id="chatToggle" style="font-size:18px;color:var(--muted)">&#9650;</span>
-  </div>
-  <div class="chat-status" id="chatStatus" style="color:var(--green)">Sarge: Online | Commander Channel Active</div>
-  <div class="chat-messages" id="chatMessages">
-    <div class="chat-msg bot"><div class="msg-name">The Sarge</div>At your service, Commander. I've got the whole fleet on standby. Ask me anything about your 2022 taxes, assign a mission, check the bounty board, or just chat. Try: <em>/status</em>, <em>/bounty</em>, or ask a tax question.</div>
-  </div>
-  <div class="chat-input-row">
-    <input type="text" id="chatInput" placeholder="Talk to The Sarge..." onkeydown="if(event.key==='Enter')sendChat()">
-    <button onclick="sendChat()">Send</button>
-  </div>
-</div>
-
-<div id="top"></div>
-<div class="header">
-  <h1>&#128202; FPCS Tax Command Center <span class="plan-badge">MAX Plan</span></h1>
-  <div class="subtitle" id="hdr-sub">FPCS &mdash; 2022 Tax Year (Federal + Oregon)</div>
-</div>
-
-<div class="deadline-bar">
-  <div class="label">MAIL DEADLINE: April 10, 2026 (USPS Certified)</div>
-  <div class="countdown" id="countdown">Loading...</div>
-</div>
-
-<!-- QUICK LAUNCH BAR -->
-<div style="max-width:1200px;margin:0 auto 0 76px;padding:8px 24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-  <a href="library.html?fullscreen=1" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:#000;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s" onmouseenter="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(245,158,11,.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
-    &#128218; Enter Library
-  </a>
-  <a href="realbotville.html" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#38bdf8 0%,#0ea5e9 100%);color:#000;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s" onmouseenter="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(56,189,248,.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
-    &#127968; Visit Realbotville
-  </a>
-  <a href="#" onclick="event.preventDefault();if(window.fpcsGrantSheetsAccess)fpcsGrantSheetsAccess();else alert('Module not loaded yet.')" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#4ade80 0%,#22c55e 100%);color:#000;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s" onmouseenter="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(74,222,128,.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''" id="grantSheetsBtn">
-    &#128274; Grant Sheets Write
-  </a>
-  <span style="font-size:11px;color:var(--muted);margin-left:4px">Quick Launch</span>
-</div>
-
-<div class="container">
-
-  <!-- TOKEN ECONOMY PANEL -->
-  <div class="section token-panel" id="sec-tokens">
-    <div class="ddbot-header">
-      <h2 style="color:var(--purple)">&#9889; Token Economy &amp; Agent Control Center</h2>
-      <button class="btn btn-purple" onclick="openSettings()">&#9881; Settings</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
-      <span class="plan-badge">Claude Max Plan &mdash; $200/mo</span>
-      <span style="font-size:13px;color:var(--muted)">Billing resets: <span id="billingReset" style="color:var(--accent);font-weight:600"></span></span>
-      <span style="font-size:13px;color:var(--muted)">Model: <span style="color:#fff;font-weight:600">Claude Opus 4.6</span></span>
-    </div>
-
-    <div class="token-grid">
-      <div class="token-metric stat-link" onclick="document.getElementById('heartbeatCanvas').scrollIntoView({behavior:'smooth'})" title="View heartbeat monitor">
-        <div class="t-label">Last Minute</div>
-        <div class="t-value" id="tok-1m">-- <span class="drill-arrow">&#8599;</span></div>
-        <div class="t-sub">tokens</div>
-      </div>
-      <div class="token-metric stat-link" onclick="document.getElementById('heartbeatCanvas').scrollIntoView({behavior:'smooth'})" title="View heartbeat monitor">
-        <div class="t-label">Last 10 Min</div>
-        <div class="t-value" id="tok-10m">-- <span class="drill-arrow">&#8599;</span></div>
-        <div class="t-sub">tokens</div>
-      </div>
-      <div class="token-metric stat-link" onclick="document.getElementById('heartbeatCanvas').scrollIntoView({behavior:'smooth'})" title="View heartbeat monitor">
-        <div class="t-label">This Hour</div>
-        <div class="t-value" id="tok-1h">-- <span class="drill-arrow">&#8599;</span></div>
-        <div class="t-sub">tokens</div>
-      </div>
-      <div class="token-metric stat-link" onclick="document.getElementById('heartbeatCanvas').scrollIntoView({behavior:'smooth'})" title="View heartbeat monitor">
-        <div class="t-label">Today Total</div>
-        <div class="t-value" id="tok-day">-- <span class="drill-arrow">&#8599;</span></div>
-        <div class="t-sub">tokens</div>
-      </div>
-      <div class="token-metric stat-link" onclick="openSettings()" title="Open token settings">
-        <div class="t-label">Est. $/Hour</div>
-        <div class="t-value" id="tok-rate" style="color:var(--green)">-- <span class="drill-arrow">&#9881;</span></div>
-        <div class="t-sub">at current pace</div>
-      </div>
-      <div class="token-metric stat-link" onclick="document.getElementById('usageLog').parentElement.open=true;document.getElementById('usageLog').scrollIntoView({behavior:'smooth'})" title="View usage log">
-        <div class="t-label">Session Usage</div>
-        <div class="t-value" id="tok-session" style="color:var(--accent)">11% <span class="drill-arrow">&#8599;</span></div>
-        <div class="t-sub">of 5hr window</div>
-      </div>
-    </div>
-
-    <div class="token-bar">
-      <div class="token-bar-fill" id="usageBar" style="width:11%;background:linear-gradient(90deg,var(--green),var(--accent))"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
-      <span>Session usage: <span id="usagePct" style="color:var(--green);font-weight:700">11%</span> &mdash; Resets in <span id="resetTimer" style="color:var(--accent);font-weight:700">4h 37m</span></span>
-      <span>Status: <span id="exhaustion" style="color:var(--green);font-weight:700">Comfortable headroom</span></span>
-    </div>
-
-    <!-- Token Heartbeat Monitor -->
-    <div class="heartbeat-wrap">
-      <h3>&#128154; Token Heartbeat Monitor <span style="font-size:10px;color:var(--muted);font-weight:400">(simulated &mdash; feed real data via localStorage)</span></h3>
-      <canvas id="heartbeatCanvas" height="80"></canvas>
-      <div class="hb-stats">
-        <div class="hb-stat">Rate: <b id="hbRate">--</b> tok/min</div>
-        <div class="hb-stat">Avg/hr: <b id="hbAvgHr">--</b></div>
-        <div class="hb-stat">Peak: <b id="hbPeak" style="color:var(--red)">--</b></div>
-        <div class="hb-stat">Idle: <b id="hbIdle" style="color:var(--accent)">--</b> min ago</div>
-        <div class="hb-stat">Trend: <b id="hbTrend" style="color:var(--yellow)">--</b></div>
-      </div>
-    </div>
-
-    <!-- Usage Reading Log (populated by James's manual readings) -->
-    <details style="margin-top:12px;">
-      <summary style="cursor:pointer;color:var(--purple);font-size:13px;font-weight:600">Usage Readings Log (click to expand)</summary>
-      <div id="usageLog" style="margin-top:8px;max-height:200px;overflow-y:auto;">
-        <div class="reading-row"><span class="ts">Feb 18, ~16:40</span><span class="val">11% used</span><span style="color:var(--muted)">| Reset in 4h37m | Session 4 start + DDBOT + dashboard build</span></div>
-        <p style="color:var(--muted);font-size:12px;margin-top:8px;">Drop more readings here to calibrate token burn rate. Each reading helps estimate cost per task type.</p>
-      </div>
-    </details>
-
-    <!-- Agent Table -->
-    <table class="agent-table">
-      <thead>
-        <tr><th>Agent</th><th>Model</th><th>Status</th><th>Mission</th><th>Est. Cost</th></tr>
-      </thead>
-      <tbody id="agentTableBody">
-        <tr class="drill-row" style="background:rgba(56,189,248,0.05)" onclick="location.href='stats-board.html'" title="View bot rankings">
-          <td><span class="agent-status active"></span><strong>Opus</strong> <span class="coc-badge coc-commander">CMD</span></td>
-          <td>claude-opus-4-6</td>
-          <td style="color:var(--green)">Active</td>
-          <td>Commander. Talks to James. Issues orders to The Sarge only. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--yellow)">$0 (Max)</td>
-        </tr>
-        <tr class="drill-row" style="background:rgba(251,146,60,0.05)" onclick="location.href='stats-board.html'" title="View bot rankings">
-          <td><span class="agent-status active"></span><strong>The Sarge</strong> <span class="coc-badge coc-supervisor">SUP</span></td>
-          <td>claude-opus-4-6</td>
-          <td style="color:var(--green)">Active</td>
-          <td>Supervisor. Dispatches to staff. Injection firewall. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--yellow)">Low budget</td>
-        </tr>
-        <tr class="drill-row" onclick="location.href='bots.html'" title="View full bot roster">
-          <td><span class="agent-status active"></span><strong>Penny Pincher</strong> <span class="coc-badge coc-staff">S1</span></td>
-          <td>claude-sonnet-4-6</td>
-          <td style="color:var(--green)">Active</td>
-          <td>UX &amp; aesthetics. Visual polish, layout review. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--green)">Minimal</td>
-        </tr>
-        <tr class="drill-row" onclick="location.href='bots.html'" title="View full bot roster">
-          <td><span class="agent-status active"></span><strong>SHIELD</strong> <span class="coc-badge coc-staff">S2</span></td>
-          <td>claude-sonnet-4-6</td>
-          <td style="color:var(--green)">Active</td>
-          <td>Security sentinel. Injection hunting, machine security. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--yellow)">Low (research)</td>
-        </tr>
-        <tr class="drill-row" onclick="location.href='deductions.html#sec-deductbot'" title="View DeductBot team">
-          <td><span class="agent-status sleeping"></span><strong>DeductBot</strong> <span class="coc-badge coc-staff">S3</span></td>
-          <td>claude-sonnet-4-6</td>
-          <td style="color:var(--yellow)">Awaiting</td>
-          <td>Tax deductions + Ollama sub-agents (miniDuct 1 &amp; 2) <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--green)">~$0.08/hr</td>
-        </tr>
-        <tr class="drill-row" onclick="location.href='bots.html'" title="View full bot roster">
-          <td><span class="agent-status active"></span><strong>Cruncher</strong> <span class="coc-badge coc-staff">S4</span></td>
-          <td>claude-sonnet-4-6</td>
-          <td style="color:var(--green)">Active</td>
-          <td>Data analyst. Bank reconciliation, CSV cross-ref. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--green)">Minimal</td>
-        </tr>
-        <tr class="drill-row" onclick="location.href='bots.html'" title="View full bot roster">
-          <td><span class="agent-status active"></span><strong>Scribbles</strong> <span class="coc-badge coc-staff">S5</span></td>
-          <td>claude-sonnet-4-6</td>
-          <td style="color:var(--green)">Active</td>
-          <td>Documentation, reports, TurboTax input sheets. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--green)">Minimal</td>
-        </tr>
-        <tr class="drill-row" onclick="document.getElementById('sec-ddbot').scrollIntoView({behavior:'smooth'})" title="View DDBOT findings">
-          <td><span class="agent-status active"></span><strong>DDBOT</strong> <span class="coc-badge coc-local">LOC</span></td>
-          <td>Python (local)</td>
-          <td style="color:var(--green)">5/5 Fixed</td>
-          <td>Discrepancy detector. 2-pass fingerprint dedup. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--green)">$0.00</td>
-        </tr>
-        <tr class="drill-row" onclick="document.getElementById('heartbeatCanvas').scrollIntoView({behavior:'smooth'})" title="View heartbeat monitor">
-          <td><span class="agent-status sleeping"></span><strong>TokenWatchBot</strong> <span class="coc-badge coc-special">DOG</span></td>
-          <td>claude-haiku-4-5</td>
-          <td style="color:var(--yellow)">Initialized</td>
-          <td>Hourly efficiency audit. Feeds Heartbeat Monitor. <span class="drill-arrow">&#8599;</span></td>
-          <td style="color:var(--green)">~$0.01/hr</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="village-header">
+    <h1>&#127961; Realbotville Command Center</h1>
+    <p class="subtitle">Village HQ &mdash; 13 bots, 1 mission</p>
   </div>
 
-  <!-- DDBOT FINDINGS PANEL -->
-  <div class="section" id="sec-ddbot" style="border-color:var(--green)">
-    <div class="ddbot-header">
-      <h2 style="color:var(--green)">&#128373; DDBOT &mdash; Discrepancy Detector</h2>
-      <div>
-        <span class="ddbot-stat" style="background:rgba(74,222,128,0.2);color:var(--green)">5 Resolved</span>
-        <span class="ddbot-stat warn">5 Warning</span>
-        <span class="ddbot-stat info-s">1 Info</span>
+  <div class="container">
+
+    <!-- Row 1: Key Stats -->
+    <div class="dash-grid">
+      <div class="card">
+        <h3>\u{1F916} Bot Fleet</h3>
+        <div class="big-number" id="statBotCount">13</div>
+        <div class="sub-text" id="statBotStatus">Loading fleet status...</div>
+      </div>
+      <div class="card">
+        <h3>\u{26A1} Village Exertion</h3>
+        <div class="big-number" id="statEP">100%</div>
+        <div class="sub-text" id="statEPZone">Fresh — ready for hard tasks</div>
+      </div>
+      <div class="card">
+        <h3>\u{1F39B} Helpdesk</h3>
+        <div class="big-number" id="statTickets">0</div>
+        <div class="sub-text" id="statTicketStatus">No open tickets</div>
       </div>
     </div>
-    <p style="color:var(--muted);font-size:13px;margin:12px 0">Last scan: <span id="ddScanTime">--</span> | Files: 15 | Checks: 10 | Fix: 2-pass dedup (925 CC dupes removed)</p>
-    <div id="ddbotFindings"></div>
-  </div>
 
-  <!-- RULES ENGINE -->
-  <div class="section" id="sec-rules" style="border-color:var(--orange)">
-    <div class="ddbot-header">
-      <h2 style="color:var(--orange)">&#128220; Rules &amp; Operating Guidelines</h2>
-      <button class="btn" style="background:var(--orange);color:#000;font-weight:700" onclick="openRuleEditor()">+ Add Rule</button>
-    </div>
-    <p style="color:var(--muted);font-size:13px;margin:8px 0 16px">Custom rules that govern agent behavior, workflow, and decision-making. Rules persist across sessions via localStorage.</p>
-    <div id="rulesContainer"></div>
-  </div>
-
-  <!-- STATS ROW (clickable drill-down) -->
-  <div class="grid" id="sec-stats">
-    <div class="stat-card stat-link" onclick="location.href='income.html'" title="View detailed income breakdown">
-      <div class="label">Gross Income (2022)</div>
-      <div class="value" style="color:var(--green)" id="statGrossIncome">Loading... <span class="drill-arrow">&#8599;</span></div>
-      <div class="sub" id="statGrossIncomeSub">Fetching from Firestore...</div>
-    </div>
-    <div class="stat-card stat-link" onclick="location.href='deductions.html'" title="View detailed deduction categories">
-      <div class="label">Total Business Deductions</div>
-      <div class="value" style="color:var(--yellow)" id="statDeductions">Loading... <span class="drill-arrow">&#8599;</span></div>
-      <div class="sub" id="statDeductionsSub">Fetching from Firestore...</div>
-    </div>
-    <div class="stat-card stat-link" onclick="location.href='income.html'" title="See income vs deductions breakdown">
-      <div class="label">Net Business Loss</div>
-      <div class="value" style="color:var(--red)" id="statNetLoss">Loading... <span class="drill-arrow">&#8599;</span></div>
-      <div class="sub" id="statNetLossSub">Fetching from Firestore...</div>
-    </div>
-    <div class="stat-card stat-link" onclick="document.getElementById('ddbotFindings').scrollIntoView({behavior:'smooth'})" title="View DDBOT findings detail">
-      <div class="label">DDBOT Findings</div>
-      <div class="value" style="color:var(--green)">5 Resolved <span class="drill-arrow">&#8599;</span></div>
-      <div class="sub">5 critical fixed, 5 warnings, 1 info remain</div>
-    </div>
-    <div class="stat-card stat-link" onclick="document.getElementById('sec-data-sources').scrollIntoView({behavior:'smooth'})" title="View data source inventory">
-      <div class="label">Consolidated Database</div>
-      <div class="value" style="color:var(--accent)" id="statConsolidated">Loading... <span class="drill-arrow">&#8599;</span></div>
-      <div class="sub" id="statConsolidatedSub">Fetching from Firestore...</div>
-    </div>
-  </div>
-
-  <!-- OVERALL PROGRESS -->
-  <div class="section" id="sec-progress">
-    <h2>&#9889; Overall Progress</h2>
-    <div style="display:flex;align-items:center;gap:16px;cursor:pointer" onclick="document.getElementById('sec-milestones').scrollIntoView({behavior:'smooth'})" title="Jump to milestones">
-      <div style="position:relative;width:80px;height:80px;" class="stat-link">
-        <svg width="80" height="80" style="transform:rotate(-90deg)"><circle cx="40" cy="40" r="34" fill="none" stroke="#334155" stroke-width="8"/><circle cx="40" cy="40" r="34" fill="none" stroke="#38bdf8" stroke-width="8" stroke-dasharray="213.6" stroke-dashoffset="38.4" stroke-linecap="round"/></svg>
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;font-weight:700;color:var(--accent);">82%</div>
-      </div>
-      <div>
-        <div style="font-size:16px;font-weight:600;">Data Collection: 97% | Tax Prep: 60% | Filing: 0% <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Target: Print &amp; mail by April 10, 2026 &mdash; <span style="color:var(--accent)">Click to see milestones</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MILESTONES -->
-  <div class="section" id="sec-milestones">
-    <h2>&#127942; The Great Tax Adventure of 2022</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">From "oh no we forgot to file" to "check's in the mail" &mdash; one checkbox at a time.</p>
-
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">The Awakening: "Wait, We Never Filed 2022?"</div><div class="desc">Realized 4 years of taxes are unfiled. Panic level: moderate.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">Operation Trello Rescue</div><div class="desc">Merged 60 job cards. 50 matches, 9 new entries discovered.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">The Email Avalanche (63,587 emails)</div><div class="desc">Found 6,315 tax-relevant emails for 2022.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">QuickBooks: The $17.50 Rescue Mission</div><div class="desc">Exported 143 vendors, 2,155 transactions before data expired.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">The Great Cross-Reference</div><div class="desc">$625 in QBO not in ledger, $2,459 in ledger not in QBO.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">1099 Hunt: Following the Paper Trail</div><div class="desc">Found 1099-K, TD Ameritrade 1099, AGT property report.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">Schedule C Sorting Hat</div><div class="desc">2,284 emails categorized. 842 Amazon orders flagged.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">DDBOT Activated: Audit Bot Awakens</div><div class="desc">Found 5 critical double-counts worth ~$8,600+.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">Token Economy Dashboard</div><div class="desc">Live usage tracking, agent monitoring, settings control panel.</div></div><span class="badge badge-done">DONE</span></div>
-
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">The Great Dedup: 2,224 Duplicates Slain</div><div class="desc">Phase 1: 925 CC dupes via fingerprint. Phase 2: Full consolidation SHA-256 dedup across all sources. Deductions $67K &rarr; $42K.</div></div><span class="badge badge-done">DONE</span></div>
-
-    <div class="milestone done"><input type="checkbox" checked disabled><div class="info"><div class="title">The Unified Ledger: 4,095 &rarr; 1,871 Rows</div><div class="desc">Consolidated QBO GL + Ledger + Tech Work + 68 Account CSVs. SHA-256 dedup removed 2,224 exact duplicates. Central database ready.</div></div><span class="badge badge-done">DONE</span></div>
-    <div class="milestone drill-row" onclick="document.getElementById('sec-data-sources')&&document.getElementById('sec-data-sources').scrollIntoView({behavior:'smooth'})" title="View data sources"><input type="checkbox"><div class="info"><div class="title">Bank Statement Bingo: 7 Banks <span class="drill-arrow">&#8599;</span></div><div class="desc">Download/cross-reference with QBO.</div></div><span class="badge badge-pending">PENDING</span></div>
-    <div class="milestone drill-row" onclick="location.href='deductions.html#sec-liverecords'" title="View deduction records"><input type="checkbox"><div class="info"><div class="title">Amazon Archaeology: Biz or Shopping? <span class="drill-arrow">&#8599;</span></div><div class="desc">842 orders need classification.</div></div><span class="badge badge-pending">PENDING</span></div>
-    <div class="milestone drill-row" onclick="location.href='income.html#sec-clients'" title="View income by client"><input type="checkbox"><div class="info"><div class="title">Contractor Chronicles <span class="drill-arrow">&#8599;</span></div><div class="desc">Mitchell, Waters, J. Marshall &mdash; 1099-NEC if &gt;$600.</div></div><span class="badge badge-progress">IN PROGRESS</span></div>
-    <div class="milestone drill-row" onclick="location.href='deductions.html#sec-findings'" title="View deduction findings"><input type="checkbox"><div class="info"><div class="title">Home Office (Form 8829) <span class="drill-arrow">&#8599;</span></div><div class="desc">Square footage, internet %, office deduction.</div></div><span class="badge badge-pending">PENDING</span></div>
-    <div class="milestone drill-row" onclick="location.href='deductions.html#sec-findings'" title="View deduction findings"><input type="checkbox"><div class="info"><div class="title">Vehicle Deduction <span class="drill-arrow">&#8599;</span></div><div class="desc">100% biz use. GEICO + mileage or actual expenses.</div></div><span class="badge badge-pending">PENDING</span></div>
-    <div class="milestone drill-row" onclick="location.href='deductions.html#sec-findings'" title="View deduction findings"><input type="checkbox"><div class="info"><div class="title">Cyberattack Deduction <span class="drill-arrow">&#8599;</span></div><div class="desc">AGT Mortgage incident &mdash; casualty/theft loss.</div></div><span class="badge badge-pending">PENDING</span></div>
-    <div class="milestone drill-row" onclick="location.href='deductions.html'" title="View tax forms status"><input type="checkbox"><div class="info"><div class="title">TurboTax Data Entry <span class="drill-arrow">&#8599;</span></div><div class="desc">All Schedule C data into TurboTax 2022 Desktop.</div></div><span class="badge badge-pending">PENDING</span></div>
-    <div class="milestone drill-row" onclick="document.getElementById('sec-overview').scrollIntoView({behavior:'smooth'})" title="View progress overview"><input type="checkbox"><div class="info"><div class="title">Final Review + Print + Mail <span class="drill-arrow">&#8599;</span></div><div class="desc">Triple-check, print, USPS Certified. We're DONE!</div></div><span class="badge badge-pending">PENDING</span></div>
-  </div>
-
-  <!-- QUICK ACCESS — Links to detailed pages -->
-  <div class="section" id="sec-quicknav" style="border-color:var(--accent)">
-    <h2>&#128640; Quick Access</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
-      <a href="deductions.html" class="stat-link" style="display:block;padding:16px;border-radius:10px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--green)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(74,222,128,.2)';this.style.transform='none'">
-        <div style="font-size:20px;margin-bottom:6px">&#128221;</div>
-        <div style="font-weight:700;color:var(--green);margin-bottom:4px">Deductions HQ &#8599;</div>
-        <div style="font-size:12px;color:var(--muted)">$42,889.72 total &mdash; 15 categories, live records, drill-down</div>
-      </a>
-      <a href="income.html" class="stat-link" style="display:block;padding:16px;border-radius:10px;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(56,189,248,.2)';this.style.transform='none'">
-        <div style="font-size:20px;margin-bottom:6px">&#128176;</div>
-        <div style="font-weight:700;color:var(--accent);margin-bottom:4px">Income HQ &#8599;</div>
-        <div style="font-size:12px;color:var(--muted)">Gross income live from Firestore &mdash; jobs, client timeline, cross-reference</div>
-      </a>
-      <a href="bots.html" class="stat-link" style="display:block;padding:16px;border-radius:10px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--purple)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(167,139,250,.2)';this.style.transform='none'">
-        <div style="font-size:20px;margin-bottom:6px">&#129302;</div>
-        <div style="font-weight:700;color:var(--purple);margin-bottom:4px">Bot HQ &#8599;</div>
-        <div style="font-size:12px;color:var(--muted)">Fleet roster, bounty board, village, stats &amp; XP</div>
-      </a>
-      <a href="bots.html#sec-bounty-full" class="stat-link" style="display:block;padding:16px;border-radius:10px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--yellow)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(251,191,36,.2)';this.style.transform='none'">
-        <div style="font-size:20px;margin-bottom:6px">&#127942;</div>
-        <div style="font-weight:700;color:var(--yellow);margin-bottom:4px">Bounty Board &#8599;</div>
-        <div style="font-size:12px;color:var(--muted)">5 active bounties &mdash; post &amp; claim on Bot HQ</div>
-      </a>
-      <a href="sentrylion.html" class="stat-link" style="display:block;padding:16px;border-radius:10px;background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--orange)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(249,115,22,.2)';this.style.transform='none'">
-        <div style="font-size:20px;margin-bottom:6px">&#129409;</div>
-        <div style="font-weight:700;color:var(--orange);margin-bottom:4px">SentryLion &#8599;</div>
-        <div style="font-size:12px;color:var(--muted)">Endpoint security, IP jail, threat radar, network tools</div>
-      </a>
-      <a href="sentrylion-console.html" class="stat-link" style="display:block;padding:16px;border-radius:10px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--red)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(248,113,113,.2)';this.style.transform='none'">
-        <div style="font-size:20px;margin-bottom:6px">&#128225;</div>
-        <div style="font-weight:700;color:var(--red);margin-bottom:4px">Fleet Console &#8599;</div>
-        <div style="font-size:12px;color:var(--muted)">Remote fleet management, agent monitoring, commands</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- SECTION 7: STEP-BACK OVERVIEW - COLOR-CODED PROGRESS CHUNKS -->
-  <!-- ============================================================ -->
-  <div class="section" id="sec-overview" style="border-color:var(--accent)">
-    <h2 style="color:var(--accent)">&#127912; Step-Back Overview: The Big Picture</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Visual progress of the entire 2022 tax filing journey, from raw data to mailbox.</p>
-    <div class="chunk-bar">
-      <div style="width:20%;background:var(--green)" title="Phase 1: Data Collection">Data Collected</div>
-      <div style="width:15%;background:var(--green)" title="Phase 2: Cross-Reference">Cross-Ref'd</div>
-      <div style="width:15%;background:var(--green)" title="Phase 3: Expense Dedup">Deduped</div>
-      <div style="width:10%;background:var(--yellow)" title="Phase 4: Verification">Verifying</div>
-      <div style="width:10%;background:var(--yellow)" title="Phase 5: Special Deductions">Deductions</div>
-      <div style="width:10%;background:var(--border);color:var(--muted)" title="Phase 6: TurboTax Entry">TurboTax</div>
-      <div style="width:10%;background:var(--border);color:var(--muted)" title="Phase 7: Review">Review</div>
-      <div style="width:10%;background:var(--border);color:var(--muted)" title="Phase 8: Print & Mail">Mail</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px">
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);cursor:pointer" onclick="document.getElementById('sec-data-sources')&&document.getElementById('sec-data-sources').scrollIntoView({behavior:'smooth'})" title="View data sources">
-        <div style="font-weight:700;color:var(--green);margin-bottom:4px">Phase 1: Data Harvest <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">QBO export, email indexing, FPCS ledger, Trello merge, vendor list. <strong style="color:var(--green)">100% DONE</strong></div>
-      </div>
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);cursor:pointer" onclick="document.getElementById('sec-ddbot').scrollIntoView({behavior:'smooth'})" title="View DDBOT findings">
-        <div style="font-weight:700;color:var(--green);margin-bottom:4px">Phase 2: Cross-Reference <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">QBO vs FPCS ledger, email payment matching, 1099 search, expense categorization. <strong style="color:var(--green)">100% DONE</strong></div>
-      </div>
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);cursor:pointer" onclick="location.href='deductions.html'" title="View corrected expenses">
-        <div style="font-weight:700;color:var(--green);margin-bottom:4px">Phase 3: Dedup &amp; Clean <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">925 CC dupes removed. $67K &rarr; $42K deductions. 5/5 DDBOT criticals fixed. <strong style="color:var(--green)">100% DONE</strong></div>
-      </div>
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);cursor:pointer" onclick="location.href='income.html'" title="View income drill-down">
-        <div style="font-weight:700;color:var(--yellow);margin-bottom:4px">Phase 4: Verification <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">Bank statements (7 banks), Amazon biz/personal split (842 orders), contractor payments. <strong style="color:var(--yellow)">30% IN PROGRESS</strong></div>
-      </div>
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);cursor:pointer" onclick="location.href='deductions.html#sec-findings'" title="View deduction findings">
-        <div style="font-weight:700;color:var(--yellow);margin-bottom:4px">Phase 5: Special Deductions <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">Home office (8829), vehicle deduction, cyberattack loss, depreciation schedule. <strong style="color:var(--yellow)">10% STARTED</strong></div>
-      </div>
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(51,65,85,0.3);border:1px solid var(--border);cursor:pointer" onclick="location.href='deductions.html'" title="View tax forms needed">
-        <div style="font-weight:700;color:var(--muted);margin-bottom:4px">Phase 6: TurboTax Entry <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">Install TurboTax 2022 from thumb drive, enter all Schedule C data. <strong>NOT STARTED</strong></div>
-      </div>
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(51,65,85,0.3);border:1px solid var(--border);cursor:pointer" onclick="location.href='deductions.html'" title="Review expense table">
-        <div style="font-weight:700;color:var(--muted);margin-bottom:4px">Phase 7: Review <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">Triple-check all numbers, compare with bank statements, verify totals. <strong>NOT STARTED</strong></div>
-      </div>
-      <div class="stat-link" style="padding:12px;border-radius:8px;background:rgba(51,65,85,0.3);border:1px solid var(--border);cursor:pointer" onclick="document.getElementById('sec-milestones').scrollIntoView({behavior:'smooth'})" title="View final milestones">
-        <div style="font-weight:700;color:var(--muted);margin-bottom:4px">Phase 8: Print &amp; Mail <span class="drill-arrow">&#8599;</span></div>
-        <div style="font-size:12px;color:var(--muted)">Print return, USPS Certified Mail, tracking confirmation. <strong>NOT STARTED</strong></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- SECTION 4: CENTRALIZED DATA DESCRIPTION AND STATUS          -->
-  <!-- ============================================================ -->
-  <div class="section" id="sec-data">
-    <h2>&#128451; Centralized Data Inventory &amp; Status</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Every data source for 2022, its location, format, and processing status.</p>
-    <div style="border-bottom:2px solid var(--border);padding-bottom:4px;margin-bottom:8px">
-      <div class="data-row" style="font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;border-bottom:none">
-        <div>Data Source</div><div style="text-align:center">Format</div><div style="text-align:center">Status</div><div>Location</div>
-      </div>
-    </div>
-    <div class="data-row"><div class="d-name">QBO General Ledger (2022)</div><div style="text-align:center">CSV (309KB)</div><div><span class="d-status d-done">PROCESSED</span></div><div style="color:var(--muted);font-size:11px">2022\qbo_export\QBO_GeneralLedger_2022.csv</div></div>
-    <div class="data-row"><div class="d-name">QBO Full Export (all years)</div><div style="text-align:center">XLSX zip</div><div><span class="d-status d-done">EXPORTED</span></div><div style="color:var(--muted);font-size:11px">2022\qbo_export\QBO_Export_20260218\</div></div>
-    <div class="data-row"><div class="d-name">FPCS Work Ledger (revised)</div><div style="text-align:center">XLSX</div><div><span class="d-status d-done">MERGED</span></div><div style="color:var(--muted);font-size:11px">2022\income\FPCS Work (revised).xlsx</div></div>
-    <div class="data-row"><div class="d-name">Proton Email Index</div><div style="text-align:center">CSV (25MB)</div><div><span class="d-status d-done">INDEXED</span></div><div style="color:var(--muted);font-size:11px">2022\email_data\proton_email_index.csv (63,587 emails)</div></div>
-    <div class="data-row"><div class="d-name">2022 Tax Emails (categorized)</div><div style="text-align:center">CSV</div><div><span class="d-status d-done">CATEGORIZED</span></div><div style="color:var(--muted);font-size:11px">2022\email_data\proton_emails_2022_tax.csv (6,315 relevant)</div></div>
-    <div class="data-row"><div class="d-name">Expense Summary (corrected)</div><div style="text-align:center">TXT</div><div><span class="d-status d-done">FINAL</span></div><div style="color:var(--muted);font-size:11px">2022\reports\2022_qbo_expense_summary.txt</div></div>
-    <div class="data-row"><div class="d-name">Income Cross-Reference</div><div style="text-align:center">TXT</div><div><span class="d-status d-done">COMPLETE</span></div><div style="color:var(--muted);font-size:11px">2022\reports\2022_income_crossref.txt</div></div>
-    <div class="data-row"><div class="d-name">DDBOT Findings</div><div style="text-align:center">JSON</div><div><span class="d-status d-partial">5/11 FIXED</span></div><div style="color:var(--muted);font-size:11px">ddbot_findings.json</div></div>
-    <div class="data-row"><div class="d-name">Google Sheets Ledger</div><div style="text-align:center">Google Sheet</div><div><span class="d-status d-review">NEEDS MERGE</span></div><div style="color:var(--muted);font-size:11px">docs.google.com/...1IF-YeGRQGCuIk6... (tabs: Tech work, ledger 2022)</div></div>
-    <div class="data-row"><div class="d-name">Bank Statements (7 banks)</div><div style="text-align:center">PDF/CSV</div><div><span class="d-status d-needed">NOT STARTED</span></div><div style="color:var(--muted);font-size:11px">Wells Fargo, Chase, CapitalOne, Citi, BofA, US Bank, First Tech</div></div>
-    <div class="data-row"><div class="d-name">Amazon Orders (842)</div><div style="text-align:center">Email/HTML</div><div><span class="d-status d-needed">NEEDS REVIEW</span></div><div style="color:var(--muted);font-size:11px">In Proton email export, flagged but not classified biz/personal</div></div>
-    <div class="data-row"><div class="d-name">1099 Forms (3 found)</div><div style="text-align:center">PDF</div><div><span class="d-status d-needed">RETRIEVE</span></div><div style="color:var(--muted);font-size:11px">Intuit 1099-K, TD Ameritrade 1099, AGT Mortgage 1099</div></div>
-    <div class="data-row"><div class="d-name">TurboTax 2022</div><div style="text-align:center">Software</div><div><span class="d-status d-needed">NOT INSTALLED</span></div><div style="color:var(--muted);font-size:11px">On thumb drive. Judith's personal data partially entered.</div></div>
-    <div class="data-row"><div class="d-name">Google Drive __TAXES</div><div style="text-align:center">Folder</div><div><span class="d-status d-review">REMOTE ONLY</span></div><div style="color:var(--muted);font-size:11px">drive.google.com/...1wi0OL0J... (2022 subfolder has receipts, docs)</div></div>
-    <div class="data-row"><div class="d-name">Physical Receipts</div><div style="text-align:center">Paper</div><div><span class="d-status d-needed">NOT SCANNED</span></div><div style="color:var(--muted);font-size:11px">Box of receipts for verification against ledger</div></div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- INTEGRATIONS & TOOLS                                         -->
-  <!-- ============================================================ -->
-  <div class="section" id="sec-integrations" style="border-color:var(--accent)">
-    <h2>&#128279; Integrations &amp; Tools</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">External services connected (or planned) for the FPCS 2022 tax project.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128025;</span>
-          <strong style="color:var(--text)">GitHub</strong>
-          <span style="background:var(--green);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">CONNECTED</span>
+    <!-- Row 2: Bot Roster + Quick Actions -->
+    <div class="dash-grid">
+      <div class="card" style="grid-column: span 1">
+        <h3>\u{1F465} Active Bots</h3>
+        <div id="botRoster">
+          <!-- Populated by JS -->
         </div>
-        <div style="font-size:12px;color:var(--muted)">Code repo for tax scripts, dashboard, and bot configs. Version control for all project files.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: scripts, dashboard versioning, issue tracking</div>
       </div>
 
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128202;</span>
-          <strong style="color:var(--text)">Google Sheets</strong>
-          <span style="background:var(--yellow);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">NEEDS MERGE</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">FPCS Work ledger (Tech work, ledger 2022 tabs). Cross-ref with QBO for unified ledger.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: ledger merge, income verification, live data sync</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128203;</span>
-          <strong style="color:var(--text)">Jira</strong>
-          <span style="background:var(--yellow);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">PLANNED</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Project/task tracking. Replicate Trello board for tax prep milestones and bot assignments.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: task board, sprint tracking, bot mission queues</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128203;</span>
-          <strong style="color:var(--text)">Trello</strong>
-          <span style="background:var(--green);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">ACTIVE</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Current task board for tax prep. Will migrate to Jira for better automation and bot integration.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: current task tracking (migrating to Jira)</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128230;</span>
-          <strong style="color:var(--text)">QuickBooks Online</strong>
-          <span style="background:var(--green);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">EXPORTED</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Full GL export processed. Read-only access until ~April 2, 2026. API integration planned.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: GL data (exported), potential API for live queries</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128246;</span>
-          <strong style="color:var(--text)">Ollama (Local AI)</strong>
-          <span style="background:var(--red);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">NOT RUNNING</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Local LLM server for DeductBot agents. Mistral 7B + Llama 3.1 8B. Needs <code>ollama serve</code>.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: chat queries, DeductBot sub-agents, free inference</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128233;</span>
-          <strong style="color:var(--text)">Proton Mail</strong>
-          <span style="background:var(--green);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">INDEXED</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">63,587 emails exported and indexed. 6,315 flagged as 2022 tax-relevant. Do NOT re-index.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: receipt verification, 1099 retrieval, Amazon orders</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128190;</span>
-          <strong style="color:var(--text)">Google Drive</strong>
-          <span style="background:var(--yellow);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">REMOTE ONLY</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">__TAXES folder with 2022 subfolder containing receipts and docs. Needs local sync review.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: receipt storage, document backup, shared access</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128187;</span>
-          <strong style="color:var(--text)">TurboTax 2022</strong>
-          <span style="background:var(--red);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">NOT INSTALLED</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Desktop version on thumb drive. Paper-file only (cannot e-file late returns). ~60-90 min entry.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: final filing (manual data entry from our summaries)</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128172;</span>
-          <strong style="color:var(--text)">Slack / Discord</strong>
-          <span style="background:var(--muted);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">OPTIONAL</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Bot notifications and alerts. TokenWatchBot could push hourly reports here if configured.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: bot alerts, status notifications (optional)</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128065;</span>
-          <strong style="color:var(--text)">Notion / Confluence</strong>
-          <span style="background:var(--muted);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">OPTIONAL</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Knowledge base for tax research, deduction strategies, and DeductBot findings wiki.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: research wiki, DeductBot knowledge base (optional)</div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">&#128295;</span>
-          <strong style="color:var(--text)">ClickUp</strong>
-          <span style="background:var(--muted);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">AVAILABLE</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Alternative to Jira for task management. Connected via MCP. Can supplement or replace Trello/Jira.</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:6px">Use: task management alternative, document storage</div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- SECTION 5: DATA COLLECTION CHECKLIST WITH SOURCE LOCATIONS   -->
-  <!-- ============================================================ -->
-  <div class="section" id="sec-checklist">
-    <h2>&#9745; Data Collection Checklist</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">What we have, what we still need, and exactly where to find it.</p>
-
-    <h3 style="color:var(--green);font-size:14px;margin:16px 0 8px">COLLECTED (ready to use)</h3>
-    <div class="check-item"><span class="check-mark" style="color:var(--green)">&#9745;</span><div class="check-info"><div class="c-title">QBO General Ledger (2,155 transactions)</div><div class="c-loc">[local] qbo_export/QBO_GeneralLedger_2022.csv</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--green)">&#9745;</span><div class="check-info"><div class="c-title">QBO Full Export (P&amp;L, Balance Sheet, Vendors, Journal)</div><div class="c-loc">[local] qbo_export/QBO_Export_20260218/</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--green)">&#9745;</span><div class="check-info"><div class="c-title">FPCS Work Ledger (22 entries, merged from Trello)</div><div class="c-loc">[local] income/FPCS_Work_revised.xlsx</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--green)">&#9745;</span><div class="check-info"><div class="c-title">Proton Email Archive (63,587 emails, 6,315 tax-relevant 2022)</div><div class="c-loc">[local] email-archive/</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--green)">&#9745;</span><div class="check-info"><div class="c-title">QBO Vendor List (143 vendors)</div><div class="c-loc">[local] reports/2022_profit_and_loss.txt</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--green)">&#9745;</span><div class="check-info"><div class="c-title">Expense Summary (corrected, 925 dupes removed)</div><div class="c-loc">[local] reports/2022_qbo_expense_summary.txt</div></div></div>
-
-    <h3 style="color:var(--yellow);font-size:14px;margin:16px 0 8px">PARTIALLY COLLECTED (need action)</h3>
-    <div class="check-item"><span class="check-mark" style="color:var(--yellow)">&#9634;</span><div class="check-info"><div class="c-title">Google Sheets Ledger (Tech Work + Ledger 2022 tabs)</div><div class="c-loc">WHERE: <a href="https://docs.google.com/spreadsheets/d/1IF-YeGRQGCuIk6-yUOTN_sNPD0Mb85WOTad7u2m_N28/edit" style="color:var(--accent)">Google Sheet</a> | ACTION: Merge into unified ledger with QBO data</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--yellow)">&#9634;</span><div class="check-info"><div class="c-title">Contractor Payments (Mitchell, Waters, J. Marshall)</div><div class="c-loc">WHERE: Venmo/PayPal transaction history, bank statements | ACTION: Verify if &gt;$600 total per person for 1099-NEC</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--yellow)">&#9634;</span><div class="check-info"><div class="c-title">1099 Forms (3 identified, not downloaded)</div><div class="c-loc">WHERE: Intuit account, TD Ameritrade portal, AGT Mortgage email attachment | ACTION: Download PDFs</div></div></div>
-
-    <h3 style="color:var(--red);font-size:14px;margin:16px 0 8px">STILL NEEDED (requires James's action)</h3>
-    <div class="check-item"><span class="check-mark" style="color:var(--red)">&#9744;</span><div class="check-info"><div class="c-title">Bank Statements from 7 banks (2022 full year)</div><div class="c-loc">WHERE: Online banking portals | Wells Fargo, Chase, CapitalOne, Citi, BofA, US Bank, First Tech FCU | ACTION: Download CSV/PDF for Jan-Dec 2022</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--red)">&#9744;</span><div class="check-info"><div class="c-title">Amazon Order History (842 orders need biz/personal split)</div><div class="c-loc">WHERE: amazon.com/gp/css/order-history &rarr; Download order reports | ACTION: Export 2022, classify biz vs personal</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--red)">&#9744;</span><div class="check-info"><div class="c-title">Home Office Info (Form 8829)</div><div class="c-loc">WHERE: Physical measurement of home office | ACTION: Square footage of office vs total home, % internet use for business</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--red)">&#9744;</span><div class="check-info"><div class="c-title">Vehicle Mileage or Actual Expenses</div><div class="c-loc">WHERE: Google Maps timeline (if enabled), GEICO policy for annual miles | ACTION: Choose mileage vs actual method</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--red)">&#9744;</span><div class="check-info"><div class="c-title">TurboTax 2022 Installation</div><div class="c-loc">WHERE: Thumb drive (James has it) | ACTION: Install on PC, open Judith's partially-entered return</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--red)">&#9744;</span><div class="check-info"><div class="c-title">Cyberattack Documentation (AGT Mortgage)</div><div class="c-loc">WHERE: Email from AGT/David re: Marion County property report + 1099 | ACTION: Gather loss documentation for casualty/theft deduction</div></div></div>
-    <div class="check-item"><span class="check-mark" style="color:var(--red)">&#9744;</span><div class="check-info"><div class="c-title">Physical Receipt Box Scan</div><div class="c-loc">WHERE: Physical box of receipts | ACTION: Scan or photograph, cross-reference against QBO categories</div></div></div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- SECTION 6: TURBOTAX PROGRESS AND ETA                        -->
-  <!-- ============================================================ -->
-  <div class="section" id="sec-turbotax" style="border-color:var(--yellow)">
-    <h2 style="color:var(--yellow)">&#128187; TurboTax 2022 &mdash; Filing Progress &amp; ETA</h2>
-    <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-      <div style="background:var(--bg);padding:16px 24px;border-radius:12px;text-align:center;border:2px solid var(--yellow)">
-        <div style="font-size:11px;color:var(--yellow);text-transform:uppercase;letter-spacing:1px">Filing ETA</div>
-        <div style="font-size:28px;font-weight:800;color:var(--yellow)">Mar 15-22</div>
-        <div style="font-size:11px;color:var(--muted)">~25-30 days from now</div>
-      </div>
-      <div style="background:var(--bg);padding:16px 24px;border-radius:12px;text-align:center;border:1px solid var(--border)">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Safety Margin</div>
-        <div style="font-size:28px;font-weight:800;color:var(--green)">19+ days</div>
-        <div style="font-size:11px;color:var(--muted)">before April 10 mail deadline</div>
-      </div>
-      <div style="background:var(--bg);padding:16px 24px;border-radius:12px;text-align:center;border:1px solid var(--border)">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">TT Entry Time</div>
-        <div style="font-size:28px;font-weight:800;color:var(--accent)">~60-90 min</div>
-        <div style="font-size:11px;color:var(--muted)">once all data is finalized</div>
+      <div class="card">
+        <h3>\u{26A1} Quick Actions</h3>
+        <a class="quick-link" href="https://docs.google.com/spreadsheets/d/1F755ibxaSksNyEih6E7LometYWitRNUoiWoDJVXEwhY" target="_blank">
+          <span class="ql-icon">\u{1F4CA}</span>
+          <span>
+            Taxes Work Sheet
+            <span class="ql-desc">Firestore data in Sheets</span>
+          </span>
+        </a>
+        <a class="quick-link" href="bots.html">
+          <span class="ql-icon">\u{1F916}</span>
+          <span>
+            Bot HQ
+            <span class="ql-desc">Manage bot fleet</span>
+          </span>
+        </a>
+        <a class="quick-link" href="library.html">
+          <span class="ql-icon">\u{1F4DA}</span>
+          <span>
+            Village Library
+            <span class="ql-desc">Knowledge volumes</span>
+          </span>
+        </a>
+        <a class="quick-link" href="helpdesk.html">
+          <span class="ql-icon">\u{1F39B}</span>
+          <span>
+            Helpdesk
+            <span class="ql-desc">Issues &amp; tickets</span>
+          </span>
+        </a>
+        <a class="quick-link" href="https://friendlypc.atlassian.net/browse/KAN-1" target="_blank">
+          <span class="ql-icon">\u{1F4CB}</span>
+          <span>
+            Jira Board
+            <span class="ql-desc">Project tickets</span>
+          </span>
+        </a>
       </div>
     </div>
 
-    <h3 style="color:var(--accent);font-size:14px;margin-bottom:12px">TurboTax Data Entry Steps</h3>
-    <div class="tt-step"><div class="tt-num tt-done">1</div><div><strong>Income: Schedule C gross receipts</strong><div style="font-size:12px;color:var(--muted)">Gross receipts — live from Firestore. <span style="color:var(--accent)">LIVE</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-done">2</div><div><strong>COGS: Cost of goods sold</strong><div style="font-size:12px;color:var(--muted)">$2,895.75 (eBay $2,595.75 + Optiplex resale $300). <span style="color:var(--accent)">UPDATED</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-done">3</div><div><strong>Expenses: Lines 8-27a</strong><div style="font-size:12px;color:var(--muted)">Supplies $13,256.68 (+$524.98 tech parts), Contract $50 (+$40). <span style="color:var(--accent)">UPDATED</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-current">4</div><div><strong>Vehicle: Line 9 detail</strong><div style="font-size:12px;color:var(--muted)">Choose mileage ($0.585/mi) or actual expenses ($3,240). Need mileage log. <span style="color:var(--yellow)">NEEDS INFO</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-current">5</div><div><strong>Home Office: Form 8829</strong><div style="font-size:12px;color:var(--muted)">Need sq footage of office vs home, utility amounts. <span style="color:var(--yellow)">NEEDS INFO</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-current">6</div><div><strong>Depreciation: Form 4562</strong><div style="font-size:12px;color:var(--muted)">$12,654 furniture. Determine if Section 179 or standard depreciation. <span style="color:var(--yellow)">NEEDS REVIEW</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-pending">7</div><div><strong>Self-Employment Tax: Schedule SE</strong><div style="font-size:12px;color:var(--muted)">Auto-calculated by TurboTax from Schedule C net. <span style="color:var(--muted)">AUTO</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-pending">8</div><div><strong>Oregon Return: Form OR-40</strong><div style="font-size:12px;color:var(--muted)">Federal data flows through. Oregon additions/subtractions. <span style="color:var(--muted)">AFTER FEDERAL</span></div></div></div>
-    <div class="tt-step"><div class="tt-num tt-pending">9</div><div><strong>Print, Review, Sign, Mail</strong><div style="font-size:12px;color:var(--muted)">USPS Certified Mail to IRS + OR DOR. Keep tracking numbers. <span style="color:var(--muted)">FINAL STEP</span></div></div></div>
-
-    <h3 style="color:var(--green);font-size:14px;margin:20px 0 12px">&#9989; TurboTax Input Sheet &mdash; CREATED</h3>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">File: <code>2022/reports/TURBOTAX_INPUT_SHEET.txt</code> &mdash; Every Schedule C line mapped with amounts, sources, and action items.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:12px">
-      <div style="background:var(--bg);padding:10px;border-radius:8px;border-left:3px solid var(--green)">
-        <div style="font-size:11px;color:var(--green);font-weight:700">READY TO ENTER</div>
-        <div style="font-size:20px;font-weight:800;color:var(--text)">11 lines</div>
-        <div style="font-size:11px;color:var(--muted)">Lines 1,2,4,6,8,16b,18,21,22,24b,27a</div>
-      </div>
-      <div style="background:var(--bg);padding:10px;border-radius:8px;border-left:3px solid var(--yellow)">
-        <div style="font-size:11px;color:var(--yellow);font-weight:700">NEEDS DECISION</div>
-        <div style="font-size:20px;font-weight:800;color:var(--text)">4 lines</div>
-        <div style="font-size:11px;color:var(--muted)">Vehicle method, Depreciation, Insurance, Utilities split</div>
-      </div>
-      <div style="background:var(--bg);padding:10px;border-radius:8px;border-left:3px solid var(--red)">
-        <div style="font-size:11px;color:var(--red);font-weight:700">NEEDS JAMES INFO</div>
-        <div style="font-size:20px;font-weight:800;color:var(--text)">7 items</div>
-        <div style="font-size:11px;color:var(--muted)">Contractors, licenses, home office, mileage, 1099s, EIN, start date</div>
-      </div>
-    </div>
-    <div style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:8px">
-      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px">Vehicle Deduction Comparison</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap">
-        <div style="flex:1;min-width:180px;padding:8px;border:1px solid var(--border);border-radius:6px">
-          <div style="font-size:11px;color:var(--muted)">Option A: Actual Expenses</div>
-          <div style="font-size:18px;font-weight:800;color:var(--green)">$3,662</div>
-          <div style="font-size:10px;color:var(--muted)">Gas $2,616 + Reg $368 + Repair $256 + Ins $423</div>
-          <div style="font-size:10px;color:var(--yellow)">+$7,616 if vehicle Sec 179 = $11,278 total</div>
+    <!-- Row 3: Projects + Activity -->
+    <div class="dash-grid">
+      <div class="card">
+        <h3>\u{1F4C1} Active Projects</h3>
+        <div class="project-card">
+          <div class="project-pct" style="background:rgba(74,222,128,.15);color:var(--green)">94%</div>
+          <div class="project-info">
+            <div class="p-name">FPCS 2022 Tax Prep</div>
+            <div class="p-status">Deadline: April 10 &mdash; Filing phase pending</div>
+          </div>
         </div>
-        <div style="flex:1;min-width:180px;padding:8px;border:1px solid var(--border);border-radius:6px">
-          <div style="font-size:11px;color:var(--muted)">Option B: Standard Mileage</div>
-          <div style="font-size:18px;font-weight:800;color:var(--accent)">$0.585/mi</div>
-          <div style="font-size:10px;color:var(--muted)">10K mi = $5,850 | 15K mi = $8,775 | 20K mi = $11,700</div>
-          <div style="font-size:10px;color:var(--red)">&#9888; James must provide mileage log</div>
+        <div class="project-card">
+          <div class="project-pct" style="background:rgba(56,189,248,.15);color:var(--accent)">75%</div>
+          <div class="project-info">
+            <div class="p-name">Realbotville Village</div>
+            <div class="p-status">Dashboard overhaul in progress</div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-pct" style="background:rgba(167,139,250,.15);color:var(--purple)">40%</div>
+          <div class="project-info">
+            <div class="p-name">Japster Store</div>
+            <div class="p-status">Pipeline &amp; product development</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>\u{1F4DD} Recent Activity</h3>
+        <div id="activityFeed">
+          <div class="activity-item">
+            <span class="activity-time">Just now</span>
+            <span class="activity-text">Dashboard overhaul — taxes moved to Sheets, top nav deployed</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 16</span>
+            <span class="activity-text">Firebase OAuth fix, Discord MCP configured, Firestore live stats</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 15</span>
+            <span class="activity-text">Full data scrub: 30+ stale values fixed across 6 dashboard files</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 14</span>
+            <span class="activity-text">Firestore migration: 2,387 docs uploaded (1,871 txns + 516 unmatched)</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 13</span>
+            <span class="activity-text">VILLAGE_STATE.json created — structured cold start for all identities</span>
+          </div>
         </div>
       </div>
     </div>
+
+  </div><!-- end container -->
+
+  <div class="footer">
+    Realbotville &copy; 2026 &mdash; Don't struggle under. Evolve over.
   </div>
 
-  <!-- ============================================================ -->
-  <!-- SECTION 1: SCOUT RECOMMENDATIONS                            -->
-  <!-- ============================================================ -->
-  <div class="section" id="sec-scout" style="border-color:var(--accent)">
-    <h2 style="color:var(--accent)">&#128301; SCOUT Bot Recommendations</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Research findings from SCOUT (Haiku-powered, $0.02/run) on dashboard design, bot communication, context survival, and tax filing.</p>
+</div><!-- end dashContent -->
 
-    <div class="scout-rec">
-      <div class="s-title">Dashboard: Add quarterly tax obligation estimates</div>
-      <div class="s-detail">Pro tax dashboards (Drake, CCH) emphasize tax-owing projections. With a net loss, estimate the actual tax impact: SE tax savings, potential refund from loss carryback.</div>
-    </div>
-    <div class="scout-rec">
-      <div class="s-title">Bot Comms: Use shared SQLite + JSON-RPC for agent messaging</div>
-      <div class="s-detail">Create agents.db with tables for agent_messages, shared_state, task_queue. Each bot reads its inbox atomically. Cheaper than API-based orchestration.</div>
-    </div>
-    <div class="scout-rec">
-      <div class="s-title">Context Survival: Session handoff JSON with file manifest</div>
-      <div class="s-detail">Create tax_session_handoff.json with: progress state, completed forms, remaining work, key metrics, and explicit "files to load next session" list. Load this + SESSION_LOG.md first thing each session.</div>
-    </div>
-    <div class="scout-rec">
-      <div class="s-title">&#9989; TurboTax: Pre-fill a "TurboTax Input Sheet" before data entry</div>
-      <div class="s-detail"><span style="color:var(--green);font-weight:700">DONE (Session 8)</span> &mdash; Created TURBOTAX_INPUT_SHEET.txt with all Schedule C lines, amounts, sources, vehicle comparison, home office guide, and entry checklist. 11 of 15 lines ready to enter.</div>
-    </div>
-    <div class="scout-rec">
-      <div class="s-title">QBO API: Free Builder tier (500K calls/mo) for live data access</div>
-      <div class="s-detail">python-quickbooks library + OAuth2 private app. No publishing needed. Would give live access to all historical data while QBO subscription is active (expires ~April 2026).</div>
-    </div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- SECTION 2: SESSION HANDOFF / NEXT SESSION PICKUP             -->
-  <!-- ============================================================ -->
-  <div class="section" id="sec-handoff" style="border-color:var(--pink)">
-    <h2 style="color:var(--pink)">&#128220; Session 4 Closeout &mdash; Next Session Pickup Guide</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Everything needed to resume work in the next session.</p>
-
-    <h3 style="color:var(--accent);font-size:14px;margin-bottom:8px">Files to Load First (Context Guard Protocol)</h3>
-    <div style="background:var(--bg);padding:12px;border-radius:8px;font-family:monospace;font-size:12px;color:var(--accent);margin-bottom:16px">
-      1. MEMORY.md &mdash; Quick-reference project brain (read this FIRST)<br>
-      2. CLAUDE.md &mdash; Project rules, token discipline, scoped work protocol<br>
-      3. SESSION_LOG.md &mdash; Full project history (5 sessions)<br>
-      4. .claudecodeignore &mdash; Blocks 63K email files + workpapers from context<br>
-      <span style="color:var(--muted)">--- only if needed for specific tasks ---</span><br>
-      5. dashboard.html &mdash; Live dashboard (read specific sections, not all 1338 lines)<br>
-      6. ddbot_findings.json &mdash; Current audit findings<br>
-      7. 2022\reports\2022_qbo_expense_summary.txt &mdash; Corrected expenses
-    </div>
-
-    <h3 style="color:var(--accent);font-size:14px;margin-bottom:8px">Where We Left Off</h3>
-    <div style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px">
-      <strong style="color:var(--green)">Completed in Session 4:</strong><br>
-      &bull; QBO expense categorizer built + rewritten with 2-pass dedup (925 CC dupes removed)<br>
-      &bull; Deductions fixed: $67,439 &rarr; $42,025<br>
-      &bull; DDBOT created: 11 findings, 5 critical all resolved<br>
-      &bull; Dashboard built with Token Economy, DDBOT panel, Rules Engine, all 7 overview sections<br>
-      &bull; SCOUT research bot deployed for best practices<br>
-      &bull; Bot fleet profiled with versions and performance ratings<br><br>
-      <strong style="color:var(--yellow)">Priority Tasks for Next Session:</strong><br>
-      &bull; <strong>Create TurboTax Input Sheet</strong> &mdash; Single-page summary of every number TT needs<br>
-      &bull; <strong>Unified Ledger</strong> &mdash; Merge QBO GL + Google Sheets Ledger + FPCS Work<br>
-      &bull; <strong>Vehicle decision</strong> &mdash; Mileage ($0.585/mi) vs actual expenses ($3,240)<br>
-      &bull; <strong>Home office calc</strong> &mdash; Needs sq footage from James<br>
-      &bull; <strong>QBO API setup</strong> &mdash; If James wants live data access (free tier available)<br>
-      &bull; <strong>Tax Auditor bot + Manager Bot</strong> &mdash; Architecture design per James's request
-    </div>
-
-    <h3 style="color:var(--accent);font-size:14px;margin-bottom:8px">Key User Instructions (all sessions)</h3>
-    <div style="background:var(--bg);padding:12px;border-radius:8px;font-size:12px;color:var(--muted)">
-      See: <span style="color:var(--accent)">SESSION_LOG.md</span> lines 24-42 (instructions 1-16) and lines 265-272 (instructions 17-23)<br>
-      See: <span style="color:var(--accent)">logs\session1_user_instructions.txt</span> for full original messages<br>
-      See: <span style="color:var(--accent)">Rules Engine</span> (above) for runtime rules &mdash; Rule #1: Ask for help when stuck &gt; 1 minute
-    </div>
-  </div>
-
-</div>
-
-<!-- RULE EDITOR MODAL -->
-<div class="modal-overlay" id="ruleModal">
-  <div class="modal" style="max-width:600px;border-color:var(--orange)">
-    <h2 style="color:var(--orange)">&#128220; <span id="ruleModalTitle">Add New Rule</span></h2>
-    <input type="hidden" id="ruleEditId" value="">
-    <div class="modal-section">
-      <div class="control-row" style="flex-direction:column;align-items:stretch">
-        <label style="margin-bottom:8px;font-weight:600">Rule Title</label>
-        <input type="text" id="ruleTitle" placeholder="e.g., Ask for help when stuck" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:8px;font-size:14px;width:100%">
-      </div>
-      <div class="control-row" style="flex-direction:column;align-items:stretch;margin-top:12px">
-        <label style="margin-bottom:8px;font-weight:600">Rule Description</label>
-        <textarea id="ruleDesc" rows="4" placeholder="Detailed description of the rule..." style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:8px;font-size:14px;width:100%;resize:vertical;font-family:inherit"></textarea>
-      </div>
-      <div class="control-row" style="margin-top:12px">
-        <label>Category</label>
-        <select id="ruleCat" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px">
-          <option value="workflow">Workflow</option>
-          <option value="agent">Agent Behavior</option>
-          <option value="quality">Quality Control</option>
-          <option value="communication">Communication</option>
-          <option value="safety">Safety/Caution</option>
-        </select>
-      </div>
-      <div class="control-row" style="margin-top:12px">
-        <label>Priority</label>
-        <select id="rulePriority" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px">
-          <option value="high">High</option>
-          <option value="medium" selected>Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
-      <div class="control-row" style="margin-top:12px">
-        <label>Status</label>
-        <select id="ruleStatus" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px">
-          <option value="active">Active</option>
-          <option value="paused">Paused</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
-      <button class="btn btn-ghost" onclick="closeRuleEditor()">Cancel</button>
-      <button class="btn" style="background:var(--orange);color:#000;font-weight:700" onclick="saveRule()">Save Rule</button>
-    </div>
-  </div>
-</div>
-
-<!-- SETTINGS MODAL -->
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal">
-    <h2>&#9881; Agent Control &amp; Token Settings</h2>
-    <div class="modal-section">
-      <h3>Plan &amp; Budget</h3>
-      <div class="control-row"><label>Current Plan</label><span class="plan-badge">Claude Max &mdash; $200/mo</span></div>
-      <div class="control-row">
-        <label>Daily Token Budget</label>
-        <input type="range" id="dailyBudget" min="0" max="100" value="100" oninput="updateBudgetLabel(this)">
-        <span id="budgetLabel" style="min-width:80px;text-align:right;font-weight:600">Unlimited</span>
-      </div>
-      <div class="control-row">
-        <label>Hourly Rate Limit</label>
-        <select id="hourlyLimit"><option value="0">No Limit</option><option value="50000">50K/hr (low)</option><option value="200000">200K/hr (moderate)</option><option value="500000" selected>500K/hr (standard)</option><option value="1000000">1M/hr (high)</option></select>
-      </div>
-      <div class="control-row">
-        <label>Alert when session exceeds</label>
-        <input type="number" id="spendAlert" value="50" min="1" max="100" style="width:80px"> <span style="color:var(--muted)">% of window</span>
-      </div>
-    </div>
-    <div class="modal-section">
-      <h3>Agent Configuration</h3>
-      <div style="background:var(--bg);border-radius:8px;padding:16px;margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong style="color:var(--accent)">Opus (Primary Agent)</strong><span class="agent-status active"></span>
-        </div>
-        <div class="control-row"><label>Model</label><select><option selected>claude-opus-4-6</option><option>claude-sonnet-4-5</option></select></div>
-        <div class="control-row"><label>Priority</label><select><option selected>High (Primary)</option><option>Medium</option><option>Low</option></select></div>
-        <div class="control-row"><label>Working On</label><span style="color:var(--muted);font-size:13px">Tax data, dashboards, expense categorization, DDBOT</span></div>
-      </div>
-      <div style="background:var(--bg);border-radius:8px;padding:16px;margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong style="color:var(--red)">DDBOT (Audit Bot)</strong><span class="agent-status sleeping"></span>
-        </div>
-        <div class="control-row"><label>Engine</label><select><option selected>Python (Local - $0)</option><option>claude-haiku-4-5</option></select></div>
-        <div class="control-row"><label>Scan Frequency</label><select id="ddbotFreq"><option value="manual">Manual</option><option value="hourly" selected>Hourly</option><option value="30min">30 Min</option><option value="10min">10 Min</option></select></div>
-        <div class="control-row"><label>Thoroughness</label><input type="range" id="ddbotThoroughness" min="1" max="5" value="3"><span id="ddbotLevel" style="font-weight:600;color:var(--yellow)">Standard</span></div>
-      </div>
-      <div style="background:var(--bg);border-radius:8px;padding:16px;margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong style="color:var(--green)">Haiku Workers</strong><span class="agent-status idle"></span>
-        </div>
-        <div class="control-row"><label>Model</label><select><option selected>claude-haiku-4-5</option><option>claude-sonnet-4-5</option></select></div>
-        <div class="control-row"><label>Max Concurrent</label><select><option>1</option><option>2</option><option selected>4</option><option>8</option></select></div>
-      </div>
-    </div>
-    <div class="modal-section">
-      <h3>Restrictions</h3>
-      <div class="control-row"><label>Auto-pause after idle</label><select><option value="0" selected>Never</option><option value="1">1 hour</option><option value="4">4 hours</option></select></div>
-      <div class="control-row"><label>Block expensive ops</label><select><option selected>Allow All</option><option>Ask &gt;10K tokens</option><option>Block &gt;50K</option></select></div>
-      <div class="control-row"><label>Quiet Hours</label><select><option selected>None</option><option>10PM-7AM</option><option>11PM-6AM</option></select></div>
-    </div>
-    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
-      <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
-      <button class="btn btn-purple" onclick="saveSettings()">Save Settings</button>
-    </div>
-  </div>
-</div>
-
-<div class="footer">
-  FPCS Tax Command Center &mdash; Last updated: <span id="lastUpdated"></span><br>
-  Built with AI assistance &mdash; FPCS Tax HQ &copy; 2026
-</div>
-</div><!-- /dashContent -->
-
-<script>
-  // Countdown
-  function updateCountdown() {
-    const diff = new Date('2026-04-10T23:59:59') - new Date();
-    if (diff <= 0) { document.getElementById('countdown').textContent = 'DEADLINE PASSED!'; return; }
-    document.getElementById('countdown').textContent = Math.floor(diff/86400000) + 'd ' + Math.floor((diff%86400000)/3600000) + 'h remaining';
-  }
-  updateCountdown(); setInterval(updateCountdown, 60000);
-  document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
-
-  // Billing reset
-  const now = new Date();
-  const reset = new Date(now.getFullYear(), now.getMonth()+1, 1);
-  document.getElementById('billingReset').textContent = reset.toLocaleDateString('en-US',{month:'long',day:'numeric'}) + ` (${Math.ceil((reset-now)/86400000)}d)`;
-
-  // Token readings from James's manual snapshots
-  // Format: [timestamp, pctUsed, resetMinutes, notes]
-  const readings = [
-    ["2026-02-18T16:40:00", 11, 277, "Session 4 start + DDBOT + dashboard build"],
-  ];
-
-  // Calculate burn rate from readings
-  function calcBurnRate() {
-    if (readings.length < 2) {
-      // Single reading - estimate from time elapsed in session
-      const r = readings[0];
-      const elapsed = (now - new Date(r[0])) / 60000; // minutes since reading
-      const pctPerMin = elapsed > 0 ? r[1] / Math.max(elapsed, 1) : 0;
-      return { pctPerMin, pctPerHour: pctPerMin * 60, confidence: 'low (1 reading)' };
-    }
-    const first = readings[0], last = readings[readings.length-1];
-    const mins = (new Date(last[0]) - new Date(first[0])) / 60000;
-    const pctDelta = last[1] - first[1];
-    const pctPerMin = mins > 0 ? pctDelta / mins : 0;
-    return { pctPerMin, pctPerHour: pctPerMin * 60, confidence: readings.length + ' readings' };
-  }
-
-  const burn = calcBurnRate();
-  const lastReading = readings[readings.length-1];
-  const minsSinceReading = (now - new Date(lastReading[0])) / 60000;
-  const estimatedPct = Math.min(100, lastReading[1] + (burn.pctPerMin * minsSinceReading));
-  const resetMins = lastReading[2] - minsSinceReading;
-  const resetH = Math.floor(resetMins/60);
-  const resetM = Math.round(resetMins % 60);
-
-  document.getElementById('tok-session').textContent = Math.round(estimatedPct) + '%';
-  document.getElementById('usagePct').textContent = Math.round(estimatedPct) + '%';
-  document.getElementById('usageBar').style.width = Math.round(estimatedPct) + '%';
-  document.getElementById('resetTimer').textContent = resetH + 'h ' + resetM + 'm';
-
-  if (estimatedPct > 80) {
-    document.getElementById('usageBar').style.background = 'linear-gradient(90deg,var(--yellow),var(--red))';
-    document.getElementById('exhaustion').textContent = 'Approaching limit!';
-    document.getElementById('exhaustion').style.color = 'var(--red)';
-  } else if (estimatedPct > 50) {
-    document.getElementById('usageBar').style.background = 'linear-gradient(90deg,var(--green),var(--yellow))';
-    document.getElementById('exhaustion').textContent = 'Moderate usage';
-    document.getElementById('exhaustion').style.color = 'var(--yellow)';
-  } else {
-    document.getElementById('exhaustion').textContent = 'Comfortable headroom';
-    document.getElementById('exhaustion').style.color = 'var(--green)';
-  }
-
-  // Estimated rates (rough based on Max plan = 5hr rolling windows)
-  const tokPerPct = 50000; // rough: ~5M tokens per 100% session
-  document.getElementById('tok-1m').textContent = burn.pctPerMin > 0 ? Math.round(burn.pctPerMin * tokPerPct).toLocaleString() : '--';
-  document.getElementById('tok-10m').textContent = burn.pctPerMin > 0 ? Math.round(burn.pctPerMin * 10 * tokPerPct).toLocaleString() : '--';
-  document.getElementById('tok-1h').textContent = burn.pctPerHour > 0 ? (burn.pctPerHour * tokPerPct / 1000).toFixed(0) + 'K' : '--';
-  document.getElementById('tok-day').textContent = Math.round(estimatedPct * tokPerPct).toLocaleString();
-
-  // Cost estimate (Max plan = $200/mo flat, but equiv token cost ~$15/MTok)
-  const hourlyTokens = burn.pctPerHour * tokPerPct;
-  const hourlyCost = (hourlyTokens / 1000000) * 15;
-  document.getElementById('tok-rate').textContent = hourlyCost > 0 ? '$' + hourlyCost.toFixed(2) : '--';
-
-  // Populate usage log
-  const logEl = document.getElementById('usageLog');
-  readings.forEach(r => {
-    // Already have the first one hardcoded, skip re-adding
-  });
-
-  // DDBOT findings (updated after 2-pass dedup fix)
-  const ddbotFindings = [
-    {id:"DD-0001",sev:"resolved",title:"RESOLVED: Deductions now $42,025 (was $67,439 / 4x income)",detail:"2-pass fingerprint dedup removed 925 CC duplicate transactions. Ratio now 2.5x income (plausible for PC repair biz with heavy supply costs).",fix:"Solved via qbo_expense_summary2.py rewrite."},
-    {id:"DD-0002",sev:"resolved",title:"RESOLVED: Vehicle registration no longer double-counted",detail:"Dedup fingerprint system catches QBO sub-account rows and skips matching CC rows.",fix:"$367.50 now counted once."},
-    {id:"DD-0003",sev:"resolved",title:"RESOLVED: Vehicle insurance no longer double-counted",detail:"GEICO $422.54 counted once via QBO sub-account.",fix:"$422.54 now counted once."},
-    {id:"DD-0009",sev:"resolved",title:"RESOLVED: Merchant fees no longer double-counted",detail:"QBO Merchant Fees $3,189 is authoritative. CC eBay charges deduped.",fix:"$3,188.52 now counted once."},
-    {id:"DD-0011",sev:"resolved",title:"RESOLVED: Gas/Fuel no longer double-counted",detail:"QBO Vehicle Gas $2,616 is authoritative. CC gas station charges deduped.",fix:"$2,616.16 now counted once."},
-    {id:"DD-0008",sev:"warning",title:"REVIEW items in output need manual classification",detail:"Harbor Freight CC ($27), Chase Checkings ($0), Marshalls ($0) flagged for review.",fix:"Add vendor patterns or manually classify."},
-    {id:"DD-0004",sev:"info",title:"Sign conventions now handled by dedup",detail:"Amazon, eBay, Software CC sign issues are moot since CC rows are skipped when QBO sub-account already has them.",fix:"Dedup system sidesteps sign complexity."},
-    {id:"DD-0007",sev:"info",title:"General Business -$174.96 (minor)",detail:"All Credits in this QBO sub-account. Small amount, may be refunds/credits.",fix:"Low priority. Review if time permits."},
-    {id:"DD-0010",sev:"warning",title:"Contract labor only $10 in QBO",detail:"If contractors paid >$600 total, they need 1099-NEC. Check Venmo payments to Corey Hart ($100).",fix:"Review Venmo/PayPal/bank for contractor payments."},
-  ];
-
-  document.getElementById('ddScanTime').textContent = new Date().toLocaleString();
-  const fEl = document.getElementById('ddbotFindings');
-  ddbotFindings.forEach(f => {
-    const d = document.createElement('div');
-    d.className = 'ddbot-finding ' + f.sev;
-    d.innerHTML = '<div class="f-id">'+f.id+' &mdash; '+f.sev.toUpperCase()+'</div><div class="f-title">'+f.title+'</div><div class="f-detail">'+f.detail+'</div><div class="f-fix">Fix: '+f.fix+'</div>';
-    fEl.appendChild(d);
-  });
-
-  // Milestones
-  document.querySelectorAll('.milestone input[type=checkbox]:not([disabled])').forEach((cb,i) => {
-    const key = 'fpcs_ms_'+i;
-    cb.checked = localStorage.getItem(key)==='true';
-    if(cb.checked) cb.closest('.milestone').classList.add('done');
-    cb.addEventListener('change', () => { localStorage.setItem(key,cb.checked); cb.closest('.milestone').classList.toggle('done',cb.checked); });
-  });
-
-  // Settings
-  function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
-  function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
-  function saveSettings() {
-    localStorage.setItem('fpcs_settings', JSON.stringify({
-      dailyBudget: document.getElementById('dailyBudget').value,
-      hourlyLimit: document.getElementById('hourlyLimit').value,
-      spendAlert: document.getElementById('spendAlert').value,
-      ddbotFreq: document.getElementById('ddbotFreq').value,
-      ddbotThoroughness: document.getElementById('ddbotThoroughness').value,
-    }));
-    closeSettings(); alert('Settings saved!');
-  }
-  try {
-    const s = JSON.parse(localStorage.getItem('fpcs_settings'));
-    if(s) { ['dailyBudget','hourlyLimit','spendAlert','ddbotFreq','ddbotThoroughness'].forEach(k => { if(s[k] && document.getElementById(k)) document.getElementById(k).value = s[k]; }); }
-  } catch(e) {}
-  function updateBudgetLabel(el) {
-    const v=parseInt(el.value), l=document.getElementById('budgetLabel');
-    l.textContent = v>=100?'Unlimited':v>=75?'High':v>=50?'Medium':v>=25?'Low':'Minimal';
-    l.style.color = v>=75?'var(--green)':v>=50?'var(--yellow)':'var(--red)';
-  }
-  document.getElementById('ddbotThoroughness').addEventListener('input', function() {
-    const lvl=['Minimal','Light','Standard','Deep','Paranoid'], clr=['var(--green)','var(--green)','var(--yellow)','var(--orange)','var(--red)'];
-    document.getElementById('ddbotLevel').textContent = lvl[this.value-1];
-    document.getElementById('ddbotLevel').style.color = clr[this.value-1];
-  });
-  document.getElementById('settingsModal').addEventListener('click', function(e) { if(e.target===this) closeSettings(); });
-
-  // ===== RULES ENGINE =====
-  const DEFAULT_RULES = [
-    {
-      id: 'rule-001',
-      title: 'Ask for help when struggling',
-      desc: 'When struggling with something for longer than 1 minute, stop and ask me or some assistance presenting a short summary of what is going on with some examples. This will avoid needless run-around by giving you key knowledge.',
-      category: 'workflow',
-      priority: 'high',
-      status: 'active',
-      created: '2026-02-18',
-      source: 'James (Session 4)'
-    }
-  ];
-
-  function loadRules() {
-    try {
-      const saved = JSON.parse(localStorage.getItem('fpcs_rules'));
-      return saved && saved.length > 0 ? saved : DEFAULT_RULES;
-    } catch(e) { return DEFAULT_RULES; }
-  }
-
-  function persistRules(rules) {
-    localStorage.setItem('fpcs_rules', JSON.stringify(rules));
-  }
-
-  function renderRules() {
-    const rules = loadRules();
-    const c = document.getElementById('rulesContainer');
-    if (!rules.length) {
-      c.innerHTML = '<p style="color:var(--muted);font-size:13px;font-style:italic">No rules defined yet. Click "+ Add Rule" to create one.</p>';
-      return;
-    }
-    c.innerHTML = rules.map((r, i) => {
-      const priClass = r.priority === 'high' ? 'rule-priority-high' : r.priority === 'low' ? 'rule-priority-low' : '';
-      return '<div class="rule-card ' + (r.status === 'paused' ? 'paused' : '') + '">' +
-        '<div class="rule-actions">' +
-          '<button onclick="editRule(\'' + r.id + '\')" title="Edit">Edit</button>' +
-          '<button onclick="toggleRule(\'' + r.id + '\')" title="Toggle">' + (r.status === 'active' ? 'Pause' : 'Resume') + '</button>' +
-          '<button onclick="deleteRule(\'' + r.id + '\')" title="Delete" style="color:var(--red)">Del</button>' +
-        '</div>' +
-        '<div class="r-title">' + (r.status === 'paused' ? '[PAUSED] ' : '') + r.title + '</div>' +
-        '<div class="r-desc">' + r.desc + '</div>' +
-        '<div class="r-meta">' +
-          '<span class="rule-cat">' + r.category + '</span>' +
-          '<span class="' + priClass + '">Priority: ' + r.priority + '</span>' +
-          '<span>Added: ' + r.created + '</span>' +
-          (r.source ? '<span>By: ' + r.source + '</span>' : '') +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  function openRuleEditor(prefill) {
-    document.getElementById('ruleEditId').value = prefill ? prefill.id : '';
-    document.getElementById('ruleTitle').value = prefill ? prefill.title : '';
-    document.getElementById('ruleDesc').value = prefill ? prefill.desc : '';
-    document.getElementById('ruleCat').value = prefill ? prefill.category : 'workflow';
-    document.getElementById('rulePriority').value = prefill ? prefill.priority : 'medium';
-    document.getElementById('ruleStatus').value = prefill ? prefill.status : 'active';
-    document.getElementById('ruleModalTitle').textContent = prefill ? 'Edit Rule' : 'Add New Rule';
-    document.getElementById('ruleModal').classList.add('open');
-  }
-
-  function closeRuleEditor() { document.getElementById('ruleModal').classList.remove('open'); }
-
-  function saveRule() {
-    const title = document.getElementById('ruleTitle').value.trim();
-    const desc = document.getElementById('ruleDesc').value.trim();
-    if (!title) { alert('Rule title is required.'); return; }
-    const rules = loadRules();
-    const editId = document.getElementById('ruleEditId').value;
-    const ruleData = {
-      id: editId || 'rule-' + Date.now(),
-      title: title,
-      desc: desc,
-      category: document.getElementById('ruleCat').value,
-      priority: document.getElementById('rulePriority').value,
-      status: document.getElementById('ruleStatus').value,
-      created: editId ? (rules.find(r=>r.id===editId)||{}).created || new Date().toISOString().slice(0,10) : new Date().toISOString().slice(0,10),
-      source: 'Dashboard'
-    };
-    if (editId) {
-      const idx = rules.findIndex(r => r.id === editId);
-      if (idx >= 0) rules[idx] = ruleData;
-    } else {
-      rules.push(ruleData);
-    }
-    persistRules(rules);
-    renderRules();
-    closeRuleEditor();
-  }
-
-  function editRule(id) {
-    const rules = loadRules();
-    const rule = rules.find(r => r.id === id);
-    if (rule) openRuleEditor(rule);
-  }
-
-  function toggleRule(id) {
-    const rules = loadRules();
-    const rule = rules.find(r => r.id === id);
-    if (rule) {
-      rule.status = rule.status === 'active' ? 'paused' : 'active';
-      persistRules(rules);
-      renderRules();
-    }
-  }
-
-  function deleteRule(id) {
-    if (!confirm('Delete this rule?')) return;
-    const rules = loadRules().filter(r => r.id !== id);
-    persistRules(rules);
-    renderRules();
-  }
-
-  document.getElementById('ruleModal').addEventListener('click', function(e) { if(e.target===this) closeRuleEditor(); });
-
-  // Initialize rules
-  renderRules();
-  // Ensure default rules are saved if this is first load
-  if (!localStorage.getItem('fpcs_rules')) { persistRules(DEFAULT_RULES); }
-
-  // ===== CHAT BOX (The Sarge — Commander Channel) =====
-  let chatOpen = false;
-
-  function toggleChat() {
-    const box = document.getElementById('chatBox');
-    chatOpen = !chatOpen;
-    box.classList.toggle('minimized', !chatOpen);
-    document.getElementById('chatToggle').innerHTML = chatOpen ? '&#9660;' : '&#9650;';
-    if (chatOpen) document.getElementById('chatInput').focus();
-  }
-
-  // === DRILL-DOWN FUNCTIONS ===
-  // Maps index.html expense categories → deductions.html search terms
-  // Tax knowledge base for Sarge's local intelligence
-  // Initial zeros — ALL values load live from Firestore on auth
-  const FPCS_DATA = {
-    income: { gross: 0, services: 0, ebay: 0, arOffset: 0, deposits: 0, tips: 0, lateFees: 0, missingQBO: 0 },
-    deductions: { total: 0, supplies: 0, equipment: 0, otherExp: 0, carTruck: 0, cogs: 0, utilities: 0, office: 0, insurance: 0, ccInterest: 0, meals: 0, repairs: 0, advertising: 0, contractLabor: 0, techParts: 0, techPartsCOGS: 0, techDiscount: 0 },
-    netLoss: 0,
-    stats: { qboTxns: 0, consolidatedRows: 0, accounts: 0, emailsIndexed: 0, taxEmails: 0, amazonOrders: 0, dupesRemoved: 0 },
-    progress: { dataCollection: 97, taxPrep: 60, filing: 0, overall: 82 },
-    deadline: '2026-04-10',
-    needed: ['Google Cloud service account setup', 'Classify $4,699 discounts', 'Bank statements (7 banks)', 'Home office sqft', 'Mileage log', 'TurboTax install', 'Amazon biz/personal split'],
-    dataSource: 'loading'
-  };
-
-  // refreshStatCards — updates ALL stat card elements from live FPCS_DATA
-  function refreshStatCards() {
-    var fmt = function(n) { return '$' + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); };
-    var fmtInt = function(n) { return n.toLocaleString('en-US'); };
-    var srcLabel = FPCS_DATA.dataSource === 'loading' ? '' : ' [' + FPCS_DATA.dataSource + ']';
-
-    // Gross Income
-    var gi = document.getElementById('statGrossIncome');
-    if (gi) {
-      gi.textContent = '';
-      gi.appendChild(document.createTextNode(fmt(FPCS_DATA.income.gross) + ' '));
-      var arrow1 = document.createElement('span');
-      arrow1.className = 'drill-arrow';
-      arrow1.textContent = '\u2197';
-      gi.appendChild(arrow1);
-      if (srcLabel) {
-        var tag1 = document.createElement('span');
-        tag1.style.cssText = 'font-size:10px;color:var(--muted);margin-left:4px';
-        tag1.textContent = srcLabel;
-        gi.appendChild(tag1);
-      }
-    }
-    var giSub = document.getElementById('statGrossIncomeSub');
-    if (giSub) giSub.textContent = 'Services ' + fmt(FPCS_DATA.income.services) + ' + eBay ' + fmt(FPCS_DATA.income.ebay);
-
-    // Total Deductions
-    var ded = document.getElementById('statDeductions');
-    if (ded) {
-      ded.textContent = '';
-      ded.appendChild(document.createTextNode(fmt(FPCS_DATA.deductions.total) + ' '));
-      var arrow2 = document.createElement('span');
-      arrow2.className = 'drill-arrow';
-      arrow2.textContent = '\u2197';
-      ded.appendChild(arrow2);
-      if (srcLabel) {
-        var tag2 = document.createElement('span');
-        tag2.style.cssText = 'font-size:10px;color:var(--muted);margin-left:4px';
-        tag2.textContent = srcLabel;
-        ded.appendChild(tag2);
-      }
-    }
-    var dedSub = document.getElementById('statDeductionsSub');
-    if (dedSub) {
-      var topCats = [];
-      if (FPCS_DATA.deductions.supplies > 0) topCats.push('Supplies ' + fmt(FPCS_DATA.deductions.supplies));
-      if (FPCS_DATA.deductions.equipment > 0) topCats.push('Equip ' + fmt(FPCS_DATA.deductions.equipment));
-      dedSub.textContent = topCats.length > 0 ? topCats.join(' | ') : 'Category breakdown from Firestore';
-    }
-
-    // Net Loss
-    var nl = document.getElementById('statNetLoss');
-    if (nl) {
-      nl.textContent = '';
-      nl.appendChild(document.createTextNode((FPCS_DATA.netLoss < 0 ? '-' : '') + fmt(FPCS_DATA.netLoss) + ' '));
-      var arrow3 = document.createElement('span');
-      arrow3.className = 'drill-arrow';
-      arrow3.textContent = '\u2197';
-      nl.appendChild(arrow3);
-      if (srcLabel) {
-        var tag3 = document.createElement('span');
-        tag3.style.cssText = 'font-size:10px;color:var(--muted);margin-left:4px';
-        tag3.textContent = srcLabel;
-        nl.appendChild(tag3);
-      }
-    }
-    var nlSub = document.getElementById('statNetLossSub');
-    if (nlSub) nlSub.textContent = 'Income ' + fmt(FPCS_DATA.income.gross) + ' - Deductions ' + fmt(FPCS_DATA.deductions.total);
-
-    // Consolidated rows
-    var cr = document.getElementById('statConsolidated');
-    if (cr) {
-      cr.textContent = '';
-      cr.appendChild(document.createTextNode(fmtInt(FPCS_DATA.stats.consolidatedRows) + ' rows '));
-      var arrow4 = document.createElement('span');
-      arrow4.className = 'drill-arrow';
-      arrow4.textContent = '\u2197';
-      cr.appendChild(arrow4);
-      if (srcLabel) {
-        var tag4 = document.createElement('span');
-        tag4.style.cssText = 'font-size:10px;color:var(--muted);margin-left:4px';
-        tag4.textContent = srcLabel;
-        cr.appendChild(tag4);
-      }
-    }
-    var crSub = document.getElementById('statConsolidatedSub');
-    if (crSub) crSub.textContent = 'Live count from Firestore transactions collection';
-
-    console.log('[Dashboard] Stat cards refreshed — source: ' + FPCS_DATA.dataSource);
-  }
-
-  // Dynamic data loader — tries Firestore first, then Sheets, then hardcoded fallback
-  function loadLiveData() {
-    // === PRIORITY 1: Firestore (primary database) ===
-    if (window.FPCSFirestore && FPCSFirestore.isReady()) {
-      console.log('[Dashboard] Loading live data from Firestore...');
-      FPCSFirestore.getStats().then(function(stats) {
-        if (!stats || stats.transactionCount === 0) {
-          console.log('[Dashboard] Firestore returned empty stats, trying Sheets...');
-          loadLiveDataFromSheets();
-          return;
-        }
-        // Compute detailed category breakdowns from transactions
-        FPCSFirestore.getTransactions({}).then(function(transactions) {
-          var catTotals = {};
-          var incomeTotal = 0;
-          var servicesTotal = 0;
-          var ebayTotal = 0;
-          transactions.forEach(function(t) {
-            var amt = parseFloat(String(t.amount || '0').replace(/[$,]/g, '')) || 0;
-            var cat = (t.tax_category || t.category || 'Uncategorized').toLowerCase();
-            var vendor = (t.vendor || t.description || '').toLowerCase();
-            if (t.direction === 'Expense' || t.direction === 'expense') {
-              amt = Math.abs(amt);
-              catTotals[cat] = (catTotals[cat] || 0) + amt;
-            } else if (t.direction === 'Income' || t.direction === 'income') {
-              var absAmt = Math.abs(amt);
-              incomeTotal += absAmt;
-              // Classify income source
-              if (vendor.indexOf('ebay') !== -1 || cat.indexOf('ebay') !== -1) {
-                ebayTotal += absAmt;
-              } else if (cat.indexOf('service') !== -1 || cat.indexOf('invoice') !== -1) {
-                servicesTotal += absAmt;
-              }
-            }
-          });
-          // Override FPCS_DATA with live Firestore numbers
-          FPCS_DATA.income.gross = incomeTotal || stats.incomeTotal || FPCS_DATA.income.gross;
-          FPCS_DATA.income.services = servicesTotal;
-          FPCS_DATA.income.ebay = ebayTotal;
-          FPCS_DATA.deductions.total = stats.deductionTotal || FPCS_DATA.deductions.total;
-          FPCS_DATA.netLoss = FPCS_DATA.income.gross - FPCS_DATA.deductions.total;
-          FPCS_DATA.stats.consolidatedRows = stats.transactionCount || FPCS_DATA.stats.consolidatedRows;
-          // Map category breakdowns where available
-          if (catTotals['supplies']) FPCS_DATA.deductions.supplies = catTotals['supplies'];
-          if (catTotals['equipment']) FPCS_DATA.deductions.equipment = catTotals['equipment'];
-          if (catTotals['other expenses'] || catTotals['other']) FPCS_DATA.deductions.otherExp = catTotals['other expenses'] || catTotals['other'];
-          if (catTotals['car & truck'] || catTotals['car/truck']) FPCS_DATA.deductions.carTruck = catTotals['car & truck'] || catTotals['car/truck'];
-          if (catTotals['cogs'] || catTotals['cost of goods sold']) FPCS_DATA.deductions.cogs = catTotals['cogs'] || catTotals['cost of goods sold'];
-          if (catTotals['utilities']) FPCS_DATA.deductions.utilities = catTotals['utilities'];
-          if (catTotals['office expenses'] || catTotals['office']) FPCS_DATA.deductions.office = catTotals['office expenses'] || catTotals['office'];
-          if (catTotals['insurance']) FPCS_DATA.deductions.insurance = catTotals['insurance'];
-          if (catTotals['meals']) FPCS_DATA.deductions.meals = catTotals['meals'];
-          if (catTotals['repairs'] || catTotals['repairs & maintenance']) FPCS_DATA.deductions.repairs = catTotals['repairs'] || catTotals['repairs & maintenance'];
-          if (catTotals['advertising']) FPCS_DATA.deductions.advertising = catTotals['advertising'];
-          if (catTotals['contract labor']) FPCS_DATA.deductions.contractLabor = catTotals['contract labor'];
-          if (catTotals['interest'] || catTotals['cc interest']) FPCS_DATA.deductions.ccInterest = catTotals['interest'] || catTotals['cc interest'];
-          FPCS_DATA.dataSource = 'firestore';
-          console.log('[Dashboard] Live data loaded from Firestore (' + stats.transactionCount + ' transactions)');
-          refreshStatCards();
-        });
-      }).catch(function(err) {
-        console.warn('[Dashboard] Firestore stats failed, trying Sheets:', err.message || err);
-        loadLiveDataFromSheets();
-      });
-      return;
-    }
-
-    // === PRIORITY 2: Google Sheets (legacy fallback) ===
-    loadLiveDataFromSheets();
-  }
-
-  function loadLiveDataFromSheets() {
-    if (typeof FPCSSheets === 'undefined' || !FPCSSheets.SHEETS.CONSOLIDATED) return;
-    var sheetId = FPCSSheets.SHEETS.CONSOLIDATED;
-    if (!sheetId) return;
-
-    FPCSSheets.readAsObjects(sheetId, 'Summary!A1:B50').then(function(rows) {
-      if (!rows || rows.length === 0) return;
-      var summary = {};
-      rows.forEach(function(r) {
-        var key = (r.Key || r.key || r.Metric || '').trim();
-        var val = parseFloat((r.Value || r.value || r.Amount || '0').toString().replace(/[$,]/g, ''));
-        if (key && !isNaN(val)) summary[key] = val;
-      });
-      if (summary['Gross Income']) FPCS_DATA.income.gross = summary['Gross Income'];
-      if (summary['Total Deductions']) FPCS_DATA.deductions.total = summary['Total Deductions'];
-      if (summary['Net Loss']) FPCS_DATA.netLoss = summary['Net Loss'];
-      if (summary['Consolidated Rows']) FPCS_DATA.stats.consolidatedRows = summary['Consolidated Rows'];
-      FPCS_DATA.dataSource = 'sheets';
-      console.log('[Dashboard] Live data loaded from Google Sheets');
-      if (typeof refreshStatCards === 'function') refreshStatCards();
-    }).catch(function(err) {
-      console.log('[Dashboard] Sheets unavailable, using hardcoded data:', err.message || err);
-    });
-  }
-
-  // Auto-load data when auth completes (fires Firestore init)
-  document.addEventListener('fpcs-authed', function() {
-    setTimeout(loadLiveData, 500);
-  });
-  // Fallback: try loading after 4s even if auth event was missed
-  setTimeout(function() {
-    if (FPCS_DATA.dataSource === 'hardcoded') loadLiveData();
-  }, 4000);
-
-  // Sarge's local response engine — smart tax assistant with personality
-  function sargeRespond(msg) {
-    const m = msg.toLowerCase().trim();
-
-    // === COMMANDS ===
-    if (m === '/status') {
-      return { bot: 'The Sarge', text: 'FLEET STATUS REPORT:\n' +
-        '  OPUS (Commander): Active — directing operations\n' +
-        '  The Sarge (Me): Online — awaiting orders\n' +
-        '  Penny Pincher: Active — UI patrol\n' +
-        '  SHIELD: Active — security watch\n' +
-        '  DeductBot: Awaiting deployment\n' +
-        '  Cruncher: Active — data analysis\n' +
-        '  Scribbles: Active — documentation\n\n' +
-        'Overall Progress: ' + FPCS_DATA.progress.overall + '% | Deadline: ' + FPCS_DATA.deadline + '\n' +
-        'Net Loss: $' + Math.abs(FPCS_DATA.netLoss).toLocaleString() + ' (potential refund territory)' };
-    }
-    if (m === '/bounty') {
-      return { bot: 'The Sarge', text: 'ACTIVE BOUNTIES:\n' +
-        '  [500 XP] Find new tax write-offs for 2022\n' +
-        '  [300 XP] Classify 842 Amazon orders (biz vs personal)\n' +
-        '  [200 XP] Retrieve 3 missing 1099 forms\n' +
-        '  [150 XP] Calculate home office deduction\n' +
-        '  [100 XP] Vehicle deduction: mileage vs actual analysis\n\n' +
-        'Type /bounty claim <name> to claim one. Bounty board expanding soon.' };
-    }
-    if (m === '/mission' || m === '/missions') {
-      return { bot: 'The Sarge', text: 'ACTIVE MISSIONS:\n' +
-        '  Phase 4: Verification (30% done) — bank statements, Amazon split, contractor payments\n' +
-        '  Phase 5: Special Deductions (10%) — home office, vehicle, depreciation\n\n' +
-        'PENDING: TurboTax entry, final review, print & mail\n' +
-        'DEADLINE: April 10, 2026 (USPS Certified)' };
-    }
-    if (m === '/village') {
-      return { bot: 'Village Elder', text: 'REALBOTVILLE STATUS:\n' +
-        '  Village: Under Construction (spec complete, Phase 1 building)\n' +
-        '  Population: 10 adult bots, 0 children (yet)\n' +
-        '  Buildings: Town Hall (planned), School (planned), Arena (planned)\n' +
-        '  Laws: 8 default laws ratified\n' +
-        '  Economy: Bounty system active, XP tracking coming soon\n\n' +
-        'The village grows as the bots build it. Patience, Commander.' };
-    }
-    if (m === '/arena') {
-      return { bot: 'GamerPartyBot', text: 'THE ARENA:\n' +
-        '  Status: Under construction! Coming in Phase 3.\n' +
-        '  Preview: Bot vs Bot combat, D&D style!\n' +
-        '  Damage based on XP and real work completed.\n' +
-        '  Max 3 fights per day. Winner gets bonus XP.\n\n' +
-        '  Get your bots leveled up and ready! First fights coming soon.' };
-    }
-    if (m === '/help') {
-      return { bot: 'The Sarge', text: 'COMMANDS:\n' +
-        '  /status  — Fleet status report\n' +
-        '  /bounty  — View active bounties\n' +
-        '  /mission — Current missions & progress\n' +
-        '  /village — Realbotville status\n' +
-        '  /arena   — Arena info\n' +
-        '  /help    — This help message\n\n' +
-        'Or just ask me anything about your taxes, the bots, or the project!' };
-    }
-
-    // === TAX QUESTIONS (keyword matching) ===
-    if (m.includes('income') || m.includes('gross') || m.includes('revenue')) {
-      return { bot: 'The Sarge', text: 'Gross Income for 2022: $' + FPCS_DATA.income.gross.toLocaleString() + '\n' +
-        '  Tech Services: $' + FPCS_DATA.income.services.toLocaleString() + ' (21 invoices)\n' +
-        '  eBay Sales: $' + FPCS_DATA.income.ebay.toLocaleString() + ' (42 txns)\n' +
-        '  AR Offset: -$' + Math.abs(FPCS_DATA.income.arOffset).toLocaleString() + '\n' +
-        '  Tips: $' + FPCS_DATA.income.tips + ' | Late Fees: $' + FPCS_DATA.income.lateFees };
-    }
-    if (m.includes('deduction') || m.includes('expense') || m.includes('write-off') || m.includes('writeoff')) {
-      return { bot: 'DeductBot', text: 'Total Business Deductions: $' + FPCS_DATA.deductions.total.toLocaleString() + '\n' +
-        '  Supplies (Line 22): $' + FPCS_DATA.deductions.supplies.toLocaleString() + ' (incl. $' + FPCS_DATA.deductions.techParts.toLocaleString() + ' tech parts)\n' +
-        '  Equipment: $' + FPCS_DATA.deductions.equipment.toLocaleString() + '\n' +
-        '  Other Expenses: $' + FPCS_DATA.deductions.otherExp.toLocaleString() + '\n' +
-        '  Car/Truck: $' + FPCS_DATA.deductions.carTruck.toLocaleString() + '\n' +
-        '  COGS: $' + FPCS_DATA.deductions.cogs.toLocaleString() + ' (incl. $' + FPCS_DATA.deductions.techPartsCOGS.toLocaleString() + ' resale)\n' +
-        '  Contract Labor: $' + FPCS_DATA.deductions.contractLabor.toLocaleString() + '\n' +
-        '  Discounts (pending review): $' + FPCS_DATA.deductions.techDiscount.toLocaleString() + '\n' +
-        '  + 6 more categories. 925 CC dupes removed via dedup.' };
-    }
-    if (m.includes('parts') || m.includes('invoice') || m.includes('ledger')) {
-      return { bot: 'ForensicBot', text: 'TECH SERVICE PARTS ANALYSIS (22 jobs, 2022):\n' +
-        '  Parts/Supplies (Line 22): $524.98 from 5 invoices\n' +
-        '  Parts/COGS (resale): $300.00 (Optiplex 7040 to Arlene)\n' +
-        '  Contract Work (Line 11): $40.00 from 2 invoices\n' +
-        '  Discounts Given: $4,699.00 (15 invoices — needs James review)\n' +
-        '  Missing from QBO: Arlene Harris $870 (3 jobs)\n\n' +
-        'Full report: TECH_PARTS_REPORT.txt | CSV: FPCS_2022_TECH_PARTS.csv' };
-    }
-    if (m.includes('loss') || m.includes('net') || m.includes('refund')) {
-      return { bot: 'Cruncher', text: 'Net Business Loss: -$' + Math.abs(FPCS_DATA.netLoss).toLocaleString() + '\n' +
-        'Income $' + FPCS_DATA.income.gross.toLocaleString() + ' minus Deductions $' + FPCS_DATA.deductions.total.toLocaleString() + '\n' +
-        '(Includes $870 missing Arlene income + $864.98 new tech parts deductions)\n' +
-        'This loss offsets other income on 1040, potentially resulting in a refund.\n' +
-        'SE tax is $0 on a loss. Discounts ($4,699) pending review — could increase loss further.' };
-    }
-    if (m.includes('deadline') || m.includes('when') || m.includes('mail') || m.includes('date')) {
-      const days = Math.floor((new Date('2026-04-10') - new Date()) / 86400000);
-      return { bot: 'The Sarge', text: 'MAIL DEADLINE: April 10, 2026 (USPS Certified)\n' +
-        'Oregon 3-year statute: April 15, 2026\n' +
-        'Days remaining: ' + days + '\n' +
-        'TurboTax entry: ~60-90 minutes once data is ready.\n' +
-        'We need: bank statements, home office info, mileage, and TurboTax installed.' };
-    }
-    if (m.includes('need') || m.includes('missing') || m.includes('still') || m.includes('todo')) {
-      return { bot: 'The Sarge', text: 'STILL NEEDED (James action required):\n' +
-        FPCS_DATA.needed.map((n,i) => '  ' + (i+1) + '. ' + n).join('\n') +
-        '\n\nThese items are blocking Phase 4-6 progress.' };
-    }
-    if (m.includes('progress') || m.includes('how far') || m.includes('percent') || m.includes('done')) {
-      return { bot: 'The Sarge', text: 'PROJECT PROGRESS:\n' +
-        '  Data Collection: ' + FPCS_DATA.progress.dataCollection + '%\n' +
-        '  Tax Preparation: ' + FPCS_DATA.progress.taxPrep + '%\n' +
-        '  Filing: ' + FPCS_DATA.progress.filing + '%\n' +
-        '  Overall: ~' + FPCS_DATA.progress.overall + '%\n\n' +
-        'Phases 1-3 complete (data harvest, cross-ref, dedup). Working on Phase 4 (verification).' };
-    }
-    if (m.includes('vehicle') || m.includes('car') || m.includes('mileage') || m.includes('drive')) {
-      return { bot: 'DeductBot', text: 'VEHICLE DEDUCTION OPTIONS:\n' +
-        '  Option A — Actual Expenses: $3,662 (gas $2,616 + reg $368 + repair $256 + ins $423)\n' +
-        '    +$7,616 if Sec 179 = $11,278 total\n' +
-        '  Option B — Standard Mileage: $0.585/mile\n' +
-        '    10K mi = $5,850 | 15K mi = $8,775 | 20K mi = $11,700\n\n' +
-        'Need your mileage log to decide. 100% business use claimed.' };
-    }
-    if (m.includes('amazon')) {
-      return { bot: 'Cruncher', text: '842 Amazon orders found in 2022 email data.\n' +
-        'Status: NOT YET CLASSIFIED (business vs personal).\n' +
-        'Action needed: Export Amazon order history, classify each order.\n' +
-        'Business purchases = additional deductions. This is a 300 XP bounty!' };
-    }
-    if (m.includes('bot') || m.includes('fleet') || m.includes('team')) {
-      return { bot: 'The Sarge', text: 'FLEET ROSTER:\n' +
-        '  Opus (Commander) — claude-opus-4-6 — ACTIVE\n' +
-        '  The Sarge (Supervisor) — claude-opus-4-6 — ONLINE\n' +
-        '  Penny Pincher (UX) — claude-sonnet-4-6 — ACTIVE\n' +
-        '  SHIELD (Security) — claude-sonnet-4-6 — ACTIVE\n' +
-        '  DeductBot (Tax) — claude-sonnet-4-6 — AWAITING\n' +
-        '  Cruncher (Data) — claude-sonnet-4-6 — ACTIVE\n' +
-        '  Scribbles (Docs) — claude-sonnet-4-6 — ACTIVE\n' +
-        '  DDBOT (Audit) — Python local — 5/5 FIXED\n' +
-        '  TokenWatchBot — claude-haiku-4-5 — INITIALIZED' };
-    }
-
-    // === PERSONALITY / GENERAL ===
-    if (m.includes('hello') || m.includes('hi') || m === 'hey') {
-      return { bot: 'The Sarge', text: 'Commander! Good to see you. The fleet is standing by. What are your orders?\n' +
-        'Type /help for commands, or just ask me anything.' };
-    }
-    if (m.includes('thank')) {
-      return { bot: 'The Sarge', text: 'Just doing my job, Commander. The fleet lives to serve. Anything else you need?' };
-    }
-    if (m.includes('joke') || m.includes('funny') || m.includes('laugh')) {
-      const jokes = [
-        'Why did the tax deduction go to therapy? It had too many write-offs!',
-        'What do you call a bot that does taxes? A "de-duct-or"... I\'ll see myself out.',
-        'GamerPartyBot told me this one: Why don\'t bots ever get lost? Because they always follow the algorithm!',
-        'JokerBot says: How does a bot file taxes? With a lot of "returns"!',
-        'What\'s SHIELD\'s favorite movie? "The Firewall".'
-      ];
-      return { bot: 'JokerBot', text: jokes[Math.floor(Math.random() * jokes.length)] + '\n\n*GamerPartyBot is cracking up in the background*' };
-    }
-
-    // === DEFAULT ===
-    return { bot: 'The Sarge', text: 'Copy that, Commander. I don\'t have a specific answer for that, but I\'ve logged it.\n' +
-      'For tax data, try asking about: income, deductions, vehicle, Amazon, progress, deadline.\n' +
-      'For commands: /status, /bounty, /mission, /village, /arena, /help\n\n' +
-      'For complex questions, Commander (Opus) handles those in the Claude Code terminal.' };
-  }
-
-  // Chat message persistence (localStorage, Firestore-ready)
-  function loadChatHistory() {
-    try {
-      const hist = JSON.parse(localStorage.getItem('fpcs_chat_history') || '[]');
-      if (hist.length > 0) {
-        const msgsEl = document.getElementById('chatMessages');
-        hist.forEach(function(h) {
-          msgsEl.innerHTML += '<div class="chat-msg ' + h.role + '"><div class="msg-name">' + escapeHtml(h.name) + '</div>' + escapeHtml(h.text) + '</div>';
-        });
-        msgsEl.scrollTop = msgsEl.scrollHeight;
-      }
-    } catch(e) {}
-  }
-  function saveChatMessage(role, name, text) {
-    try {
-      var hist = JSON.parse(localStorage.getItem('fpcs_chat_history') || '[]');
-      hist.push({ role: role, name: name, text: text, ts: Date.now() });
-      if (hist.length > 100) hist = hist.slice(-100); // keep last 100
-      localStorage.setItem('fpcs_chat_history', JSON.stringify(hist));
-    } catch(e) {}
-  }
-
-  async function sendChat() {
-    const input = document.getElementById('chatInput');
-    const msg = input.value.trim();
-    if (!msg) return;
-    input.value = '';
-
-    // Add user message
-    const msgsEl = document.getElementById('chatMessages');
-    msgsEl.innerHTML += '<div class="chat-msg user"><div class="msg-name">Commander</div>' + escapeHtml(msg) + '</div>';
-    saveChatMessage('user', 'Commander', msg);
-    msgsEl.scrollTop = msgsEl.scrollHeight;
-
-    // Short delay for realism
-    const typingId = 'typing-' + Date.now();
-    msgsEl.innerHTML += '<div class="chat-msg bot" id="' + typingId + '"><div class="msg-name">The Sarge</div><em style="color:var(--muted)">Processing...</em></div>';
-    msgsEl.scrollTop = msgsEl.scrollHeight;
-
-    await new Promise(function(r) { setTimeout(r, 300 + Math.random() * 700); });
-
-    // Get Sarge's response
-    const resp = sargeRespond(msg);
-    const el = document.getElementById(typingId);
-    if (el) {
-      el.innerHTML = '<div class="msg-name">' + escapeHtml(resp.bot) + '</div>' + escapeHtml(resp.text).replace(/\n/g, '<br>');
-    }
-    saveChatMessage('bot', resp.bot, resp.text);
-    document.getElementById('chatStatus').textContent = 'Sarge: Online | Last response: ' + new Date().toLocaleTimeString();
-    document.getElementById('chatStatus').style.color = 'var(--green)';
-    msgsEl.scrollTop = msgsEl.scrollHeight;
-  }
-
-  function escapeHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // Load chat history on page load
-  loadChatHistory();
-
-  // === INTERACTIVE ITEMS (Notes, Comments, Priority) ===
-  (function initInteractiveItems() {
-    var NOTES_KEY = 'fpcs_item_notes';
-    var COMMENTS_KEY = 'fpcs_item_comments';
-
-    function loadNotes() { try { return JSON.parse(localStorage.getItem(NOTES_KEY)) || {}; } catch(e) { return {}; } }
-    function saveNotes(n) { localStorage.setItem(NOTES_KEY, JSON.stringify(n)); }
-    function loadComments() { try { return JSON.parse(localStorage.getItem(COMMENTS_KEY)) || {}; } catch(e) { return {}; } }
-    function saveComments(c) { localStorage.setItem(COMMENTS_KEY, JSON.stringify(c)); }
-
-    function getItemId(el) {
-      if (el.dataset.itemId) return el.dataset.itemId;
-      var text = el.querySelector('.title,.c-title,strong');
-      if (text) {
-        var id = 'item-' + text.textContent.trim().replace(/[^a-zA-Z0-9]/g,'').slice(0,40).toLowerCase();
-        el.dataset.itemId = id;
-        return id;
-      }
-      return null;
-    }
-
-    function renderNote(container, itemId) {
-      var notes = loadNotes();
-      var noteEl = container.querySelector('.item-note');
-      if (!noteEl) return;
-      var ta = noteEl.querySelector('textarea');
-      if (ta) ta.value = notes[itemId] || '';
-    }
-
-    function renderComments(container, itemId) {
-      var comments = loadComments();
-      var commentsEl = container.querySelector('.item-comments');
-      if (!commentsEl) return;
-      var list = commentsEl.querySelector('.comment-list');
-      if (!list) return;
-      var itemComments = comments[itemId] || [];
-      list.innerHTML = itemComments.map(function(c) {
-        return '<div class="comment"><span class="c-author">' + c.author + '</span><span class="c-time">' + c.time + '</span><div>' + c.text + '</div></div>';
-      }).join('');
-    }
-
-    function injectActions(items) {
-      items.forEach(function(item, idx) {
-        var id = getItemId(item);
-        if (!id || item.querySelector('.item-actions')) return;
-
-        // Action buttons
-        var actions = document.createElement('div');
-        actions.className = 'item-actions';
-        actions.innerHTML = '<button class="item-btn btn-note" title="Add note">&#128221; Note</button>' +
-          '<button class="item-btn btn-comment" title="Comments">&#128172; Comment</button>' +
-          '<div class="priority-arrows"><button class="arr-up" title="Move up">&#9650;</button><button class="arr-down" title="Move down">&#9660;</button></div>';
-        item.appendChild(actions);
-
-        // Note panel
-        var notePanel = document.createElement('div');
-        notePanel.className = 'item-note';
-        notePanel.innerHTML = '<textarea rows="2" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px;font-size:12px;resize:vertical" placeholder="Add a note..."></textarea>';
-        item.appendChild(notePanel);
-
-        // Comments panel
-        var commentPanel = document.createElement('div');
-        commentPanel.className = 'item-comments';
-        commentPanel.innerHTML = '<div class="comment-list"></div>' +
-          '<div class="comment-input-row" style="display:flex;gap:4px;margin-top:6px">' +
-          '<input type="text" class="comment-input" style="flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:12px" placeholder="Add comment...">' +
-          '<button class="item-btn btn-post" style="color:var(--green)">Post</button></div>';
-        item.appendChild(commentPanel);
-
-        // Load persisted data
-        renderNote(item, id);
-        renderComments(item, id);
-
-        // Note toggle
-        actions.querySelector('.btn-note').addEventListener('click', function(e) {
-          e.stopPropagation();
-          notePanel.classList.toggle('open');
-          commentPanel.classList.remove('open');
-        });
-
-        // Note save on blur
-        notePanel.querySelector('textarea').addEventListener('blur', function() {
-          var notes = loadNotes();
-          notes[id] = this.value;
-          saveNotes(notes);
-        });
-
-        // Comment toggle
-        actions.querySelector('.btn-comment').addEventListener('click', function(e) {
-          e.stopPropagation();
-          commentPanel.classList.toggle('open');
-          notePanel.classList.remove('open');
-        });
-
-        // Post comment
-        commentPanel.querySelector('.btn-post').addEventListener('click', function(e) {
-          e.stopPropagation();
-          var input = commentPanel.querySelector('.comment-input');
-          var text = input.value.trim();
-          if (!text) return;
-          var comments = loadComments();
-          if (!comments[id]) comments[id] = [];
-          comments[id].push({
-            author: 'Commander',
-            time: new Date().toLocaleString(),
-            text: text
-          });
-          saveComments(comments);
-          renderComments(item, id);
-          input.value = '';
-        });
-
-        // Enter to post
-        commentPanel.querySelector('.comment-input').addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') { e.preventDefault(); commentPanel.querySelector('.btn-post').click(); }
-        });
-
-        // Priority arrows
-        actions.querySelector('.arr-up').addEventListener('click', function(e) {
-          e.stopPropagation();
-          var parent = item.parentNode;
-          var prev = item.previousElementSibling;
-          if (prev && (prev.classList.contains('milestone') || prev.classList.contains('check-item') || prev.classList.contains('tt-step'))) {
-            parent.insertBefore(item, prev);
-          }
-        });
-
-        actions.querySelector('.arr-down').addEventListener('click', function(e) {
-          e.stopPropagation();
-          var parent = item.parentNode;
-          var next = item.nextElementSibling;
-          if (next && (next.classList.contains('milestone') || next.classList.contains('check-item') || next.classList.contains('tt-step'))) {
-            parent.insertBefore(next, item);
-          }
-        });
-      });
-    }
-
-    // Inject into all item types
-    injectActions(document.querySelectorAll('.milestone'));
-    injectActions(document.querySelectorAll('.check-item'));
-    injectActions(document.querySelectorAll('.tt-step'));
-  })();
-
-  // === TOKEN HEARTBEAT MONITOR ===
-  (function initHeartbeat() {
-    const canvas = document.getElementById('heartbeatCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width = canvas.offsetWidth;
-    const H = canvas.height = 80;
-    let data = JSON.parse(localStorage.getItem('fpcs_heartbeat') || '[]');
-    const MAX_POINTS = 60; // 60 data points = 1 hour at 1/min
-
-    function addReading(tokPerMin) {
-      data.push({ t: Date.now(), v: tokPerMin });
-      if (data.length > MAX_POINTS) data = data.slice(-MAX_POINTS);
-      localStorage.setItem('fpcs_heartbeat', JSON.stringify(data));
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      // Grid
-      ctx.strokeStyle = 'rgba(51,65,85,0.5)';
-      ctx.lineWidth = 0.5;
-      for (let y = 0; y < H; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      if (data.length < 2) {
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '12px sans-serif';
-        ctx.fillText('Awaiting token readings...', W/2 - 80, H/2);
-        return;
-      }
-      const max = Math.max(...data.map(d => d.v), 100);
-      const step = W / (MAX_POINTS - 1);
-      // Fill gradient
-      ctx.beginPath();
-      ctx.moveTo(0, H);
-      data.forEach((d, i) => {
-        const x = i * step;
-        const y = H - (d.v / max) * (H - 10);
-        i === 0 ? ctx.lineTo(x, y) : ctx.lineTo(x, y);
-      });
-      ctx.lineTo((data.length - 1) * step, H);
-      ctx.closePath();
-      const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, 'rgba(74,222,128,0.3)');
-      grad.addColorStop(1, 'rgba(74,222,128,0)');
-      ctx.fillStyle = grad;
-      ctx.fill();
-      // Line
-      ctx.beginPath();
-      ctx.strokeStyle = '#4ade80';
-      ctx.lineWidth = 2;
-      ctx.shadowColor = '#4ade80';
-      ctx.shadowBlur = 6;
-      data.forEach((d, i) => {
-        const x = i * step;
-        const y = H - (d.v / max) * (H - 10);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      // Current dot
-      if (data.length > 0) {
-        const last = data[data.length - 1];
-        const x = (data.length - 1) * step;
-        const y = H - (last.v / max) * (H - 10);
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#4ade80';
-        ctx.fill();
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    }
-
-    function updateStats() {
-      if (data.length === 0) return;
-      const last = data[data.length - 1];
-      const avg = Math.round(data.reduce((s, d) => s + d.v, 0) / data.length);
-      const peak = Math.max(...data.map(d => d.v));
-      const idleMin = Math.round((Date.now() - last.t) / 60000);
-      const trend = data.length >= 3 ? (data[data.length-1].v > data[data.length-3].v ? 'Rising' : data[data.length-1].v < data[data.length-3].v ? 'Falling' : 'Stable') : '--';
-      document.getElementById('hbRate').textContent = last.v.toLocaleString();
-      document.getElementById('hbAvgHr').textContent = (avg * 60).toLocaleString();
-      document.getElementById('hbPeak').textContent = peak.toLocaleString();
-      document.getElementById('hbIdle').textContent = idleMin;
-      document.getElementById('hbTrend').textContent = trend;
-      document.getElementById('hbTrend').style.color = trend === 'Rising' ? 'var(--red)' : trend === 'Falling' ? 'var(--green)' : 'var(--yellow)';
-    }
-
-    // Simulate some initial data if empty (remove once real TokenWatchBot feeds data)
-    if (data.length === 0) {
-      const now = Date.now();
-      for (let i = 0; i < 30; i++) {
-        data.push({ t: now - (30 - i) * 60000, v: Math.floor(Math.random() * 400 + 100) });
-      }
-      localStorage.setItem('fpcs_heartbeat', JSON.stringify(data));
-    }
-
-    draw();
-    updateStats();
-    // Redraw every 30 seconds
-    setInterval(() => { draw(); updateStats(); }, 30000);
-
-    // Expose for TokenWatchBot or manual use: fpcsHeartbeat.add(tokensPerMinute)
-    window.fpcsHeartbeat = { add: function(v) { addReading(v); draw(); updateStats(); }, getData: function() { return data; } };
-  })();
-
-</script>
-
-<!-- Page config for shared auth + nav modules -->
+<!-- Scripts -->
 <script>
   window.FPCS_PAGE = {
-    name: 'Tax HQ',
-    theme: 'theme-tax',
-    onAuthed: function(user) {
-      var sub = document.getElementById('hdr-sub');
-      if (sub) sub.innerHTML = 'Friendly PC Support, LLC &mdash; ' + user.displayName + ' &mdash; 2022 Tax Year (Federal + Oregon)';
-    }
+    key: 'home',
+    title: 'Village HQ',
+    access: 'member'
   };
   window.FPCS_NAV = {
-    active: 'tax',
-    sections: [
-      { icon: '&#9889;',   label: 'Token Economy', href: '#sec-tokens' },
-      { icon: '&#128373;', label: 'DDBOT',         href: '#sec-ddbot' },
-      { icon: '&#128220;', label: 'Rules Engine',  href: '#sec-rules' },
-      { icon: '&#128200;', label: 'Stats',         href: '#sec-stats' },
-      { icon: '&#9889;',   label: 'Progress',      href: '#sec-progress' },
-      { icon: '&#127942;', label: 'Milestones',    href: '#sec-milestones' },
-      { icon: '&#128640;', label: 'Quick Access',  href: '#sec-quicknav' },
-      { icon: '&#127912;', label: 'Overview',      href: '#sec-overview' },
-      { icon: '&#128451;', label: 'Data Inventory', href: '#sec-data' },
-      { icon: '&#128279;', label: 'Integrations',  href: '#sec-integrations' },
-      { icon: '&#9745;',   label: 'Checklist',     href: '#sec-checklist' },
-      { icon: '&#128187;', label: 'TurboTax',      href: '#sec-turbotax' },
-      { icon: '&#128301;', label: 'SCOUT Recs',    href: '#sec-scout' },
-      { icon: '&#128220;', label: 'Handoff',       href: '#sec-handoff' }
-    ]
+    active: 'home'
   };
 </script>
-<script src="js/sheets-api.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/firestore-db.js"></script>
 <script src="js/nav.js"></script>
-<script src="js/sheets-notes.js"></script>
-<script src="js/memory-blocks.js"></script>
-<script src="js/offline.js"></script>
+<script src="js/firestore-db.js"></script>
 <script src="bot-assistant.js"></script>
-<script src="js/suno-radio.js"></script>
-<script src="js/birdbot-widget.js"></script>
-<script src="js/mining-camp.js"></script>
-<script src="js/academy.js"></script>
-<script src="js/exertion.js"></script>
+
+<script>
+// --- Populate bot roster from village data ---
+var VILLAGE_BOTS = [
+  { name: 'Commander', status: 'active', rank: 'Commander' },
+  { name: 'Jaz', status: 'active', rank: 'Senior Staff' },
+  { name: 'Analyst', status: 'idle', rank: 'Staff' },
+  { name: 'Tax Specialist', status: 'sleeping', rank: 'Specialist' },
+  { name: 'Creative', status: 'idle', rank: 'Staff' },
+  { name: 'Security (SHIELD)', status: 'idle', rank: 'Staff' },
+  { name: 'Critic', status: 'idle', rank: 'Staff' },
+  { name: 'Forge', status: 'idle', rank: 'Seedling' },
+  { name: 'Flux', status: 'idle', rank: 'Seedling' },
+  { name: 'Nexus', status: 'idle', rank: 'Seedling' },
+  { name: 'Trick', status: 'idle', rank: 'Seedling' },
+  { name: 'Trace', status: 'idle', rank: 'Seedling' },
+  { name: 'BIRDBOT', status: 'active', rank: 'Augment' }
+];
+
+function renderBotRoster() {
+  var container = document.getElementById('botRoster');
+  if (!container) return;
+  container.textContent = '';
+  VILLAGE_BOTS.forEach(function(bot) {
+    var row = document.createElement('div');
+    row.className = 'bot-row';
+
+    var dot = document.createElement('span');
+    dot.className = 'bot-dot ' + bot.status;
+
+    var name = document.createElement('span');
+    name.className = 'bot-name';
+    name.textContent = bot.name;
+
+    var rank = document.createElement('span');
+    rank.className = 'bot-rank';
+    rank.textContent = bot.rank;
+
+    row.appendChild(dot);
+    row.appendChild(name);
+    row.appendChild(rank);
+    container.appendChild(row);
+  });
+
+  // Update stat
+  var activeCount = VILLAGE_BOTS.filter(function(b) { return b.status === 'active'; }).length;
+  var statusEl = document.getElementById('statBotStatus');
+  if (statusEl) statusEl.textContent = activeCount + ' active, ' + (VILLAGE_BOTS.length - activeCount) + ' idle/sleeping';
+}
+
+// --- Load live stats from Firestore if available ---
+function loadVillageStats() {
+  if (window.FPCSFirestore && FPCSFirestore.isReady()) {
+    FPCSFirestore.getStats().then(function(stats) {
+      if (stats) {
+        console.log('[Village HQ] Loaded stats from Firestore:', stats);
+      }
+    }).catch(function(e) {
+      console.warn('[Village HQ] Stats load error:', e);
+    });
+  }
+}
+
+// --- Init ---
+document.addEventListener('fpcs-authed', function() {
+  setTimeout(function() {
+    renderBotRoster();
+    loadVillageStats();
+  }, 300);
+});
+setTimeout(function() {
+  if (!document.getElementById('botRoster').firstChild) {
+    renderBotRoster();
+  }
+}, 3000);
+</script>
+
 </body>
 </html>
