@@ -15,6 +15,7 @@ desktop.ini
 
 # Finger — secrets & logs
 service_account.json
+finger_config.json
 .finger_log.json
 .reminder_sent.json
 finger_cron.log

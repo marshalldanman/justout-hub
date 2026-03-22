@@ -1,18 +1,52 @@
 THE FINGER — Setup Guide
 ========================
 
+Quick start:
+  1. Set up Google service account (step 1 below)
+  2. Create finger_config.json (step 2)
+  3. Set up the Google Sheet (step 3)
+  4. pip install -r requirements.txt
+  5. python3 finger.py --dry-run
+
+
 1. GOOGLE CLOUD SERVICE ACCOUNT
    - Go to console.cloud.google.com
    - Create a project (or use existing)
    - Enable: Google Sheets API + Google Drive API
-   - Go to IAM & Admin → Service Accounts → Create
-   - Download the JSON key file
-   - Save it as: service_account.json (in this folder)
-   - IMPORTANT: Add service_account.json to .gitignore (already done)
+   - IAM & Admin → Service Accounts → Create
+   - Download the JSON key → save as service_account.json here
+   - (Already in .gitignore — won't get committed)
 
-2. GOOGLE SHEET SETUP
-   - Create a Google Sheet named "AI Central Command" (or set FINGER_SHEET env var)
-   - Share it with the service account email (the one ending in @...iam.gserviceaccount.com)
+
+2. CONFIG FILE (finger_config.json)
+
+   Create this file in the repo root:
+
+   {
+     "service_account_file": "service_account.json",
+     "spreadsheet": "AI Central Command",
+     "email_to": "you@gmail.com",
+     "email_from": "you@gmail.com",
+     "email_password": "xxxx-xxxx-xxxx-xxxx",
+     "smtp_server": "smtp.gmail.com",
+     "smtp_port": 587,
+     "warn_hours": 48
+   }
+
+   For Gmail app password:
+   - Enable 2FA on Gmail
+   - myaccount.google.com → Security → App Passwords → generate one
+
+   (finger_config.json is in .gitignore — your secrets stay local)
+
+   Alternatively, use env vars instead:
+     GOOGLE_SA_KEY, FINGER_SHEET, FINGER_EMAIL_TO,
+     FINGER_EMAIL_FROM, FINGER_EMAIL_PASS
+
+
+3. GOOGLE SHEET SETUP
+   - Create a Google Sheet named "AI Central Command"
+   - Share it with the service account email (ends in @...iam.gserviceaccount.com)
    - Give it Editor access
 
    Create these tabs:
@@ -35,23 +69,23 @@ THE FINGER — Setup Guide
    │ Brainstorm       │ [note] New app idea for bookkeeping  │ pending │        │
    └──────────────────┴──────────────────────────────────────┴─────────┴────────┘
 
-   You can also add any other tabs (Brainstorm, Ledger, etc.)
-   — drop [brackets] anywhere and The Finger will find them.
+   Add any other tabs you want (Brainstorm, Ledger, Bookkeeping 2025, etc.)
+   Drop [brackets] anywhere — The Finger will find them.
 
-3. EMAIL SETUP
-   - Use a Gmail account
-   - Enable 2FA on the account
-   - Generate an App Password: myaccount.google.com → Security → App Passwords
-   - Set in finger.py or as env vars:
-     FINGER_EMAIL_TO, FINGER_EMAIL_FROM, FINGER_EMAIL_PASS
 
-4. INSTALL & RUN
-   pip install -r requirements.txt
-   python3 finger.py
+4. USAGE
 
-5. AUTOMATE (optional cron)
+   python3 finger.py              # check everything, send emails
+   python3 finger.py --dry-run    # show what WOULD happen, send nothing
+   python3 finger.py --status     # print tasks & commands overview
+   python3 finger.py --reset      # clear log, re-alert everything
+
+
+5. AUTOMATE (cron)
+
    crontab -e
    */30 * * * * cd /path/to/justout-hub && python3 finger.py >> finger_cron.log 2>&1
+
 
 BRACKET COMMANDS
 ================
@@ -60,18 +94,16 @@ Drop these anywhere in any cell in the Google Sheet:
   [remind]   — sends you a reminder email with surrounding text
   [urgent]   — sends a high-priority critical alert
   [task]     — flags something as a new task
+  [email]    — forwards the text as an email
   [note]     — logs it quietly, no email
+  [snooze]   — explicitly skip/ignore
   [anything] — any other bracket text sends a general notification
 
 Examples:
   "Need to call accountant [remind] before Friday"
   "[urgent] IRS notice received, respond by March 20"
   "[task] Set up QuickBooks integration"
+  "This might work for the API [note] research later"
 
-ENV VARS (optional, override config in finger.py)
-==================================================
-  GOOGLE_SA_KEY    — path to service account JSON
-  FINGER_SHEET     — Google Sheet name (default: "AI Central Command")
-  FINGER_EMAIL_TO  — recipient email
-  FINGER_EMAIL_FROM— sender email
-  FINGER_EMAIL_PASS— Gmail app password
+The idea: you can be in ANY sheet — brainstorm, ledger, bookkeeping —
+and just drop a [bracket] inline. The Finger picks it up next run.
