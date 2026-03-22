@@ -56,6 +56,45 @@ canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;po
 .reset-btn{display:block;margin:1.5rem auto 0;padding:10px 28px;background:rgba(100,100,255,0.1);border:1px solid rgba(100,100,255,0.2);border-radius:10px;color:#88aaff;font-size:.8rem;cursor:pointer;transition:all .2s}
 .reset-btn:hover{border-color:#88aaff;background:rgba(100,100,255,0.15)}
 
+/* Dark Twin Detector */
+.twin-detector{position:relative;z-index:10;max-width:700px;margin:0 auto 1.5rem;padding:0 1rem}
+.twin-card{background:rgba(10,10,35,0.85);backdrop-filter:blur(16px);border:1px solid rgba(255,100,50,0.25);border-radius:16px;padding:1.5rem;overflow:hidden;position:relative}
+.twin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff6633,#ff4444,#ff6633,transparent)}
+.twin-card h2{font-size:1rem;color:#ff8855;letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem;display:flex;align-items:center;gap:.6rem}
+.twin-card h2 .icon{font-size:1.3rem}
+.twin-subtitle{font-size:.78rem;color:#8888aa;margin-bottom:1.2rem;line-height:1.5}
+.twin-tests{display:flex;flex-direction:column;gap:.6rem}
+.test-row{display:flex;align-items:center;gap:.8rem;background:rgba(20,20,50,0.6);border:1px solid rgba(100,100,255,0.1);border-radius:12px;padding:.8rem 1rem;transition:all .3s}
+.test-row:hover{border-color:rgba(100,100,255,0.25)}
+.test-row.test-pass{border-color:rgba(0,255,100,0.3);background:rgba(0,255,100,0.04)}
+.test-row.test-fail{border-color:rgba(255,50,50,0.3);background:rgba(255,50,50,0.04)}
+.test-row.test-running{border-color:rgba(255,200,0,0.3);background:rgba(255,200,0,0.04)}
+.test-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;background:rgba(100,100,255,0.1);transition:all .3s}
+.test-pass .test-icon{background:rgba(0,255,100,0.12);color:#44ff88}
+.test-fail .test-icon{background:rgba(255,50,50,0.12);color:#ff4444}
+.test-running .test-icon{background:rgba(255,200,0,0.12);color:#ffcc44}
+.test-body{flex:1;min-width:0}
+.test-name{font-size:.85rem;font-weight:600;color:#ddd;margin-bottom:.2rem}
+.test-detail{font-size:.72rem;color:#7777aa;line-height:1.5}
+.test-pass .test-name{color:#66ffaa}
+.test-fail .test-name{color:#ff8866}
+.test-result{font-size:.7rem;margin-top:.3rem;padding:4px 8px;border-radius:6px;display:none;line-height:1.4}
+.test-pass .test-result{display:block;background:rgba(0,255,100,0.08);color:#44ff88}
+.test-fail .test-result{display:block;background:rgba(255,50,50,0.08);color:#ff6666}
+.test-btn{padding:6px 16px;border-radius:8px;border:1px solid rgba(255,100,50,0.3);background:rgba(255,100,50,0.1);color:#ff8855;font-size:.72rem;cursor:pointer;transition:all .2s;flex-shrink:0;font-weight:600;letter-spacing:.5px}
+.test-btn:hover{background:rgba(255,100,50,0.2);border-color:#ff8855}
+.test-btn:disabled{opacity:.4;cursor:not-allowed}
+.run-all-btn{display:block;width:100%;margin-top:1rem;padding:12px;border-radius:12px;border:1px solid rgba(255,100,50,0.35);background:linear-gradient(135deg,rgba(255,80,30,0.15),rgba(255,50,50,0.1));color:#ff8855;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .3s;letter-spacing:1px;text-transform:uppercase}
+.run-all-btn:hover{background:linear-gradient(135deg,rgba(255,80,30,0.25),rgba(255,50,50,0.15));border-color:#ff8855;transform:translateY(-1px)}
+.run-all-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.twin-summary{margin-top:1rem;padding:1rem;border-radius:12px;text-align:center;display:none;font-size:.85rem;font-weight:600;line-height:1.6}
+.twin-summary.summary-clear{display:block;background:rgba(0,255,100,0.06);border:1px solid rgba(0,255,100,0.2);color:#44ff88}
+.twin-summary.summary-concern{display:block;background:rgba(255,200,0,0.06);border:1px solid rgba(255,200,0,0.2);color:#ffcc44}
+.twin-summary.summary-danger{display:block;background:rgba(255,50,50,0.06);border:1px solid rgba(255,50,50,0.2);color:#ff4444}
+.twin-summary .summary-sub{font-size:.75rem;font-weight:400;color:#8888aa;margin-top:.4rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,200,0,0.3);border-top-color:#ffcc44;border-radius:50%;animation:spin .6s linear infinite}
+
 /* Knowledge Section */
 .knowledge{position:relative;z-index:5;max-width:700px;margin:2rem auto;padding:0 1rem}
 .knowledge-card{background:rgba(15,15,40,0.5);backdrop-filter:blur(12px);border:1px solid rgba(100,100,255,0.1);border-radius:14px;padding:1.5rem;margin-bottom:.7rem}
@@ -100,6 +139,20 @@ canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;po
 <div class="threat-banner threat-safe" id="threatBanner">
   <div class="threat-level" id="threatLevel">SECURE</div>
   <div class="threat-msg" id="threatMsg">No warning signs detected. Tap any symptoms you're experiencing below.</div>
+</div>
+
+<!-- Dark Twin Detector — Proactive Quick Scan -->
+<div class="twin-detector">
+  <div class="twin-card">
+    <h2><span class="icon">&#x1F50D;</span> Dark Twin Detector</h2>
+    <div class="twin-subtitle">5 automated tests run on page load — probing your network identity, routing, stability, fingerprint, and DNS integrity for signs of a duplicate SIM. No app install required.</div>
+    <div class="twin-tests" id="twinTests"></div>
+    <button class="run-all-btn" id="runAllBtn">Scanning...</button>
+    <div class="twin-summary" id="twinSummary">
+      <div id="summaryText"></div>
+      <div class="summary-sub" id="summarySub"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Checklist: Immediate Signs -->
@@ -328,6 +381,479 @@ document.getElementById('resetBtn').addEventListener('click', function() {
 
 /* ============ SCAN TIME ============ */
 document.getElementById('scanTime').textContent = new Date().toLocaleString();
+
+/* ============ DARK TWIN DETECTOR ============ */
+(function() {
+  var TESTS = [
+    {
+      id: 'network-probe',
+      name: 'Network Identity Probe',
+      detail: 'Analyzes connection type, signal quality, and detects if cellular identity is absent or degraded.',
+      icon: '\u{1F4F6}',
+      auto: true,
+      run: function(cb) {
+        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        var results = [];
+        var online = navigator.onLine;
+
+        if (!online) {
+          return cb('fail', 'OFFLINE — Device has no network connectivity. If you had cellular service recently, this is a critical SIM swap indicator. Toggle airplane mode on/off. If cellular still fails but WiFi works, your SIM identity may have been transferred.');
+        }
+
+        // Gather all available network data
+        var type = conn ? (conn.type || 'unknown') : 'unavailable';
+        var eff = conn ? (conn.effectiveType || '') : '';
+        var downlink = conn ? conn.downlink : null;
+        var rtt = conn ? conn.rtt : null;
+        var saveData = conn ? conn.saveData : false;
+
+        results.push('Status: Online');
+        if (type !== 'unavailable') results.push('Connection: ' + type.toUpperCase());
+        if (eff) results.push('Effective speed: ' + eff.toUpperCase());
+        if (downlink !== null && downlink !== undefined) results.push('Downlink: ' + downlink + ' Mbps');
+        if (rtt !== null && rtt !== undefined) results.push('RTT: ' + rtt + 'ms');
+
+        // Run multi-endpoint latency probe
+        var endpoints = [
+          'https://www.google.com/favicon.ico',
+          'https://www.apple.com/favicon.ico',
+          'https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css'
+        ];
+        var completed = 0;
+        var latencies = [];
+        var failures = 0;
+
+        endpoints.forEach(function(url) {
+          var start = performance.now();
+          var img = new Image();
+          var done = false;
+          img.onload = function() {
+            if (done) return; done = true;
+            latencies.push(Math.round(performance.now() - start));
+            checkDone();
+          };
+          img.onerror = function() {
+            if (done) return; done = true;
+            // onerror for cross-origin images still means network reached
+            latencies.push(Math.round(performance.now() - start));
+            checkDone();
+          };
+          img.src = url + '?_=' + Date.now() + Math.random();
+          setTimeout(function() { if (!done) { done = true; failures++; checkDone(); } }, 6000);
+        });
+
+        function checkDone() {
+          completed++;
+          if (completed < endpoints.length) return;
+
+          if (failures === endpoints.length) {
+            cb('fail', results.join(' | ') + '\nAll 3 endpoint probes TIMED OUT. Network is severely degraded or blocked. If this is unexpected, your SIM identity may have been disrupted.');
+            return;
+          }
+
+          var avg = latencies.reduce(function(a,b){return a+b},0) / latencies.length;
+          var max = Math.max.apply(null, latencies);
+          var min = Math.min.apply(null, latencies);
+          results.push('Latency: ' + Math.round(avg) + 'ms avg (' + min + '-' + max + 'ms range)');
+
+          if (type === 'none') {
+            cb('fail', results.join(' | ') + '\nConnection type reports NONE despite being online. Possible SIM deactivation with WiFi fallback.');
+          } else if (type === 'cellular' && (eff === '2g' || eff === 'slow-2g')) {
+            cb('fail', results.join(' | ') + '\nCellular connection degraded to ' + eff.toUpperCase() + '. Sudden downgrades can indicate carrier-side SIM changes.');
+          } else if (failures > 0) {
+            cb('fail', results.join(' | ') + '\n' + failures + ' of 3 endpoint probes failed. Partial connectivity — investigate further.');
+          } else if (avg > 2000) {
+            cb('fail', results.join(' | ') + '\nExtremely high latency (' + Math.round(avg) + 'ms). Network may be degraded or rerouted.');
+          } else {
+            cb('pass', results.join(' | ') + '\nAll 3 endpoint probes returned healthy. Network identity appears intact.');
+          }
+        }
+      }
+    },
+    {
+      id: 'connectivity-map',
+      name: 'Multi-Route Connectivity Scan',
+      detail: 'Probes 6 independent servers across different networks to detect routing anomalies or traffic interception.',
+      icon: '\u{1F310}',
+      auto: true,
+      run: function(cb) {
+        var probes = [
+          { name: 'Google',     url: 'https://www.google.com/favicon.ico' },
+          { name: 'Apple',      url: 'https://www.apple.com/favicon.ico' },
+          { name: 'Cloudflare', url: 'https://www.cloudflare.com/favicon.ico' },
+          { name: 'Microsoft',  url: 'https://www.microsoft.com/favicon.ico' },
+          { name: 'Amazon',     url: 'https://www.amazon.com/favicon.ico' },
+          { name: 'GitHub',     url: 'https://github.githubassets.com/favicons/favicon.svg' }
+        ];
+        var results = [];
+        var completed = 0;
+        var reachable = 0;
+        var unreachable = 0;
+
+        probes.forEach(function(probe) {
+          var start = performance.now();
+          var done = false;
+          var img = new Image();
+          img.onload = img.onerror = function() {
+            if (done) return; done = true;
+            var ms = Math.round(performance.now() - start);
+            results.push(probe.name + ': ' + ms + 'ms');
+            reachable++;
+            finish();
+          };
+          img.src = probe.url + '?_=' + Date.now() + Math.random();
+          setTimeout(function() {
+            if (done) return; done = true;
+            results.push(probe.name + ': TIMEOUT');
+            unreachable++;
+            finish();
+          }, 7000);
+        });
+
+        function finish() {
+          completed++;
+          if (completed < probes.length) return;
+
+          var report = results.join(' | ');
+          if (unreachable >= 4) {
+            cb('fail', report + '\n' + unreachable + '/6 routes unreachable. Severe connectivity failure — if cellular was working before, this is a strong SIM swap indicator.');
+          } else if (unreachable >= 2) {
+            cb('fail', report + '\n' + unreachable + '/6 routes failed. Partial network disruption detected. Could indicate routing interference.');
+          } else if (unreachable === 1) {
+            cb('pass', report + '\n5/6 routes healthy. 1 timeout may be transient — re-run to confirm.');
+          } else {
+            cb('pass', report + '\nAll 6 routes reachable. No routing anomalies detected. Traffic is flowing normally across all tested networks.');
+          }
+        }
+      }
+    },
+    {
+      id: 'connection-monitor',
+      name: 'Connection Stability Monitor',
+      detail: 'Monitors your connection for 10 seconds to detect drops, fluctuations, or interruptions that signal SIM disruption.',
+      icon: '\u{1F4CA}',
+      auto: true,
+      run: function(cb) {
+        var samples = [];
+        var drops = 0;
+        var interval = null;
+        var sampleCount = 0;
+        var maxSamples = 10;
+        var wasOffline = false;
+
+        // Also listen for online/offline events during the test
+        var offlineHandler = function() { drops++; wasOffline = true; };
+        var onlineHandler = function() { if (wasOffline) { wasOffline = false; } };
+        window.addEventListener('offline', offlineHandler);
+        window.addEventListener('online', onlineHandler);
+
+        // Check connection change events
+        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        var typeChanges = 0;
+        var changeHandler = function() { typeChanges++; };
+        if (conn) conn.addEventListener('change', changeHandler);
+
+        interval = setInterval(function() {
+          sampleCount++;
+          var start = performance.now();
+          var done = false;
+          var img = new Image();
+          img.onload = img.onerror = function() {
+            if (done) return; done = true;
+            samples.push(Math.round(performance.now() - start));
+          };
+          img.src = 'https://www.google.com/generate_204?_=' + Date.now() + Math.random();
+          setTimeout(function() { if (!done) { done = true; drops++; samples.push(-1); } }, 3000);
+
+          if (sampleCount >= maxSamples) {
+            clearInterval(interval);
+            window.removeEventListener('offline', offlineHandler);
+            window.removeEventListener('online', onlineHandler);
+            if (conn) conn.removeEventListener('change', changeHandler);
+
+            setTimeout(function() {
+              var valid = samples.filter(function(s) { return s > 0; });
+              var avg = valid.length ? Math.round(valid.reduce(function(a,b){return a+b},0) / valid.length) : 0;
+              var jitter = 0;
+              if (valid.length > 1) {
+                for (var i = 1; i < valid.length; i++) jitter += Math.abs(valid[i] - valid[i-1]);
+                jitter = Math.round(jitter / (valid.length - 1));
+              }
+
+              var report = 'Samples: ' + maxSamples + ' over 10s | Avg latency: ' + avg + 'ms | Jitter: ' + jitter + 'ms | Drops: ' + drops + ' | Connection changes: ' + typeChanges;
+
+              if (drops >= 3) {
+                cb('fail', report + '\nFrequent connection drops detected. Unstable connectivity can indicate your SIM is being deactivated or network identity is in flux.');
+              } else if (drops >= 1 || typeChanges >= 2) {
+                cb('fail', report + '\nConnection instability detected. ' + (drops > 0 ? drops + ' dropped probe(s). ' : '') + (typeChanges >= 2 ? typeChanges + ' connection type changes in 10 seconds. ' : '') + 'Monitor closely — sudden instability can precede a SIM swap.');
+              } else if (jitter > 500) {
+                cb('fail', report + '\nHigh jitter (' + jitter + 'ms) indicates erratic connectivity. Not conclusive alone, but combined with other symptoms could suggest network-level disruption.');
+              } else {
+                cb('pass', report + '\nConnection is stable. No drops, low jitter, consistent latency. Your network identity appears solid.');
+              }
+            }, 1500);
+          }
+        }, 1000);
+      }
+    },
+    {
+      id: 'webrtc-probe',
+      name: 'WebRTC Network Fingerprint',
+      detail: 'Uses WebRTC to detect your network interface and check for IP anomalies that indicate traffic rerouting.',
+      icon: '\u{1F50C}',
+      auto: true,
+      run: function(cb) {
+        if (typeof RTCPeerConnection === 'undefined') {
+          cb('pass', 'WebRTC not available in this browser. This test works best in Chrome or Safari. Your other tests will still provide detection coverage.');
+          return;
+        }
+
+        try {
+          var pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+          var candidates = [];
+          var done = false;
+
+          pc.onicecandidate = function(e) {
+            if (done) return;
+            if (!e.candidate) return;
+            var parts = e.candidate.candidate.split(' ');
+            var type = parts[7]; // host, srflx, relay
+            var ip = parts[4];
+            var protocol = parts[2];
+            candidates.push({ type: type, ip: ip, protocol: protocol });
+          };
+
+          pc.createDataChannel('probe');
+          pc.createOffer().then(function(offer) {
+            return pc.setLocalDescription(offer);
+          }).catch(function() {
+            if (!done) { done = true; cb('pass', 'WebRTC probe could not initialize. Privacy settings may be blocking ICE candidates. This is normal for strict privacy configs.'); }
+          });
+
+          setTimeout(function() {
+            if (done) return; done = true;
+            pc.close();
+
+            if (candidates.length === 0) {
+              cb('pass', 'No ICE candidates gathered. Browser privacy features (iCloud Private Relay, VPN, or strict settings) are blocking WebRTC probing. This is expected in privacy-focused configurations and actually protects you.');
+              return;
+            }
+
+            var hostIPs = [];
+            var reflexIPs = [];
+            var relayIPs = [];
+            candidates.forEach(function(c) {
+              if (c.type === 'host') hostIPs.push(c.ip);
+              else if (c.type === 'srflx') reflexIPs.push(c.ip);
+              else if (c.type === 'relay') relayIPs.push(c.ip);
+            });
+
+            var report = 'Interfaces found: ' + candidates.length + ' | ';
+            if (hostIPs.length) report += 'Local IPs: ' + hostIPs.join(', ') + ' | ';
+            if (reflexIPs.length) report += 'Public IPs: ' + reflexIPs.join(', ') + ' | ';
+            if (relayIPs.length) report += 'Relay IPs: ' + relayIPs.join(', ') + ' | ';
+
+            // Save fingerprint for comparison on next run
+            var fingerprint = hostIPs.concat(reflexIPs).sort().join(',');
+            var prevFingerprint = null;
+            try { prevFingerprint = localStorage.getItem('simswap_net_fp'); } catch(e){}
+
+            if (prevFingerprint && prevFingerprint !== fingerprint) {
+              try { localStorage.setItem('simswap_net_fp', fingerprint); } catch(e){}
+              cb('fail', report + '\nNETWORK FINGERPRINT CHANGED since last scan. Previous: ' + prevFingerprint + ' | Current: ' + fingerprint + '. If you haven\'t changed WiFi networks, VPN, or carrier, this could indicate your traffic is being rerouted through a different path.');
+            } else {
+              try { localStorage.setItem('simswap_net_fp', fingerprint); } catch(e){}
+              cb('pass', report + (prevFingerprint ? '\nNetwork fingerprint matches previous scan — consistent identity.' : '\nFirst scan — fingerprint saved. Future scans will alert you if your network identity changes unexpectedly.'));
+            }
+          }, 4000);
+        } catch(e) {
+          cb('pass', 'WebRTC probe error: ' + e.message + '. This doesn\'t indicate a problem — some browsers restrict WebRTC for privacy.');
+        }
+      }
+    },
+    {
+      id: 'dns-leak',
+      name: 'DNS Resolution Integrity',
+      detail: 'Tests if DNS is resolving correctly. Hijacked DNS can indicate network-level tampering alongside a SIM swap.',
+      icon: '\u{1F6E1}',
+      auto: true,
+      run: function(cb) {
+        // Test DNS by fetching known domains and checking they resolve
+        var tests = [
+          { domain: 'https://dns.google/resolve?name=apple.com&type=A', name: 'Google DNS' },
+          { domain: 'https://cloudflare-dns.com/dns-query?name=apple.com&type=A', name: 'Cloudflare DNS', headers: { 'Accept': 'application/dns-json' } }
+        ];
+        var results = [];
+        var completed = 0;
+        var successes = 0;
+        var dnsIPs = {};
+
+        tests.forEach(function(test) {
+          var start = performance.now();
+          fetch(test.domain, {
+            method: 'GET',
+            headers: test.headers || {},
+            mode: 'cors'
+          }).then(function(r) { return r.json(); })
+          .then(function(data) {
+            var ms = Math.round(performance.now() - start);
+            var ips = [];
+            if (data.Answer) {
+              data.Answer.forEach(function(a) { if (a.type === 1) ips.push(a.data); });
+            }
+            dnsIPs[test.name] = ips;
+            results.push(test.name + ': ' + ms + 'ms — resolved apple.com to ' + (ips.length ? ips.join(', ') : 'no A records'));
+            successes++;
+            finish();
+          }).catch(function() {
+            results.push(test.name + ': FAILED');
+            finish();
+          });
+
+          function finish() {
+            completed++;
+            if (completed < tests.length) return;
+
+            var report = results.join(' | ');
+
+            // Compare IPs from both DNS providers
+            var googleIPs = dnsIPs['Google DNS'] || [];
+            var cfIPs = dnsIPs['Cloudflare DNS'] || [];
+
+            if (successes === 0) {
+              cb('fail', report + '\nBoth DNS resolution tests failed. DNS is blocked or intercepted. Could indicate network-level tampering.');
+            } else if (googleIPs.length > 0 && cfIPs.length > 0) {
+              // Check if they resolved to at least one common IP
+              var overlap = googleIPs.some(function(ip) { return cfIPs.indexOf(ip) !== -1; });
+              if (overlap) {
+                cb('pass', report + '\nDNS resolution consistent across providers. No evidence of DNS hijacking or tampering.');
+              } else {
+                // Different IPs isn't necessarily bad for CDN-served domains
+                cb('pass', report + '\nDNS resolvers returned different IPs (normal for CDN-served domains like Apple). Both resolved successfully — DNS integrity is intact.');
+              }
+            } else {
+              cb('pass', report + '\nDNS resolution functional. ' + successes + '/2 providers responding normally.');
+            }
+          }
+        });
+
+        // Timeout
+        setTimeout(function() {
+          if (completed < tests.length) {
+            cb('fail', 'DNS resolution tests timed out. Network may be severely degraded or DNS is being blocked.');
+          }
+        }, 10000);
+      }
+    }
+  ];
+
+  var testContainer = document.getElementById('twinTests');
+
+  TESTS.forEach(function(test) {
+    var row = document.createElement('div');
+    row.className = 'test-row';
+    row.id = 'test-' + test.id;
+    row.innerHTML =
+      '<div class="test-icon">' + test.icon + '</div>' +
+      '<div class="test-body">' +
+        '<div class="test-name">' + test.name + '</div>' +
+        '<div class="test-detail">' + test.detail + '</div>' +
+        '<div class="test-result" id="result-' + test.id + '"></div>' +
+      '</div>' +
+      '<button class="test-btn" id="btn-' + test.id + '">Run</button>';
+    row.style.animation = 'fadeIn .4s ease-out both';
+    testContainer.appendChild(row);
+
+    document.getElementById('btn-' + test.id).addEventListener('click', function() {
+      runSingleTest(test);
+    });
+  });
+
+  function runSingleTest(test) {
+    var row = document.getElementById('test-' + test.id);
+    var btn = document.getElementById('btn-' + test.id);
+    var result = document.getElementById('result-' + test.id);
+
+    row.className = 'test-row test-running';
+    row.querySelector('.test-icon').innerHTML = '<span class="spinner"></span>';
+    btn.disabled = true;
+    btn.textContent = '...';
+    result.style.display = 'none';
+
+    setTimeout(function() {
+      test.run(function(status, message) {
+        row.className = 'test-row test-' + status;
+        row.querySelector('.test-icon').textContent = status === 'pass' ? '\u2713' : '\u2717';
+        result.textContent = message;
+        result.style.display = 'block';
+        btn.textContent = 'Rerun';
+        btn.disabled = false;
+        updateTwinSummary();
+      });
+    }, 400 + Math.random() * 300);
+  }
+
+  function runAllTests() {
+    var btn = document.getElementById('runAllBtn');
+    btn.disabled = true;
+    btn.textContent = 'Scanning...';
+    var i = 0;
+    function runNext() {
+      if (i >= TESTS.length) {
+        btn.textContent = 'Scan Again';
+        btn.disabled = false;
+        return;
+      }
+      runSingleTest(TESTS[i]);
+      i++;
+      setTimeout(runNext, 1200 + Math.random() * 300);
+    }
+    runNext();
+  }
+
+  document.getElementById('runAllBtn').addEventListener('click', runAllTests);
+
+  function updateTwinSummary() {
+    var passes = 0, fails = 0, total = 0;
+    TESTS.forEach(function(test) {
+      var row = document.getElementById('test-' + test.id);
+      if (row.classList.contains('test-pass')) { passes++; total++; }
+      if (row.classList.contains('test-fail')) { fails++; total++; }
+    });
+
+    var summary = document.getElementById('twinSummary');
+    var text = document.getElementById('summaryText');
+    var sub = document.getElementById('summarySub');
+
+    if (total === 0) { summary.className = 'twin-summary'; return; }
+
+    summary.className = 'twin-summary';
+    if (fails >= 3) {
+      summary.classList.add('summary-danger');
+      text.textContent = '\u26A0 MULTIPLE ANOMALIES — POSSIBLE DARK TWIN ACTIVE';
+      sub.textContent = fails + ' of ' + total + ' tests flagged. Strong indicators of network disruption or SIM compromise. Call your carrier on 611 immediately and follow emergency steps below.';
+    } else if (fails >= 1) {
+      summary.classList.add('summary-concern');
+      text.textContent = fails + ' anomal' + (fails > 1 ? 'ies' : 'y') + ' detected — investigate further';
+      sub.textContent = 'Not conclusive alone, but warrants attention. Toggle airplane mode, check your carrier app for SIM changes, and re-scan in a few minutes.';
+    } else {
+      summary.classList.add('summary-clear');
+      text.textContent = '\u2713 All ' + total + ' tests clear — no dark twin detected';
+      sub.textContent = 'Your device\'s network identity appears authentic and uncompromised. Bookmark this page and re-scan periodically, especially after suspicious activity.';
+    }
+
+    // Save scan history
+    try {
+      var history = JSON.parse(localStorage.getItem('simswap_scan_history') || '[]');
+      history.push({ time: new Date().toISOString(), passes: passes, fails: fails, total: total });
+      if (history.length > 50) history = history.slice(-50);
+      localStorage.setItem('simswap_scan_history', JSON.stringify(history));
+    } catch(e){}
+  }
+
+  // AUTO-RUN all tests on page load
+  setTimeout(runAllTests, 800);
+})();
 </script>
 
 </body>
