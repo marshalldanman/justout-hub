@@ -1,6 +1,9 @@
 # Claude Code session data
 .claude/
 
+# JAP local runtime data (transcripts, state, outbox)
+.jap/
+
 # OS files
 .DS_Store
 Thumbs.db
