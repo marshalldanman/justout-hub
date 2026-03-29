@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-02-28",
+  "updated": "2026-03-28",
   "channels": [
     {
       "id": "fpcs",
@@ -65,6 +65,19 @@
       "icon": "\ud83d\udcf1",
       "status": "live",
       "contentCount": 14,
+      "phase": 0
+    },
+    {
+      "id": "jap",
+      "name": "JAP HQ",
+      "subdomain": "hub.justout.today/JapHQ/",
+      "description": "Just Ask Please \u2014 Voice Command Center",
+      "orbType": "nebula",
+      "color": "#00e5ff",
+      "colorAlt": "#004d5a",
+      "icon": "\ud83d\uddE3\ufe0f",
+      "status": "live",
+      "contentCount": 0,
       "phase": 0
     },
     {

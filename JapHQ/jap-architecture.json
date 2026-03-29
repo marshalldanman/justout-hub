@@ -1,0 +1,148 @@
+{
+  "name": "JAP",
+  "fullName": "Just Ask Please",
+  "version": "0.1.0",
+  "phase": 0,
+  "description": "Always-on voice assistant bridge — BEE device to Claude Code via zero-token sandbox",
+
+  "pipeline": {
+    "stages": [
+      {
+        "id": "bee-capture",
+        "name": "BEE Device Capture",
+        "description": "Always-on microphone captures ambient voice input",
+        "technology": "BEE hardware device",
+        "location": "edge/local"
+      },
+      {
+        "id": "stt",
+        "name": "Speech-to-Text",
+        "description": "Convert audio to transcript text",
+        "technology": "Whisper (local) with Deepgram fallback",
+        "location": "edge/local",
+        "phaseAvailable": 0
+      },
+      {
+        "id": "intent-parse",
+        "name": "Intent Parser",
+        "description": "Classify transcript into actionable intent or conversational context",
+        "technology": "Picovoice Rhino (Phase 2) or regex rules (Phase 0)",
+        "location": "edge/local",
+        "phaseAvailable": 0
+      },
+      {
+        "id": "file-inbox",
+        "name": "File Inbox Transport",
+        "description": "Write structured JSON to .jap/inbox/ for Claude Code consumption",
+        "technology": "Filesystem watcher",
+        "location": "local",
+        "phaseAvailable": 0
+      },
+      {
+        "id": "claude-process",
+        "name": "Claude Code Processing",
+        "description": "Claude Code reads inbox, processes request, writes to outbox",
+        "technology": "Claude Code CLI + hooks",
+        "location": "sandbox",
+        "phaseAvailable": 0
+      },
+      {
+        "id": "response-delivery",
+        "name": "Response Delivery",
+        "description": "Results delivered back via outbox file, TTS, or hub UI",
+        "technology": "File outbox + JAP HQ dashboard",
+        "location": "local + web",
+        "phaseAvailable": 0
+      }
+    ]
+  },
+
+  "fileProtocol": {
+    "inboxPath": ".jap/inbox/",
+    "outboxPath": ".jap/outbox/",
+    "statePath": ".jap/state/",
+    "inboxFormat": {
+      "filename": "{timestamp}-{intent-slug}.json",
+      "schema": {
+        "id": "string (uuid)",
+        "timestamp": "ISO 8601",
+        "speaker": "string",
+        "rawTranscript": "string",
+        "parsedIntent": "string (enum: command, query, task, context, conversation)",
+        "confidence": "number (0-1)",
+        "targetChannel": "string|null (channel id from hub)",
+        "metadata": {
+          "duration": "number (seconds of speech)",
+          "noiseLevel": "string (quiet, moderate, noisy)"
+        }
+      }
+    },
+    "outboxFormat": {
+      "filename": "{original-id}-response.json",
+      "schema": {
+        "id": "string (matches inbox id)",
+        "timestamp": "ISO 8601",
+        "status": "string (completed, pending, failed, clarify)",
+        "response": "string",
+        "actions": ["array of actions taken"],
+        "artifacts": ["array of file paths created/modified"]
+      }
+    }
+  },
+
+  "phases": {
+    "0": {
+      "name": "Foundation",
+      "status": "active",
+      "deliverables": [
+        "JAP HQ dashboard page in JustOut Hub constellation",
+        "File-based inbox/outbox protocol specification",
+        "Architecture documentation",
+        "Channel router for voice targets",
+        ".jap/ directory structure (gitignored)"
+      ]
+    },
+    "1": {
+      "name": "JAP HQ Live Channel",
+      "status": "planned",
+      "deliverables": [
+        "Live transcript feed via WebSocket or polling",
+        "Command history with search",
+        "Firebase Auth integration",
+        "jap.justout.today subdomain"
+      ]
+    },
+    "2": {
+      "name": "MCP + Edge Intelligence",
+      "status": "planned",
+      "deliverables": [
+        "Custom MCP server for structured JAP commands",
+        "Picovoice wake word detection (Hey JAP)",
+        "On-device intent resolution for simple commands",
+        "Token-zero routing: only complex queries hit Claude"
+      ]
+    },
+    "3": {
+      "name": "Agent SDK Orchestration",
+      "status": "planned",
+      "deliverables": [
+        "JAP as multi-agent orchestrator via Claude Agent SDK",
+        "Per-channel specialized sub-agents",
+        "Persistent memory across sessions",
+        "Productizable SaaS potential"
+      ]
+    }
+  },
+
+  "voiceCommands": {
+    "examples": [
+      { "utterance": "Hey JAP, open Tax HQ", "intent": "command", "channel": "tax" },
+      { "utterance": "Check my bot fleet status", "intent": "query", "channel": "bots" },
+      { "utterance": "Add an idea about AI music generation", "intent": "task", "channel": "notes" },
+      { "utterance": "What's the SIM swap risk level?", "intent": "query", "channel": "simswap" },
+      { "utterance": "Research MCP server pricing models", "intent": "task", "channel": "ai" },
+      { "utterance": "JAP, remind me to review the business card design", "intent": "task", "channel": null },
+      { "utterance": "Just thinking out loud about the constellation UI", "intent": "context", "channel": null }
+    ]
+  }
+}
