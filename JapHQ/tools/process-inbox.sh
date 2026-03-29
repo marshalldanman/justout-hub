@@ -18,52 +18,66 @@ STATE_DIR="$PROJECT_DIR/.jap/state"
 # Read hook input from stdin
 INPUT=$(cat)
 
-# Extract the file path from the hook event
-FILE_PATH=$(echo "$INPUT" | jq -r '.file_path // empty' 2>/dev/null || echo "")
+# Extract the file path from the hook event (FileChanged provides this)
+HOOK_FILE=$(echo "$INPUT" | jq -r '.file_path // empty' 2>/dev/null || echo "")
 
-# If no file_path in hook data, scan inbox for unprocessed files
-if [ -z "$FILE_PATH" ]; then
-  # Find oldest unprocessed inbox file
-  FILE_PATH=$(find "$INBOX_DIR" -name '*.json' -type f 2>/dev/null | sort | head -1)
+# Build list of files to process
+FILES=()
+if [ -n "$HOOK_FILE" ] && [ -f "$HOOK_FILE" ]; then
+  FILES=("$HOOK_FILE")
+else
+  # Scan inbox for all unprocessed JSON files (oldest first)
+  while IFS= read -r f; do
+    [ -f "$f" ] || continue
+    FNAME=$(basename "$f")
+    [ "$FNAME" = ".gitkeep" ] && continue
+    [ -f "$STATE_DIR/processed/$FNAME" ] && continue
+    FILES+=("$f")
+  done < <(find "$INBOX_DIR" -name '*.json' -type f 2>/dev/null | sort)
 fi
 
 # Nothing to process
-if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
+if [ ${#FILES[@]} -eq 0 ]; then
   exit 0
 fi
 
-FILENAME=$(basename "$FILE_PATH")
+FIRST=true
+for FILE_PATH in "${FILES[@]}"; do
+  FILENAME=$(basename "$FILE_PATH")
 
-# Skip if already processed (check state)
-if [ -f "$STATE_DIR/processed/$FILENAME" ]; then
-  exit 0
-fi
+  # Skip if already processed
+  [ -f "$STATE_DIR/processed/$FILENAME" ] && continue
 
-# Validate JSON
-if ! jq empty "$FILE_PATH" 2>/dev/null; then
-  echo "JAP: Invalid JSON in inbox — $FILENAME" >&2
-  exit 0
-fi
+  # Validate JSON
+  if ! jq empty "$FILE_PATH" 2>/dev/null; then
+    echo "JAP: Invalid JSON in inbox — $FILENAME" >&2
+    continue
+  fi
 
-# Extract fields from the inbox message
-ID=$(jq -r '.id // "unknown"' "$FILE_PATH")
-SPEAKER=$(jq -r '.speaker // "User"' "$FILE_PATH")
-TRANSCRIPT=$(jq -r '.rawTranscript // empty' "$FILE_PATH")
-INTENT=$(jq -r '.parsedIntent // "conversation"' "$FILE_PATH")
-CHANNEL=$(jq -r '.targetChannel // "none"' "$FILE_PATH")
-TIMESTAMP=$(jq -r '.timestamp // empty' "$FILE_PATH")
+  # Extract fields from the inbox message
+  ID=$(jq -r '.id // "unknown"' "$FILE_PATH")
+  SPEAKER=$(jq -r '.speaker // "User"' "$FILE_PATH")
+  TRANSCRIPT=$(jq -r '.rawTranscript // empty' "$FILE_PATH")
+  INTENT=$(jq -r '.parsedIntent // "conversation"' "$FILE_PATH")
+  CHANNEL=$(jq -r '.targetChannel // "none"' "$FILE_PATH")
+  TIMESTAMP=$(jq -r '.timestamp // empty' "$FILE_PATH")
 
-# Skip empty transcripts
-if [ -z "$TRANSCRIPT" ]; then
-  exit 0
-fi
+  # Skip empty transcripts
+  [ -z "$TRANSCRIPT" ] && continue
 
-# Mark as being processed
-mkdir -p "$STATE_DIR/processing"
-echo "{\"started\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"file\":\"$FILENAME\"}" > "$STATE_DIR/processing/$FILENAME"
+  # Mark as being processed
+  mkdir -p "$STATE_DIR/processing"
+  echo "{\"started\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"file\":\"$FILENAME\"}" > "$STATE_DIR/processing/$FILENAME"
 
-# Surface to Claude Code via stdout (this becomes context for the active session)
-cat <<EOJSON
+  # Separator between multiple items
+  if [ "$FIRST" = true ]; then
+    FIRST=false
+  else
+    echo ","
+  fi
+
+  # Surface to Claude Code via stdout
+  cat <<EOJSON
 {
   "jap_inbox": true,
   "id": "$ID",
@@ -75,5 +89,6 @@ cat <<EOJSON
   "instruction": "Process this JAP voice command. The speaker said: $TRANSCRIPT. Intent type: $INTENT. Target channel: $CHANNEL. Respond concisely and write the response to .jap/outbox/${ID}-response.json"
 }
 EOJSON
+done
 
 exit 0
