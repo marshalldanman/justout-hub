@@ -3,780 +3,565 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JAP Live 2.0 — Always-On Voice</title>
-  <meta name="description" content="Always-on live dictation. Open the page and talk — no buttons, no tapping.">
+  <title>JAP Live — BEE Feed</title>
+  <meta name="description" content="Live transcript feed from BEE device.">
   <style>
     :root {
-      --jap-primary: #00e5ff;
-      --jap-deep: #004d5a;
-      --jap-accent: #76ff03;
-      --jap-warn: #ff4444;
-      --jap-hot: #ff6b35;
-      --jap-bg: #0a0e1a;
-      --jap-surface: rgba(15, 23, 42, 0.85);
-      --jap-text: #e2e8f0;
-      --jap-muted: #64748b;
-      --jap-border: rgba(0, 229, 255, 0.15);
-      --jap-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --jap-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --bg: #0a0e1a;
+      --surface: rgba(15, 23, 42, 0.85);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #00e5ff;
+      --deep: #004d5a;
+      --green: #76ff03;
+      --red: #ff4444;
+      --border: rgba(0, 229, 255, 0.12);
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: var(--jap-font);
-      background: var(--jap-bg);
-      color: var(--jap-text);
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       min-height: 100dvh;
-      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Ambient glow — pulses faster when listening */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 50%; left: 50%;
-      width: 800px; height: 800px;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(0,229,255,0.04) 0%, transparent 70%);
-      animation: breathe 6s ease-in-out infinite;
-      pointer-events: none; z-index: 0;
-    }
-
-    body.listening::before {
-      background: radial-gradient(circle, rgba(255,68,68,0.06) 0%, transparent 70%);
-      animation: breathe 2s ease-in-out infinite;
-    }
-
-    body.speaking::before {
-      background: radial-gradient(circle, rgba(118,255,3,0.06) 0%, transparent 70%);
-      animation: breathe 0.8s ease-in-out infinite;
-    }
-
-    @keyframes breathe {
-      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-    }
-
-    /* ================================================================
-       Permission Gate — shown once before auto-start
-       ================================================================ */
-    .gate {
+    /* ---- Auth Gate ---- */
+    #authGate {
       position: fixed; inset: 0; z-index: 100;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      background: var(--jap-bg);
-      text-align: center;
-      padding: 40px;
-      transition: opacity 0.5s, visibility 0.5s;
+      background: var(--bg); text-align: center; padding: 40px;
     }
 
-    .gate.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    #authGate.hidden { display: none; }
 
-    .gate-icon { font-size: 4rem; margin-bottom: 20px; }
+    .auth-title { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+    .auth-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
 
-    .gate-title {
-      font-size: 1.6rem; font-weight: 700;
-      color: var(--jap-primary); margin-bottom: 8px;
-    }
-
-    .gate-sub {
-      font-size: 0.9rem; color: var(--jap-muted);
-      max-width: 400px; line-height: 1.6; margin-bottom: 30px;
-    }
-
-    .gate-btn {
-      padding: 16px 48px;
-      border-radius: 50px;
-      border: 2px solid var(--jap-primary);
+    .auth-btn {
+      padding: 14px 40px; border-radius: 50px;
+      border: 2px solid var(--accent);
       background: rgba(0,229,255,0.08);
-      color: var(--jap-primary);
-      font-size: 1rem;
-      font-weight: 700;
-      font-family: var(--jap-font);
-      letter-spacing: 0.08em;
-      cursor: pointer;
-      transition: all 0.3s;
+      color: var(--accent); font-size: 0.9rem;
+      font-weight: 700; font-family: var(--font);
+      cursor: pointer; transition: all 0.3s;
     }
+    .auth-btn:hover { background: rgba(0,229,255,0.15); box-shadow: 0 0 30px rgba(0,229,255,0.15); }
 
-    .gate-btn:hover {
-      background: rgba(0,229,255,0.15);
-      box-shadow: 0 0 40px rgba(0,229,255,0.2);
-      transform: scale(1.03);
-    }
+    .auth-err { color: var(--red); font-size: 0.75rem; margin-top: 12px; }
+    .auth-loading { color: var(--muted); font-size: 0.75rem; margin-top: 8px; }
 
-    /* ================================================================
-       Top Bar — minimal, shows status
-       ================================================================ */
+    /* ---- Top Bar ---- */
     .topbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+      position: sticky; top: 0; z-index: 10;
       display: flex; justify-content: space-between; align-items: center;
       padding: 10px 16px;
-      background: rgba(10, 14, 26, 0.85);
+      background: rgba(10, 14, 26, 0.92);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--jap-border);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
-    .topbar a {
-      color: var(--jap-muted); text-decoration: none;
-      font-size: 0.7rem; transition: color 0.2s;
-    }
-    .topbar a:hover { color: var(--jap-primary); }
+    .topbar a { color: var(--muted); text-decoration: none; font-size: 0.7rem; }
+    .topbar a:hover { color: var(--accent); }
 
-    .topbar-center {
-      display: flex; align-items: center; gap: 8px;
-    }
+    .topbar-center { display: flex; align-items: center; gap: 8px; }
 
     .topbar-title {
       font-size: 0.75rem; font-weight: 700;
-      color: var(--jap-primary); letter-spacing: 0.1em;
-      font-family: var(--jap-mono);
+      color: var(--accent); letter-spacing: 0.1em;
+      font-family: var(--mono);
     }
 
-    .topbar-badge {
+    .badge {
       font-size: 0.55rem; padding: 2px 6px;
-      border-radius: 4px; font-weight: 700;
-      letter-spacing: 0.08em;
+      border-radius: 4px; font-weight: 700; letter-spacing: 0.06em;
+    }
+    .badge-live { background: rgba(118,255,3,0.12); color: var(--green); border: 1px solid rgba(118,255,3,0.25); }
+    .badge-off { background: rgba(100,116,139,0.12); color: var(--muted); border: 1px solid rgba(100,116,139,0.25); }
+
+    .topbar-user {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.65rem; color: var(--muted);
+    }
+    .topbar-user img { width: 20px; height: 20px; border-radius: 50%; }
+
+    /* ---- Feed ---- */
+    .feed {
+      flex: 1; overflow-y: auto; padding: 12px 16px 80px;
+      scroll-behavior: smooth;
     }
 
-    .badge-listening {
-      background: rgba(255,68,68,0.15); color: var(--jap-warn);
-      border: 1px solid rgba(255,68,68,0.3);
-      animation: badge-pulse 1.5s ease-in-out infinite;
-    }
-
-    .badge-speaking {
-      background: rgba(118,255,3,0.15); color: var(--jap-accent);
-      border: 1px solid rgba(118,255,3,0.3);
-    }
-
-    .badge-paused {
-      background: rgba(100,116,139,0.15); color: var(--jap-muted);
-      border: 1px solid rgba(100,116,139,0.3);
-    }
-
-    @keyframes badge-pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .topbar-stats {
-      font-size: 0.65rem; color: var(--jap-muted);
-      font-family: var(--jap-mono);
-      display: flex; gap: 12px;
-    }
-
-    .topbar-stats span { color: var(--jap-text); font-weight: 600; }
-
-    /* ================================================================
-       Sound Wave Visualizer — replaces the tap-to-start mic button
-       ================================================================ */
-    .wave-area {
-      position: relative; z-index: 1;
-      display: flex; flex-direction: column; align-items: center;
-      padding: 56px 20px 12px;
-    }
-
-    .wave-bars {
-      display: flex; align-items: center; gap: 3px;
-      height: 40px;
-    }
-
-    .wave-bar {
-      width: 4px;
-      background: var(--jap-muted);
-      border-radius: 2px;
-      transition: height 0.1s ease, background 0.3s;
-      height: 4px;
-    }
-
-    body.speaking .wave-bar { background: var(--jap-accent); }
-    body.listening .wave-bar { background: var(--jap-warn); }
-
-    .wave-label {
-      margin-top: 8px;
-      font-size: 0.65rem;
-      color: var(--jap-muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      font-family: var(--jap-mono);
-    }
-
-    /* Small pause/resume button */
-    .pause-btn {
-      position: absolute;
-      top: 56px; right: 20px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--jap-border);
-      background: transparent;
-      color: var(--jap-muted);
-      font-size: 0.65rem;
-      font-family: var(--jap-mono);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .pause-btn:hover {
-      border-color: var(--jap-primary);
-      color: var(--jap-primary);
-    }
-
-    /* ================================================================
-       Live Text — the main show
-       ================================================================ */
-    .live-area {
-      position: relative; z-index: 1;
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 8px 20px 100px;
-    }
-
-    /* Current text being spoken — big, bold, readable */
-    .live-now {
-      font-size: 1.5rem;
-      font-weight: 400;
-      line-height: 1.7;
-      color: #fff;
-      min-height: 60px;
-      padding: 16px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .live-now .interim {
-      color: rgba(0, 229, 255, 0.5);
-    }
-
-    .live-now .cursor {
-      display: inline-block;
-      width: 2px; height: 1.3em;
-      background: var(--jap-primary);
-      margin-left: 1px;
-      vertical-align: text-bottom;
-      animation: blink 1s step-end infinite;
-    }
-
-    body.speaking .live-now .cursor { background: var(--jap-accent); }
-    body.listening .live-now .cursor { background: var(--jap-warn); }
-
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
-
-    /* Committed transcript — scrollable log */
-    .transcript {
-      padding-top: 12px;
-      max-height: calc(100vh - 280px);
-      max-height: calc(100dvh - 280px);
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--jap-deep) transparent;
-    }
-
-    .t-line {
-      padding: 10px 0;
+    .feed-entry {
+      padding: 12px 0;
       border-bottom: 1px solid rgba(255,255,255,0.03);
-      font-size: 1rem;
-      line-height: 1.7;
-      color: var(--jap-text);
-      animation: slide-in 0.3s ease-out;
+      animation: fade-in 0.3s ease-out;
     }
 
-    @keyframes slide-in {
-      from { opacity: 0; transform: translateY(6px); }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .t-time {
-      color: var(--jap-muted);
-      font-size: 0.6rem;
-      font-family: var(--jap-mono);
-      margin-right: 8px;
+    .feed-meta {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 4px;
     }
 
-    .t-text { }
-
-    /* Silence gap marker */
-    .t-gap {
-      padding: 6px 0;
-      text-align: center;
-      font-size: 0.6rem;
-      color: rgba(100,116,139,0.4);
-      letter-spacing: 0.15em;
-      font-family: var(--jap-mono);
+    .feed-time {
+      font-size: 0.6rem; color: var(--muted);
+      font-family: var(--mono);
     }
 
-    /* ================================================================
-       Bottom Controls — floating, minimal
-       ================================================================ */
-    .bottom-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-      display: flex; justify-content: center; gap: 8px;
-      padding: 12px 16px;
-      background: rgba(10, 14, 26, 0.9);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--jap-border);
-    }
-
-    .b-btn {
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      font-family: var(--jap-mono);
+    .feed-speaker {
+      font-size: 0.6rem; color: var(--accent);
+      font-weight: 600; text-transform: uppercase;
       letter-spacing: 0.06em;
-      border: 1px solid var(--jap-border);
+    }
+
+    .feed-type {
+      font-size: 0.55rem; padding: 1px 5px;
+      border-radius: 3px; font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .type-voice { background: rgba(0,229,255,0.08); color: var(--accent); }
+    .type-note { background: rgba(251,191,36,0.1); color: #fbbf24; }
+
+    .feed-text {
+      font-size: 1rem; line-height: 1.7;
+      color: var(--text);
+    }
+
+    .feed-note .feed-text {
+      color: #fbbf24;
+      font-style: italic;
+    }
+
+    /* Silence gap */
+    .feed-gap {
+      padding: 8px 0;
+      text-align: center;
+      font-size: 0.55rem;
+      color: rgba(100,116,139,0.3);
+      letter-spacing: 0.2em;
+      font-family: var(--mono);
+    }
+
+    /* Empty state */
+    .feed-empty {
+      text-align: center; padding: 60px 20px;
+      color: var(--muted);
+    }
+    .feed-empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
+    .feed-empty-text { font-size: 0.85rem; line-height: 1.8; }
+
+    /* ---- Bottom Bar ---- */
+    .bottombar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+      background: rgba(10, 14, 26, 0.92);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 8px 12px;
+      display: flex; gap: 8px; align-items: center;
+    }
+
+    .note-input {
+      flex: 1;
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .note-input::placeholder { color: var(--muted); }
+    .note-input:focus { border-color: var(--accent); }
+
+    .bb-btn {
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 0.65rem; font-weight: 600;
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+      border: 1px solid var(--border);
       background: transparent;
-      color: var(--jap-muted);
-      cursor: pointer;
-      transition: all 0.2s;
+      color: var(--muted);
+      cursor: pointer; transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .bb-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .bb-btn:active { transform: scale(0.97); }
+
+    .bb-btn-send {
+      background: rgba(0,229,255,0.1);
+      border-color: rgba(0,229,255,0.3);
+      color: var(--accent);
     }
 
-    .b-btn:hover {
-      color: var(--jap-primary);
-      border-color: var(--jap-primary);
+    .autoflow-on { color: var(--green) !important; border-color: rgba(118,255,3,0.3) !important; }
+
+    /* ---- Scroll indicator ---- */
+    .scroll-down {
+      position: fixed; bottom: 64px; right: 16px; z-index: 11;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--accent); font-size: 1rem;
+      display: none; align-items: center; justify-content: center;
+      cursor: pointer; backdrop-filter: blur(8px);
     }
+    .scroll-down.visible { display: flex; }
 
-    .b-btn:active { transform: scale(0.97); }
-
-    .b-btn.flash {
-      color: var(--jap-accent) !important;
-      border-color: var(--jap-accent) !important;
-    }
-
-    /* ================================================================
-       Unsupported / Error
-       ================================================================ */
-    .unsupported {
-      text-align: center; padding: 80px 20px;
-      color: var(--jap-warn); font-size: 1rem; line-height: 1.8;
-    }
-
-    /* ================================================================
-       Responsive
-       ================================================================ */
+    /* ---- Responsive ---- */
     @media (max-width: 480px) {
-      .live-now { font-size: 1.2rem; }
-      .t-line { font-size: 0.9rem; }
-      .topbar-stats { display: none; }
-      .wave-bars { gap: 2px; }
-      .wave-bar { width: 3px; }
+      .feed-text { font-size: 0.9rem; }
+      .topbar-user span { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Permission gate — one tap to grant mic, then always-on -->
-  <div class="gate" id="gate">
-    <div class="gate-icon">&#x1f399;</div>
-    <div class="gate-title">JAP Live 2.0</div>
-    <div class="gate-sub">
-      Tap once to grant mic access.<br>
-      After that, it's always on &mdash; just talk.
-    </div>
-    <button class="gate-btn" id="gateBtn">Start Listening</button>
+  <!-- Auth Gate -->
+  <div id="authGate">
+    <div class="auth-title">JAP Live</div>
+    <div class="auth-sub">Sign in to view the BEE feed</div>
+    <button class="auth-btn" id="googleSignIn">Sign In with Google</button>
+    <div class="auth-err" id="authErr"></div>
+    <div class="auth-loading" id="authLoading"></div>
   </div>
 
-  <!-- Top bar -->
-  <nav class="topbar">
+  <!-- Top Bar -->
+  <nav class="topbar" id="topbar" style="display:none">
     <a href="/JapHQ/">&larr; JAP HQ</a>
     <div class="topbar-center">
-      <span class="topbar-title">JAP LIVE</span>
-      <span class="topbar-badge badge-paused" id="badge">READY</span>
+      <span class="topbar-title">BEE FEED</span>
+      <span class="badge badge-off" id="feedBadge">CONNECTING</span>
     </div>
-    <div class="topbar-stats">
-      <span id="statWords">0</span> words
-      &middot;
-      <span id="statDur">0:00</span>
-    </div>
+    <div class="topbar-user" id="userInfo"></div>
   </nav>
 
-  <!-- Wave visualizer -->
-  <div class="wave-area">
-    <div class="wave-bars" id="waveBars"></div>
-    <div class="wave-label" id="waveLabel">Waiting...</div>
-    <button class="pause-btn" id="pauseBtn">Pause</button>
-  </div>
-
-  <!-- Live text -->
-  <div class="live-area">
-    <div class="live-now" id="liveNow">
-      <span class="cursor"></span>
+  <!-- Feed -->
+  <div class="feed" id="feed" style="display:none">
+    <div class="feed-empty" id="feedEmpty">
+      <div class="feed-empty-icon">&#x1f41d;</div>
+      <div class="feed-empty-text">
+        Waiting for BEE feed...<br>
+        Transcripts will appear here in real-time.
+      </div>
     </div>
-    <div class="transcript" id="transcript"></div>
   </div>
 
-  <!-- Bottom controls -->
-  <div class="bottom-bar">
-    <button class="b-btn" id="btnCopy">Copy</button>
-    <button class="b-btn" id="btnClear">Clear</button>
-    <button class="b-btn" id="btnDownload">Save</button>
+  <!-- Scroll-to-bottom indicator -->
+  <div class="scroll-down" id="scrollDown">&#x2193;</div>
+
+  <!-- Bottom Bar -->
+  <div class="bottombar" id="bottombar" style="display:none">
+    <input type="text" class="note-input" id="noteInput" placeholder="Add a note..." maxlength="500" aria-label="Add a note to the feed">
+    <button class="bb-btn bb-btn-send" id="btnSend">Add</button>
+    <button class="bb-btn autoflow-on" id="btnAutoflow" title="Toggle auto-scroll">Auto</button>
+    <button class="bb-btn" id="btnCopy">Copy</button>
+    <button class="bb-btn" id="btnClear">Clear</button>
   </div>
 
   <script>
     (function () {
       'use strict';
 
-      /* ---- Browser check ---- */
-      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        document.getElementById('gate').innerHTML =
-          '<div class="unsupported">Speech recognition not available.<br>Use Chrome, Edge, or Safari.</div>';
-        return;
-      }
-
-      /* ---- Elements ---- */
-      var gate       = document.getElementById('gate');
-      var gateBtn    = document.getElementById('gateBtn');
-      var badge      = document.getElementById('badge');
-      var waveBars   = document.getElementById('waveBars');
-      var waveLabel  = document.getElementById('waveLabel');
-      var pauseBtn   = document.getElementById('pauseBtn');
-      var liveNow    = document.getElementById('liveNow');
-      var transcript = document.getElementById('transcript');
-      var statWords  = document.getElementById('statWords');
-      var statDur    = document.getElementById('statDur');
-
-      /* ---- State ---- */
-      var lines       = [];
-      var wordCount   = 0;
-      var isOn        = false;     // mic is running
-      var isPaused    = false;     // user paused
-      var hasSpeech   = false;     // currently receiving speech
-      var interimText = '';
-      var startTime   = null;
-      var durTimer    = null;
-      var silenceTimer = null;
-      var lastSpeechTime = 0;
-
-      /* ---- Wave bars setup ---- */
-      var BAR_COUNT = 24;
-      var bars = [];
-      for (var b = 0; b < BAR_COUNT; b++) {
-        var bar = document.createElement('div');
-        bar.className = 'wave-bar';
-        waveBars.appendChild(bar);
-        bars.push(bar);
-      }
-
-      /* ---- Audio analyser for wave viz ---- */
-      var audioCtx, analyser, dataArray, micStream, animFrame;
-
-      function initAudio(stream) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 64;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        var source = audioCtx.createMediaStreamSource(stream);
-        source.connect(analyser);
-        micStream = stream;
-        animateWave();
-      }
-
-      function animateWave() {
-        analyser.getByteFrequencyData(dataArray);
-        var avg = 0;
-        for (var i = 0; i < bars.length; i++) {
-          var val = dataArray[i] || 0;
-          var h = Math.max(4, (val / 255) * 36);
-          bars[i].style.height = h + 'px';
-          avg += val;
-        }
-        avg = avg / bars.length;
-
-        // Detect active speech for body class
-        if (avg > 20) {
-          if (!hasSpeech) {
-            hasSpeech = true;
-            document.body.classList.add('speaking');
-            document.body.classList.remove('listening');
-          }
-          lastSpeechTime = Date.now();
-        } else {
-          if (hasSpeech && Date.now() - lastSpeechTime > 600) {
-            hasSpeech = false;
-            document.body.classList.remove('speaking');
-            if (isOn) document.body.classList.add('listening');
-          }
-        }
-
-        animFrame = requestAnimationFrame(animateWave);
-      }
-
-      /* ---- Speech Recognition ---- */
-      var rec = new SR();
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.lang = 'en-US';
-      rec.maxAlternatives = 3;
-
-      rec.onstart = function () {
-        isOn = true;
-        document.body.classList.add('listening');
-        setBadge('listening');
-        waveLabel.textContent = 'Listening...';
-        pauseBtn.textContent = 'Pause';
-
-        if (!startTime) {
-          startTime = Date.now();
-          durTimer = setInterval(updateDur, 1000);
-        }
+      /* ============================================================
+         CONFIG
+         ============================================================ */
+      var FIREBASE_CONFIG = {
+        apiKey: 'AIzaSyBgYAPO_0cEvhPzfU6GZykJVUnF55LEzXQ',
+        authDomain: 'fpcs-dashboard-63b25.firebaseapp.com',
+        projectId: 'fpcs-dashboard-63b25',
+        storageBucket: 'fpcs-dashboard-63b25.firebasestorage.app',
+        messagingSenderId: '377879797743',
+        appId: '1:377879797743:web:61a56f9bf69f2df9eba01a',
+        databaseURL: 'https://fpcs-dashboard-63b25-default-rtdb.firebaseio.com'
       };
 
-      rec.onend = function () {
-        if (!isPaused && isOn) {
-          // Auto-restart — keep it always on
-          try { rec.start(); } catch (e) {}
-          return;
-        }
-        isOn = false;
-        document.body.classList.remove('listening', 'speaking');
-        hasSpeech = false;
-        setBadge('paused');
-        waveLabel.textContent = 'Paused';
-        flattenBars();
-      };
+      var AUTH_HASHES = [
+        '2cf3a7d6f68c22e431d35aec11129074f9bb677598de0fe85df3ba3c0f513365',
+        'e12a8bb46e8823a5fd6e6c997c573b4088ff4dbe09ec3ee3da994d33a810a674',
+        'e48e3b564e4c384c6215fcf3215abac1c95df04e5e7f862d5d1d8c91ff977cba'
+      ];
 
-      rec.onerror = function (e) {
-        if (e.error === 'not-allowed') {
-          waveLabel.textContent = 'Mic blocked — check permissions';
-          setBadge('paused');
-        } else if (e.error === 'no-speech') {
-          // Normal — silence. Keep going.
-        } else if (e.error === 'aborted') {
-          // Happens on restart, ignore
-        } else {
-          waveLabel.textContent = e.error;
-          setTimeout(function () {
-            if (isOn) waveLabel.textContent = 'Listening...';
-          }, 2000);
-        }
-      };
+      var DB_PATH = 'jap/feed';
 
-      rec.onresult = function (event) {
-        var finals = '';
-        var interim = '';
+      /* ============================================================
+         STATE
+         ============================================================ */
+      var feedEl      = document.getElementById('feed');
+      var feedEmpty   = document.getElementById('feedEmpty');
+      var feedBadge   = document.getElementById('feedBadge');
+      var noteInput   = document.getElementById('noteInput');
+      var scrollBtn   = document.getElementById('scrollDown');
+      var autoflow    = true;
+      var entries     = [];  // in-memory transcript log
+      var dbRef       = null;
+      var currentUser = null;
 
-        for (var i = event.resultIndex; i < event.results.length; i++) {
-          var r = event.results[i];
-          if (r.isFinal) {
-            // Pick best alternative
-            var best = r[0].transcript;
-            var bestConf = r[0].confidence;
-            for (var a = 1; a < r.length; a++) {
-              if (r[a].confidence > bestConf) {
-                best = r[a].transcript;
-                bestConf = r[a].confidence;
+      /* ============================================================
+         AUTH — same SHA-256 whitelist model as hub
+         ============================================================ */
+      function hashEmail(email) {
+        if (!crypto.subtle) return Promise.resolve('');
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(email))
+          .then(function (buf) {
+            return Array.from(new Uint8Array(buf))
+              .map(function (b) { return b.toString(16).padStart(2, '0'); })
+              .join('');
+          });
+      }
+
+      function isAllowed(email) {
+        return hashEmail(email.toLowerCase()).then(function (hash) {
+          return AUTH_HASHES.indexOf(hash) !== -1;
+        });
+      }
+
+      function initAuth() {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        var auth = firebase.auth();
+
+        auth.onAuthStateChanged(function (user) {
+          if (user) {
+            isAllowed(user.email).then(function (ok) {
+              if (ok) {
+                currentUser = user;
+                showApp(user);
+                connectFeed();
+              } else {
+                document.getElementById('authErr').textContent = 'Not authorized. Ask the Commander.';
+                auth.signOut();
               }
-            }
-            finals += best;
+            });
+          }
+        });
+
+        document.getElementById('googleSignIn').addEventListener('click', function () {
+          var btn = document.getElementById('googleSignIn');
+          var err = document.getElementById('authErr');
+          var load = document.getElementById('authLoading');
+          err.textContent = '';
+          load.textContent = 'Signing in...';
+          btn.disabled = true;
+
+          var provider = new firebase.auth.GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          auth.signInWithPopup(provider).then(function () {
+            load.textContent = '';
+          }).catch(function (e) {
+            load.textContent = '';
+            btn.disabled = false;
+            err.textContent = e.message || 'Sign-in failed';
+          });
+        });
+      }
+
+      function showApp(user) {
+        document.getElementById('authGate').classList.add('hidden');
+        document.getElementById('topbar').style.display = 'flex';
+        feedEl.style.display = 'block';
+        document.getElementById('bottombar').style.display = 'flex';
+
+        var info = document.getElementById('userInfo');
+        if (user.photoURL) {
+          info.innerHTML = '<img src="' + esc(user.photoURL) + '" alt="">';
+        }
+        info.innerHTML += '<span>' + esc(user.displayName || 'User') + '</span>';
+      }
+
+      /* ============================================================
+         FIREBASE REALTIME DB — FEED
+         ============================================================ */
+      function connectFeed() {
+        var db = firebase.database();
+        dbRef = db.ref(DB_PATH);
+
+        // Listen for new entries (last 200)
+        dbRef.orderByChild('ts').limitToLast(200).on('child_added', function (snap) {
+          var data = snap.val();
+          if (!data) return;
+          addEntry(data, snap.key);
+        });
+
+        // Connection state
+        var connRef = db.ref('.info/connected');
+        connRef.on('value', function (snap) {
+          if (snap.val() === true) {
+            feedBadge.textContent = 'LIVE';
+            feedBadge.className = 'badge badge-live';
           } else {
-            interim += r[0].transcript;
+            feedBadge.textContent = 'OFFLINE';
+            feedBadge.className = 'badge badge-off';
           }
-        }
-
-        if (finals) {
-          var cleaned = cleanText(finals);
-          if (cleaned) {
-            commitLine(cleaned);
-          }
-          interimText = '';
-        } else {
-          interimText = interim;
-        }
-
-        renderLive();
-        resetSilenceTimer();
-      };
-
-      /* ---- Text cleanup / "voice job" ---- */
-      function cleanText(raw) {
-        var t = raw.trim();
-        if (!t) return '';
-
-        // Capitalize first letter
-        t = t.charAt(0).toUpperCase() + t.slice(1);
-
-        // Auto-punctuate: add period if no ending punctuation
-        if (!/[.!?;:,]$/.test(t)) {
-          t += '.';
-        }
-
-        // Fix common speech-to-text artifacts
-        t = t
-          // Double spaces
-          .replace(/\s{2,}/g, ' ')
-          // "i" → "I"
-          .replace(/\bi\b/g, 'I')
-          // Capitalize after sentence enders
-          .replace(/([.!?]\s+)([a-z])/g, function (m, p, c) { return p + c.toUpperCase(); })
-          // Remove leading/trailing spaces around punctuation
-          .replace(/\s+([.!?,;:])/g, '$1')
-          // "gonna" → "going to" (optional cleanup)
-          // "wanna" → "want to"
-          // Keep these natural — user said it that way
-        ;
-
-        return t;
+        });
       }
 
-      /* ---- Silence detection — insert visual gap after pause ---- */
-      function resetSilenceTimer() {
-        clearTimeout(silenceTimer);
-        silenceTimer = setTimeout(function () {
-          if (isOn && lines.length > 0) {
-            insertGap();
-          }
-        }, 4000);
-      }
-
-      function insertGap() {
-        var gap = document.createElement('div');
-        gap.className = 't-gap';
-        gap.textContent = '- - -';
-        transcript.appendChild(gap);
-        transcript.scrollTop = transcript.scrollHeight;
-      }
-
-      /* ---- Render ---- */
-      function renderLive() {
-        if (interimText) {
-          liveNow.innerHTML =
-            '<span class="interim">' + esc(interimText) + '</span>' +
-            '<span class="cursor"></span>';
-        } else {
-          liveNow.innerHTML = '<span class="cursor"></span>';
+      /* ============================================================
+         FEED RENDERING
+         ============================================================ */
+      function addEntry(data, key) {
+        // Remove empty state
+        if (feedEmpty && feedEmpty.parentNode) {
+          feedEmpty.remove();
+          feedEmpty = null;
         }
-      }
 
-      function commitLine(text) {
-        lines.push(text);
+        // Duplicate check
+        if (entries.some(function (e) { return e.key === key; })) return;
+
+        entries.push({ key: key, data: data });
 
         var el = document.createElement('div');
-        el.className = 't-line';
-        var now = new Date();
-        var ts = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        el.innerHTML = '<span class="t-time">' + ts + '</span><span class="t-text">' + esc(text) + '</span>';
-        transcript.appendChild(el);
-        transcript.scrollTop = transcript.scrollHeight;
+        var isNote = data.type === 'note';
+        el.className = 'feed-entry' + (isNote ? ' feed-note' : '');
 
-        wordCount += text.split(/\s+/).filter(Boolean).length;
-        statWords.textContent = wordCount;
-      }
+        var ts = data.ts ? new Date(data.ts) : new Date();
+        var time = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        var date = ts.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
-      /* ---- UI Helpers ---- */
-      function setBadge(state) {
-        badge.className = 'topbar-badge';
-        if (state === 'listening') {
-          badge.classList.add('badge-listening');
-          badge.textContent = 'LIVE';
-        } else if (state === 'speaking') {
-          badge.classList.add('badge-speaking');
-          badge.textContent = 'VOICE';
-        } else {
-          badge.classList.add('badge-paused');
-          badge.textContent = 'PAUSED';
+        el.innerHTML =
+          '<div class="feed-meta">' +
+            '<span class="feed-time">' + date + ' ' + time + '</span>' +
+            '<span class="feed-speaker">' + esc(data.speaker || 'BEE') + '</span>' +
+            '<span class="feed-type ' + (isNote ? 'type-note' : 'type-voice') + '">' +
+              (isNote ? 'NOTE' : 'VOICE') +
+            '</span>' +
+          '</div>' +
+          '<div class="feed-text">' + esc(data.text || '') + '</div>';
+
+        feedEl.appendChild(el);
+
+        if (autoflow) {
+          feedEl.scrollTop = feedEl.scrollHeight;
         }
       }
 
-      function flattenBars() {
-        bars.forEach(function (b) { b.style.height = '4px'; });
+      /* ============================================================
+         ADD NOTE
+         ============================================================ */
+      function addNote() {
+        var text = noteInput.value.trim();
+        if (!text || !dbRef) return;
+
+        dbRef.push({
+          type: 'note',
+          speaker: currentUser.displayName || 'Commander',
+          text: text,
+          ts: firebase.database.ServerValue.TIMESTAMP,
+          uid: currentUser.uid
+        });
+
+        noteInput.value = '';
       }
 
-      function updateDur() {
-        if (!startTime) return;
-        var s = Math.floor((Date.now() - startTime) / 1000);
-        var m = Math.floor(s / 60);
-        s = s % 60;
-        statDur.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      /* ============================================================
+         AUTOFLOW (auto-scroll)
+         ============================================================ */
+      function isNearBottom() {
+        return feedEl.scrollHeight - feedEl.scrollTop - feedEl.clientHeight < 60;
       }
 
-      function esc(str) {
-        var d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML;
-      }
-
-      function flash(btn, msg) {
-        var orig = btn.textContent;
-        btn.textContent = msg;
-        btn.classList.add('flash');
-        setTimeout(function () {
-          btn.textContent = orig;
-          btn.classList.remove('flash');
-        }, 1200);
-      }
-
-      /* ---- Gate: one-tap to grant mic, then auto-start ---- */
-      gateBtn.addEventListener('click', function () {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-          .then(function (stream) {
-            initAudio(stream);
-            gate.classList.add('hidden');
-            rec.start();
-          })
-          .catch(function () {
-            gateBtn.textContent = 'Mic access denied';
-            gateBtn.style.borderColor = 'var(--jap-warn)';
-            gateBtn.style.color = 'var(--jap-warn)';
-          });
-      });
-
-      /* ---- Pause / Resume ---- */
-      pauseBtn.addEventListener('click', function () {
-        if (isPaused) {
-          isPaused = false;
-          try { rec.start(); } catch (e) {}
-        } else {
-          isPaused = true;
-          try { rec.stop(); } catch (e) {}
+      feedEl.addEventListener('scroll', function () {
+        if (!autoflow && isNearBottom()) {
+          // User scrolled back to bottom — re-enable
+          autoflow = true;
+          document.getElementById('btnAutoflow').classList.add('autoflow-on');
+          scrollBtn.classList.remove('visible');
+        } else if (autoflow && !isNearBottom()) {
+          // User scrolled up — disable
+          autoflow = false;
+          document.getElementById('btnAutoflow').classList.remove('autoflow-on');
+          scrollBtn.classList.add('visible');
         }
       });
 
-      /* ---- Bottom controls ---- */
+      /* ============================================================
+         CONTROLS
+         ============================================================ */
+      // Send note
+      document.getElementById('btnSend').addEventListener('click', addNote);
+      noteInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addNote(); }
+      });
+
+      // Toggle autoflow
+      document.getElementById('btnAutoflow').addEventListener('click', function () {
+        autoflow = !autoflow;
+        this.classList.toggle('autoflow-on', autoflow);
+        if (autoflow) {
+          feedEl.scrollTop = feedEl.scrollHeight;
+          scrollBtn.classList.remove('visible');
+        }
+      });
+
+      // Scroll to bottom
+      scrollBtn.addEventListener('click', function () {
+        autoflow = true;
+        document.getElementById('btnAutoflow').classList.add('autoflow-on');
+        feedEl.scrollTop = feedEl.scrollHeight;
+        scrollBtn.classList.remove('visible');
+      });
+
+      // Copy
       document.getElementById('btnCopy').addEventListener('click', function () {
-        var text = lines.join('\n');
+        var text = entries.map(function (e) {
+          var d = e.data;
+          var ts = d.ts ? new Date(d.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+          var prefix = d.type === 'note' ? '[NOTE] ' : '';
+          return ts + ' ' + prefix + (d.text || '');
+        }).join('\n');
+
         if (!text) return;
         navigator.clipboard.writeText(text).then(function () {
-          flash(document.getElementById('btnCopy'), 'Copied!');
+          var btn = document.getElementById('btnCopy');
+          btn.textContent = 'Done';
+          setTimeout(function () { btn.textContent = 'Copy'; }, 1200);
         });
       });
 
+      // Clear (local view only — doesn't delete from DB)
       document.getElementById('btnClear').addEventListener('click', function () {
-        lines = [];
-        wordCount = 0;
-        transcript.innerHTML = '';
-        statWords.textContent = '0';
-        renderLive();
+        entries = [];
+        feedEl.innerHTML = '';
       });
 
-      document.getElementById('btnDownload').addEventListener('click', function () {
-        var text = lines.join('\n');
-        if (!text) return;
-        var blob = new Blob([text], { type: 'text/plain' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'jap-live-' + new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-') + '.txt';
-        a.click();
-        URL.revokeObjectURL(url);
-        flash(document.getElementById('btnDownload'), 'Saved!');
-      });
-
-      /* ---- Keep screen awake (mobile) ---- */
-      var wakeLock = null;
-      async function keepAwake() {
-        try {
-          if ('wakeLock' in navigator) {
-            wakeLock = await navigator.wakeLock.request('screen');
-          }
-        } catch (e) {}
+      /* ============================================================
+         UTILITY
+         ============================================================ */
+      function esc(s) {
+        return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
-      document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState === 'visible' && isOn) keepAwake();
-      });
+
+      /* ============================================================
+         BOOT — Load Firebase SDKs then init auth
+         ============================================================ */
+      function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement('script');
+          s.src = src; s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js')
+        .then(function () { return loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js'); })
+        .then(function () { return loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js'); })
+        .then(initAuth)
+        .catch(function () {
+          document.getElementById('authErr').textContent = 'Failed to load. Check your connection.';
+        });
 
     })();
   </script>
