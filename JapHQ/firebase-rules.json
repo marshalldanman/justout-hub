@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "jap": {
+      "feed": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$entry": {
+          ".validate": "newData.hasChildren(['type', 'text', 'ts'])"
+        }
+      }
+    }
+  }
+}
