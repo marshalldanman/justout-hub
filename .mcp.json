@@ -4,7 +4,7 @@
       "command": "uvx",
       "args": ["mcp-google-sheets@latest"],
       "env": {
-        "SERVICE_ACCOUNT_PATH": "${HOME}/Desktop/justout-hub/gegenkraft/service-account-key.json",
+        "SERVICE_ACCOUNT_PATH": "C:\\Users\\James\\Desktop\\justout-hub\\gegenkraft\\service-account-key.json",
         "DRIVE_FOLDER_ID": "1yi4qVotXKBys3so3DuQaG5TginlMrCeo"
       }
     },
