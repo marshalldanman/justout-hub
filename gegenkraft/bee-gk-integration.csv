@@ -1,0 +1,11 @@
+Integration #,Name,Bee Feature Used,GK Application,Points Awarded,How It Works
+1,Voice Note Confessionals,Voice Notes,Urge Logging,+5 per logged urge resisted,"Press Bee button when urge hits. Speak: 'GK Log: urge at [time], intensity [1-10], triggered by [cause].' Creates timestamped urge data."
+2,Daily Insights Scoreboard,Daily Insights,Pattern Tracking,+10 per week trend drops,"Bee surfaces emotional patterns and recurring themes. Track how often gambling-related language appears. Declining frequency = GK momentum proof."
+3,Accountability Auto-Summary,Conversation Segmentation,Accountability Records,+3 per conversation captured,"Wear Bee during check-ins with accountability partner. Bee auto-summarizes commitments made."
+4,GK Daily Report Template,Templates,Daily Scorecard,N/A (enables scoring),"Custom 'Gegenkraft Daily Report' template: Urges resisted (count), Replacement actions taken, Money saved, GK power level (1-10)."
+5,Trigger Geo-Fencing,Geo and Topic Fencing (future),Topic Boundaries,-5 penalty if gambling topics appear,"Set topic boundaries around gambling language. If gambling topics appear in Bee themes, flag and activate counter-move."
+6,Auto-Save the Bet Money,Actions (Email/Calendar),Financial Redirection,+1 per dollar redirected,"Say 'I just resisted a $50 bet' and Bee drafts email/reminder to transfer that amount to savings."
+7,GK Boss Battles,Developer API,Scoring Engine,Double points on boss battle days,"API extension pulls daily urge logs, calculates GK Power Score, flags 'boss battle' days (3+ urges), awards double points if survived clean."
+8,Morning Declarations,Voice Notes,Daily Intention,+2 per declaration (+streak multiplier),"Each morning press button and state: 'Day X. No gambling today. GK power level: [1-10].' Verbal contract timestamped. x1.5 multiplier after 7 days, x2 after 30."
+9,Relationship Pattern Tracking,Daily Insights (Relationships),Social Change Tracking,+15 when positive shift flagged,"Bee tracks relationship shifts over time. Monitor if gambling conversations with friends decrease. Quantified social change."
+10,Weekly GK Retrospective,Accumulated Summaries,Weekly Review,+20 per completed review,"Review Bee's weekly summaries. Count wins, flag weakest trigger points, set next week's GK targets."

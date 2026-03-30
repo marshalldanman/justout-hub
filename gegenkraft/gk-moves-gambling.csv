@@ -1,0 +1,11 @@
+GK Move #,Move Name,Description,Category,Daily Action,Difficulty,Impact
+1,Delete & Block,"Uninstall every gambling app and use phone content restrictions to block re-downloading. Daily check: if it's back, it's gone again.",Prevention,Check app store restrictions are active,Easy,High
+2,Kill the Funding,"Remove saved payment methods, cards, and autofill credentials tied to gambling sites. Re-entering info = friction wall.",Prevention,Verify no saved payment methods exist,Easy,High
+3,Redirect the Trigger,"Identify the exact moment you reach for a gambling app (boredom/downtime/stress) and replace with a 5-minute action: walk, pushups, language lesson, journaling.",Replacement,Perform replacement action when triggered,Medium,High
+4,Screen Time Sabotage,"Set daily screen time limit of 0 minutes on gambling-category apps/websites. Someone else holds the Screen Time passcode.",Prevention,Confirm screen time limits are enforced,Easy,High
+5,Environment Poisoning,"Change phone wallpaper to bank statement showing losses or a written reminder of why you're stopping.",Psychological,Keep wallpaper as anti-gambling reminder,Easy,Medium
+6,Announce the Bet You Didn't Make,"Each day write down one specific bet you would have made and the amount. Track running total of money saved.",Tracking,Log the bet not made and amount saved,Medium,High
+7,Notification Detox,"Unsubscribe from every gambling promo email, block SMS marketing, turn off push notifications.",Prevention,Check for and block any new gambling notifications,Easy,Medium
+8,Accountability Ping,"Text one trusted person daily: 'Day X, no gambling.' Social commitment creates cost to relapsing.",Social,Send daily accountability text,Medium,High
+9,Cash the Urge,"When urge hits, immediately transfer the amount you would have gambled into a separate savings account.",Financial,Transfer would-be-bet money to savings,Medium,High
+10,Time Audit Log,"At end of each day log what you did with the time you would have spent gambling. Even 15 min documented.",Tracking,Log time reclaimed and activity done,Easy,Medium
