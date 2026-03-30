@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "google-sheets": {
+      "command": "uvx",
+      "args": ["mcp-google-sheets@latest"],
+      "env": {
+        "SERVICE_ACCOUNT_PATH": "${HOME}/Desktop/justout-hub/gegenkraft/service-account-key.json",
+        "DRIVE_FOLDER_ID": "1yi4qVotXKBys3so3DuQaG5TginlMrCeo"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-playwright@latest"]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    }
+  }
+}
