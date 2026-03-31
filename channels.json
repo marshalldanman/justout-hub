@@ -44,7 +44,7 @@
     {
       "id": "helpdesk",
       "name": "Helpdesk",
-      "subdomain": "dashboard.justout.today/helpdesk.html",
+      "subdomain": "helpdesk.justout.today",
       "description": "Issues & Project Tracker",
       "orbType": "star",
       "color": "#fb923c",
