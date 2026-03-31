@@ -378,7 +378,7 @@
 </div>
 
 <div class="footer">
-  FPCS Tax Preparation System &bull; Helpdesk v1.0 &bull; Page 6 &bull; Issues &amp; Project Tracker
+  FPCS Tax Preparation System &bull; Helpdesk v2.0 (Firestore) &bull; Page 6 &bull; Issues &amp; Project Tracker
 </div>
 
 </div><!-- /dashContent -->
@@ -412,7 +412,9 @@ function seedTickets() {
     {title:'Categorize uncategorized QBO transactions',type:'Task',priority:'High',status:'In Progress',assignee:'CategorizerBot',category:'Data',tags:['qbo','categorization','transactions'],desc:'CategorizerBot working through uncategorized QuickBooks Online transactions. Need to ensure proper Schedule C mapping.'},
     {title:'Village library knowledge system',type:'Project',priority:'Low',status:'New',assignee:'Japster',category:'Infrastructure',tags:['library','knowledge','village'],desc:'Build persistent knowledge "books" in the town library for other AI to glean off of and humans to read in village mode. Each major task produces a book.'},
     {title:'Research best cross-comparison tools for data dedup',type:'Task',priority:'Medium',status:'New',assignee:'Claude',category:'Data',tags:['dedup','tools','research'],desc:'Find the ultimate method for cross-comparing financial data across multiple sources. Evaluate tools, methods, and solutions for ensuring no duplicate entries.'},
-    {title:'MAIL final 2022 tax return by April 10',type:'Task',priority:'Critical',status:'On Hold',assignee:'Commander',category:'Tax Prep',tags:['deadline','filing','2022-taxes'],desc:'Oregon 3-year statute expires April 15, 2026. Must physically MAIL tax return by April 10 to ensure delivery.'}
+    {title:'MAIL final 2022 tax return by April 10',type:'Task',priority:'Critical',status:'On Hold',assignee:'Commander',category:'Tax Prep',tags:['deadline','filing','2022-taxes'],desc:'Oregon 3-year statute expires April 15, 2026. Must physically MAIL tax return by April 10 to ensure delivery.'},
+    {title:'Migrate helpdesk from localStorage to Firestore',type:'Task',priority:'High',status:'Done',assignee:'Claude',category:'Infrastructure',tags:['firestore','migration','helpdesk','dashboard'],desc:'Move helpdesk ticket storage from browser-only localStorage to Firestore for cross-browser persistence. Keep localStorage as offline fallback. Use onSnapshot for real-time sync.'},
+    {title:'Reconcile PayPal transaction discrepancies',type:'Task',priority:'High',status:'New',assignee:'Claude',category:'Data',tags:['paypal','reconciliation','2022-taxes','income'],desc:'Cross-reference PayPal transaction exports against ledger entries. Identify any missing or duplicated PayPal income for 2022 tax year. Verify amounts match IRS reporting thresholds.'}
   ];
   seed.forEach(function(t) {
     tickets.push({
@@ -615,33 +617,165 @@ function escHtml(s) {
 seedTickets();
 renderAll();
 
-// Save/restore from localStorage
-function saveTickets() {
+// ============================================================
+//  FIRESTORE PERSISTENCE — Primary storage with localStorage fallback
+//  Collection: helpdesk_tickets (doc ID = ticket ID e.g. "FPCS-001")
+//  Real-time sync via onSnapshot() across all browsers
+// ============================================================
+var _firestoreDB = null;
+var _firestoreReady = false;
+var _firestoreUnsubscribe = null;
+var _suppressLocalLoad = false;  // prevent localStorage overwriting Firestore data
+
+// --- localStorage fallback (offline cache) ---
+function saveToLocalStorage() {
   try { localStorage.setItem('fpcs_helpdesk_tickets', JSON.stringify(tickets)); } catch(e) {}
 }
-function loadTickets() {
+
+function loadFromLocalStorage() {
   try {
     var saved = localStorage.getItem('fpcs_helpdesk_tickets');
     if (saved) {
       tickets = JSON.parse(saved);
-      nextId = tickets.reduce(function(max, t) {
-        var n = parseInt(t.id.replace('FPCS-',''), 10);
-        return n >= max ? n + 1 : max;
-      }, nextId);
+      _recalcNextId();
       renderAll();
     }
   } catch(e) {}
 }
-// Auto-save on any change
-var _origCreate = createTicket;
-createTicket = function() { _origCreate(); saveTickets(); };
-var _origUpdate = updateTicketStatus;
-updateTicketStatus = function(id) { _origUpdate(id); saveTickets(); };
-var _origComment = addComment;
-addComment = function(id) { _origComment(id); saveTickets(); };
 
-// Load saved data if any
-loadTickets();
+function _recalcNextId() {
+  nextId = tickets.reduce(function(max, t) {
+    var n = parseInt(t.id.replace('FPCS-',''), 10);
+    return n >= max ? n + 1 : max;
+  }, nextId);
+}
+
+// --- Save single ticket to Firestore + localStorage ---
+function saveTicketToFirestore(ticket) {
+  // Always update localStorage as offline cache
+  saveToLocalStorage();
+
+  if (!_firestoreReady || !_firestoreDB) return;
+
+  _firestoreDB.collection('helpdesk_tickets').doc(ticket.id).set(ticket)
+    .catch(function(err) {
+      console.error('[Helpdesk] Firestore write failed for ' + ticket.id + ':', err);
+    });
+}
+
+// --- Save ALL tickets to Firestore (bulk seed) ---
+function seedFirestore() {
+  if (!_firestoreReady || !_firestoreDB) return;
+
+  var batch = _firestoreDB.batch();
+  tickets.forEach(function(t) {
+    var ref = _firestoreDB.collection('helpdesk_tickets').doc(t.id);
+    batch.set(ref, t);
+  });
+  batch.commit()
+    .then(function() { console.log('[Helpdesk] Seeded ' + tickets.length + ' tickets to Firestore.'); })
+    .catch(function(err) { console.error('[Helpdesk] Firestore seed failed:', err); });
+}
+
+// --- Load tickets from Firestore with real-time updates ---
+function startFirestoreListener() {
+  if (!_firestoreReady || !_firestoreDB) return;
+
+  // Unsubscribe from any previous listener
+  if (_firestoreUnsubscribe) { _firestoreUnsubscribe(); _firestoreUnsubscribe = null; }
+
+  _firestoreUnsubscribe = _firestoreDB.collection('helpdesk_tickets')
+    .onSnapshot(function(snapshot) {
+      if (snapshot.empty) {
+        // No tickets in Firestore yet — seed from current in-memory data
+        console.log('[Helpdesk] Firestore empty — seeding with ' + tickets.length + ' tickets.');
+        seedFirestore();
+        return;
+      }
+
+      // Build tickets array from Firestore docs
+      var firestoreTickets = [];
+      snapshot.forEach(function(doc) {
+        firestoreTickets.push(doc.data());
+      });
+
+      // Replace in-memory tickets with Firestore data
+      tickets = firestoreTickets;
+      _recalcNextId();
+      _suppressLocalLoad = true;
+      saveToLocalStorage();  // sync localStorage cache
+      renderAll();
+      console.log('[Helpdesk] Synced ' + tickets.length + ' tickets from Firestore.');
+    }, function(err) {
+      console.error('[Helpdesk] Firestore listener error:', err);
+      // Fall back to localStorage if Firestore fails
+      if (!_suppressLocalLoad) loadFromLocalStorage();
+    });
+}
+
+// --- Initialize Firestore when auth is ready ---
+function initHelpdeskFirestore() {
+  if (typeof firebase === 'undefined' || typeof firebase.firestore !== 'function') {
+    console.warn('[Helpdesk] Firestore SDK not available — using localStorage only.');
+    loadFromLocalStorage();
+    return;
+  }
+
+  try {
+    _firestoreDB = firebase.firestore();
+    _firestoreReady = true;
+    console.log('[Helpdesk] Firestore initialized.');
+    startFirestoreListener();
+  } catch(err) {
+    console.error('[Helpdesk] Firestore init failed:', err);
+    loadFromLocalStorage();
+  }
+}
+
+// Listen for auth ready event (fired by auth.js after login)
+document.addEventListener('fpcs-authed', function() {
+  initHelpdeskFirestore();
+});
+
+// Also try initializing if auth already happened before this script runs
+if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+  var _checkAuthInterval = setInterval(function() {
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+      clearInterval(_checkAuthInterval);
+      if (!_firestoreReady) initHelpdeskFirestore();
+    }
+  }, 200);
+  // Stop checking after 15 seconds
+  setTimeout(function() { clearInterval(_checkAuthInterval); }, 15000);
+}
+
+// Fallback: load from localStorage immediately for offline/unauthenticated viewing
+if (!_suppressLocalLoad) loadFromLocalStorage();
+
+// --- Wrapper: saveTickets() for backward compatibility ---
+function saveTickets() {
+  saveToLocalStorage();
+}
+
+// Auto-save on any change (writes to Firestore + localStorage)
+var _origCreate = createTicket;
+createTicket = function() {
+  _origCreate();
+  var newest = tickets[tickets.length - 1];
+  if (newest) saveTicketToFirestore(newest);
+};
+var _origUpdate = updateTicketStatus;
+updateTicketStatus = function(id) {
+  _origUpdate(id);
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (t) saveTicketToFirestore(t);
+};
+var _origComment = addComment;
+addComment = function(id) {
+  _origComment(id);
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (t) saveTicketToFirestore(t);
+};
 
 // ============================================================
 //  ENHANCED STATS — Priority, Assignee, Category breakdowns
@@ -858,6 +992,10 @@ function applyBatchEdit() {
   alert('Updated ' + updated + ' tickets.');
   cancelBatchMode();
   renderAll();
+  // Save each modified ticket to Firestore + localStorage
+  tickets.forEach(function(t) {
+    if (selectedTickets.has(t.id)) saveTicketToFirestore(t);
+  });
   saveTickets();
 }
 
@@ -921,6 +1059,13 @@ function splitTicket(id) {
   });
 
   renderAll();
+  // Save original + all new split tickets to Firestore
+  saveTicketToFirestore(t);
+  tickets.forEach(function(tk) {
+    if (tk.tags && tk.tags.indexOf('split-from-' + t.id) !== -1) {
+      saveTicketToFirestore(tk);
+    }
+  });
   saveTickets();
   closeModal();
   alert('Ticket split into ' + count + ' new tickets.');
