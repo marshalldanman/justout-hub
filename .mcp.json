@@ -4,8 +4,11 @@
       "command": "uvx",
       "args": ["mcp-google-sheets@latest"],
       "env": {
-        "SERVICE_ACCOUNT_PATH": "C:\\Users\\James\\Desktop\\justout-hub\\gegenkraft\\service-account-key.json",
-        "DRIVE_FOLDER_ID": "1yi4qVotXKBys3so3DuQaG5TginlMrCeo"
+        "SERVICE_ACCOUNT_PATH": "gegenkraft/service-account-key.json",
+        "DRIVE_FOLDER_ID": "1yi4qVotXKBys3so3DuQaG5TginlMrCeo",
+        "no_proxy": "localhost,127.0.0.1",
+        "NO_PROXY": "localhost,127.0.0.1",
+        "GLOBAL_AGENT_NO_PROXY": "localhost,127.0.0.1"
       }
     },
     "playwright": {
