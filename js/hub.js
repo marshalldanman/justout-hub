@@ -7,10 +7,13 @@
 
   // ---- Channel Data (inline for zero-fetch, mirrors channels.json) ----
   var CHANNELS = [
-    { id:'tax',    name:'Tax HQ',        sub:'dashboard.justout.today',          desc:'FPCS 2022 Tax Dashboard',       type:'star',    color:'#38bdf8', deep:'#0c4a6e', icon:'\uD83D\uDCCA', status:'live',    count:1185, phase:0 },
+    { id:'fpcs',   name:'FPCS',          sub:'dashboard.justout.today',          desc:'Friendly PC Support \u2014 Tech Jobs & Invoices', type:'crystal', color:'#4ade80', deep:'#166534', icon:'\uD83D\uDDA5\uFE0F', status:'live', count:0, phase:0 },
+    { id:'tax',    name:'Tax HQ',        sub:'dashboard.justout.today',          desc:'FPCS 2022 Tax Dashboard',       type:'star',    color:'#38bdf8', deep:'#1e3a5f', icon:'\uD83D\uDCCA', status:'live',    count:1185, phase:0 },
     { id:'bots',   name:'Bot HQ',        sub:'dashboard.justout.today/bots.html',desc:'Realbotville \u2014 Bot Fleet',  type:'gem',     color:'#a78bfa', deep:'#4c1d95', icon:'\uD83E\uDD16', status:'live',    count:16,   phase:0 },
     { id:'simswap',name:'SIM Swap Detector',sub:'hub.justout.today/SimSwapDetect/',desc:'Detect & prevent SIM swap fraud', type:'crystal', color:'#ff4444', deep:'#7f1d1d', icon:'\uD83D\uDCF1', status:'live',    count:14,   phase:0 },
     { id:'jap',    name:'JAP HQ',          sub:'hub.justout.today/JapHQ/',        desc:'Voice Command Center',           type:'nebula',  color:'#00e5ff', deep:'#004d5a', icon:'\uD83D\uDDE3\uFE0F', status:'live', count:0,  phase:0 },
+    { id:'helpdesk',name:'Helpdesk',     sub:'dashboard.justout.today/helpdesk.html', desc:'Issues & Project Tracker',  type:'star',   color:'#fb923c', deep:'#7c2d12', icon:'\uD83C\uDF9B', status:'live', count:0, phase:0 },
+    { id:'security',name:'SentryLion',   sub:'dashboard.justout.today/sentrylion.html', desc:'Endpoint Security & Fleet Protection', type:'prism', color:'#f97316', deep:'#7c2d12', icon:'\uD83E\uDD81', status:'live', count:0, phase:0 },
     { id:'notes',  name:'Ideas',         sub:'notes.justout.today',              desc:'Quick capture & organize',       type:'star',    color:'#38bdf8', deep:'#0c4a6e', icon:'\uD83D\uDCA1', status:'planned', count:0,    phase:1 },
     { id:'music',  name:'Music',         sub:'music.justout.today',              desc:'Your music library',             type:'gem',     color:'#a78bfa', deep:'#5b21b6', icon:'\uD83C\uDFB5', status:'planned', count:0,    phase:1 },
     { id:'aimusic',name:'AI Music',      sub:'aimusic.justout.today',            desc:'AI creation & experiments',      type:'crystal', color:'#f472b6', deep:'#831843', icon:'\uD83C\uDFB9', status:'planned', count:0,    phase:1 },
@@ -23,7 +26,7 @@
     { id:'health', name:'Health',        sub:'health.justout.today',             desc:'Tracking & wellness',            type:'star',    color:'#4ade80', deep:'#14532d', icon:'\uD83D\uDC9A', status:'planned', count:0,    phase:2 },
     { id:'bizcard',name:'Business Card', sub:'businesscard.justout.today',       desc:'Digital contact & portfolio',    type:'crystal', color:'#fbbf24', deep:'#713f12', icon:'\uD83D\uDCBC', status:'planned', count:0,    phase:2 },
     { id:'dreams', name:'Dreams',        sub:'dreams.justout.today',             desc:'Dream journal & patterns',       type:'nebula',  color:'#818cf8', deep:'#312e81', icon:'\uD83C\uDF19', status:'planned', count:0,    phase:3 },
-    { id:'meditate',name:'Meditation',   sub:'meditation.justout.today',         desc:'Sessions & streaks',             type:'nebula',  color:'#c084fc', deep:'#581c87', icon:'\uD83E\uDDD8', status:'planned', count:0,    phase:3 },
+    { id:'meditation',name:'Meditation',  sub:'meditation.justout.today',         desc:'Guided sessions & streaks',      type:'nebula',  color:'#c084fc', deep:'#581c87', icon:'\uD83E\uDDD8', status:'planned', count:0,    phase:3 },
     { id:'goodnews',name:'Good News',    sub:'thegoodnews.justout.today',        desc:'Positive stories',               type:'star',    color:'#fbbf24', deep:'#854d0e', icon:'\u2728',       status:'planned', count:0,    phase:3 },
     { id:'games',  name:'Games',         sub:'games.justout.today',              desc:'Library & achievements',         type:'prism',   color:'#4ade80', deep:'#166534', icon:'\uD83C\uDFAE', status:'planned', count:0,    phase:3 }
   ];

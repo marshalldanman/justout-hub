@@ -42,6 +42,19 @@
       "phase": 0
     },
     {
+      "id": "helpdesk",
+      "name": "Helpdesk",
+      "subdomain": "dashboard.justout.today/helpdesk.html",
+      "description": "Issues & Project Tracker",
+      "orbType": "star",
+      "color": "#fb923c",
+      "colorAlt": "#7c2d12",
+      "icon": "\ud83c\udf9b",
+      "status": "live",
+      "contentCount": 0,
+      "phase": 0
+    },
+    {
       "id": "security",
       "name": "SentryLion",
       "subdomain": "dashboard.justout.today/sentrylion.html",
