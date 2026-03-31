@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gegenkraft Buddy</title>
+<style>
+  :root {
+    --bg: #0e0e12;
+    --card: #1a1a24;
+    --border: #2a2a3a;
+    --text: #e0e0e8;
+    --muted: #888;
+    --accent: #7c5cbf;
+    --accent-light: #9b7fd4;
+    --green: #4caf50;
+    --red: #e53935;
+    --orange: #ff9800;
+    --blue: #42a5f5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 20px 16px 16px;
+    text-align: center;
+    border-bottom: 2px solid var(--accent);
+  }
+  .header h1 { font-size: 22px; letter-spacing: 2px; }
+  .header h1 span { color: var(--accent-light); }
+  .header .subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+
+  /* Level banner */
+  .level-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .level-info .level-title { font-size: 18px; font-weight: 700; }
+  .level-info .level-sub { font-size: 12px; color: var(--muted); }
+  .points-display { text-align: right; }
+  .points-display .pts { font-size: 24px; font-weight: 700; color: var(--accent-light); }
+  .points-display .pts-label { font-size: 11px; color: var(--muted); }
+
+  /* Progress bar */
+  .progress-wrap { padding: 8px 16px 12px; background: var(--card); border-bottom: 1px solid var(--border); }
+  .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px 16px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-card .val { font-size: 22px; font-weight: 700; }
+  .stat-card .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* Sections */
+  .section { padding: 12px 16px; }
+  .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  /* Daily log form */
+  .log-form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .form-row:last-child { border-bottom: none; }
+  .form-row label { font-size: 14px; flex: 1; }
+  .form-row input[type="number"] {
+    width: 70px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 16px;
+    text-align: center;
+  }
+  .toggle-btn {
+    width: 56px;
+    height: 30px;
+    border-radius: 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .toggle-btn.off { background: var(--border); color: var(--muted); }
+  .toggle-btn.on { background: var(--green); color: #fff; }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+
+  /* Moves checklist */
+  .move-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .move-item.checked { border-color: var(--green); }
+  .move-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 12px;
+  }
+  .move-item.checked .move-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+  .move-name { font-size: 14px; }
+  .move-cat { font-size: 10px; color: var(--muted); }
+
+  /* History */
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+  .history-date { font-size: 14px; }
+  .history-pts { font-size: 16px; font-weight: 700; color: var(--accent-light); }
+  .history-level { font-size: 11px; color: var(--muted); }
+  .boss-badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 700;
+  }
+
+  /* Tabs / nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .nav-btn.active { color: var(--accent-light); }
+  .nav-btn .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Boss battle alert */
+  .boss-alert {
+    background: linear-gradient(135deg, #b71c1c, #e53935);
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--green);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    z-index: 200;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Reset button */
+  .danger-btn {
+    background: none;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>GEGEN<span>KRAFT</span></h1>
+  <div class="subtitle">OPPOSING POWER BUDDY</div>
+</div>
+
+<!-- Dashboard Page -->
+<div id="page-dashboard" class="page active">
+  <div class="level-banner">
+    <div class="level-info">
+      <div class="level-title" id="level-title">Recruit</div>
+      <div class="level-sub">Level <span id="level-num">1</span></div>
+    </div>
+    <div class="points-display">
+      <div class="pts" id="total-pts">0</div>
+      <div class="pts-label">GK POINTS</div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%;background:var(--accent)"></div></div>
+    <div class="progress-labels"><span id="prog-current">0</span><span id="prog-next">Next: 51</span></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="val" id="stat-streak" style="color:var(--orange)">0</div><div class="lbl">DAY STREAK</div></div>
+    <div class="stat-card"><div class="val" id="stat-saved" style="color:var(--green)">$0</div><div class="lbl">MONEY SAVED</div></div>
+    <div class="stat-card"><div class="val" id="stat-urges" style="color:var(--blue)">0</div><div class="lbl">URGES BEATEN</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Recent Days</div>
+    <div id="recent-history"></div>
+    <div style="text-align:center;padding:10px;color:var(--muted);font-size:12px" id="no-history">No entries yet — log your first day!</div>
+  </div>
+</div>
+
+<!-- Log Page -->
+<div id="page-log" class="page">
+  <div class="section">
+    <div class="section-title">Daily Log — <span id="log-date"></span></div>
+
+    <div id="boss-alert-container"></div>
+
+    <div class="log-form">
+      <div class="form-row">
+        <label>Morning Declaration</label>
+        <button class="toggle-btn off" id="tog-morning" onclick="toggleBtn('tog-morning')">NO</button>
+      </div>
+      <div class="form-row">
+        <label>Urges Resisted</label>
+        <input type="number" id="inp-urges" value="0" min="0">
+      </div>
+      <div class="form-row">
+        <label>Avg Urge Intensity (1-10)</label>
+        <input type="number" id="inp-intensity" value="0" min="0" max="10">
+      </div>
+      <div class="form-row">
+        <label>Money Saved ($)</label>
+        <input type="number" id="inp-money" value="0" min="0">
+      </div>
+      <div class="form-row">
+        <label>Accountability Ping</label>
+        <button class="toggle-btn off" id="tog-ping" onclick="toggleBtn('tog-ping')">NO</button>
+      </div>
+      <div class="form-row">
+        <label>Bee Conversations</label>
+        <input type="number" id="inp-bee" value="0" min="0">
+      </div>
+      <div class="form-row">
+        <label>Weekly Review Done</label>
+        <button class="toggle-btn off" id="tog-review" onclick="toggleBtn('tog-review')">NO</button>
+      </div>
+      <button class="submit-btn" onclick="submitLog()">LOG DAY &amp; EARN POINTS</button>
+    </div>
+  </div>
+</div>
+
+<!-- Moves Page -->
+<div id="page-moves" class="page">
+  <div class="section">
+    <div class="section-title">Today's GK Moves</div>
+    <div id="moves-list"></div>
+  </div>
+</div>
+
+<!-- Settings Page -->
+<div id="page-settings" class="page">
+  <div class="section">
+    <div class="section-title">Settings</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <p style="font-size:14px;margin-bottom:12px">All data is stored locally in your browser. Nothing is sent to any server.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        Total entries: <strong id="settings-total">0</strong><br>
+        Started: <strong id="settings-start">—</strong>
+      </p>
+      <button class="danger-btn" onclick="exportData()">Export Data (JSON)</button>
+      <button class="danger-btn" onclick="if(confirm('Erase ALL data? This cannot be undone.'))resetData()">Reset All Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">&#9632;</span>Dashboard</button>
+  <button class="nav-btn" onclick="showPage('log')" id="nav-log"><span class="nav-icon">&#10010;</span>Log</button>
+  <button class="nav-btn" onclick="showPage('moves')" id="nav-moves"><span class="nav-icon">&#9876;</span>Moves</button>
+  <button class="nav-btn" onclick="showPage('settings')" id="nav-settings"><span class="nav-icon">&#9881;</span>Settings</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Data ───────────────────────────────────────────────────
+const MOVES = [
+  { name: "Delete & Block", cat: "Prevention" },
+  { name: "Kill the Funding", cat: "Prevention" },
+  { name: "Redirect the Trigger", cat: "Replacement" },
+  { name: "Screen Time Sabotage", cat: "Prevention" },
+  { name: "Environment Poisoning", cat: "Psychological" },
+  { name: "Announce the Bet You Didn't Make", cat: "Tracking" },
+  { name: "Notification Detox", cat: "Prevention" },
+  { name: "Accountability Ping", cat: "Social" },
+  { name: "Cash the Urge", cat: "Financial" },
+  { name: "Time Audit Log", cat: "Tracking" },
+];
+
+const LEVELS = [
+  { min: 0, max: 50, title: "Recruit", num: 1, color: "#78909c" },
+  { min: 51, max: 150, title: "Resister", num: 2, color: "#42a5f5" },
+  { min: 151, max: 300, title: "Disruptor", num: 3, color: "#fdd835" },
+  { min: 301, max: 500, title: "Saboteur", num: 4, color: "#ff9800" },
+  { min: 501, max: 750, title: "Breaker", num: 5, color: "#e53935" },
+  { min: 751, max: 99999, title: "Gegenkraft Master", num: 6, color: "#9b59b6" },
+];
+
+function getLevel(pts) {
+  for (const l of LEVELS) if (pts >= l.min && pts <= l.max) return l;
+  return LEVELS[LEVELS.length - 1];
+}
+
+function loadData() {
+  return JSON.parse(localStorage.getItem("gk_data") || '{"entries":[]}');
+}
+function saveData(d) { localStorage.setItem("gk_data", JSON.stringify(d)); }
+
+function totalPoints(data) {
+  return data.entries.reduce((s, e) => s + e.points, 0);
+}
+
+function getStreak(data) {
+  if (!data.entries.length) return 0;
+  const sorted = [...data.entries].sort((a, b) => b.date.localeCompare(a.date));
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < sorted.length; i++) {
+    const d = new Date(sorted[i].date + "T00:00:00");
+    const diff = Math.round((today - d) / 86400000);
+    if (diff === i || diff === i + 1) {
+      if (sorted[i].morning) streak++;
+      else break;
+    } else break;
+  }
+  return streak;
+}
+
+function totalSaved(data) { return data.entries.reduce((s, e) => s + (e.money || 0), 0); }
+function totalUrges(data) { return data.entries.reduce((s, e) => s + (e.urges || 0), 0); }
+
+// ─── Calculate Points ───────────────────────────────────────
+function calcPoints(entry, streak) {
+  let pts = 0;
+  // Morning declaration
+  if (entry.morning) {
+    let mp = 2;
+    if (streak >= 30) mp *= 2.0;
+    else if (streak >= 7) mp *= 1.5;
+    pts += mp;
+  }
+  // Urges resisted
+  pts += (entry.urges || 0) * 5;
+  // Money saved
+  pts += entry.money || 0;
+  // Accountability ping
+  if (entry.ping) pts += 3;
+  // Bee conversations
+  pts += (entry.bee || 0) * 3;
+  // Weekly review
+  if (entry.review) pts += 20;
+  // Boss battle: 3+ urges
+  if (entry.urges >= 3) pts *= 2;
+
+  return Math.round(pts);
+}
+
+// ─── Render ─────────────────────────────────────────────────
+function render() {
+  const data = loadData();
+  const pts = totalPoints(data);
+  const level = getLevel(pts);
+  const streak = getStreak(data);
+
+  document.getElementById("level-title").textContent = level.title;
+  document.getElementById("level-title").style.color = level.color;
+  document.getElementById("level-num").textContent = level.num;
+  document.getElementById("total-pts").textContent = pts;
+  document.getElementById("progress-fill").style.width = Math.min(100, ((pts - level.min) / (level.max - level.min + 1)) * 100) + "%";
+  document.getElementById("progress-fill").style.background = level.color;
+  document.getElementById("prog-current").textContent = pts + " pts";
+  const nextLevel = LEVELS.find(l => l.min > pts);
+  document.getElementById("prog-next").textContent = nextLevel ? "Next: " + nextLevel.min : "MAX LEVEL";
+
+  document.getElementById("stat-streak").textContent = streak;
+  document.getElementById("stat-saved").textContent = "$" + totalSaved(data);
+  document.getElementById("stat-urges").textContent = totalUrges(data);
+
+  // Recent history
+  const hist = document.getElementById("recent-history");
+  const noHist = document.getElementById("no-history");
+  hist.innerHTML = "";
+  const recent = [...data.entries].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+  noHist.style.display = recent.length ? "none" : "block";
+  recent.forEach(e => {
+    const lv = getLevel(e.cumulative || 0);
+    const boss = e.urges >= 3;
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.innerHTML = `
+      <div>
+        <div class="history-date">${e.date}${boss ? '<span class="boss-badge">BOSS BATTLE</span>' : ''}</div>
+        <div class="history-level" style="color:${lv.color}">${lv.title}</div>
+      </div>
+      <div class="history-pts">+${e.points}</div>
+    `;
+    hist.appendChild(div);
+  });
+
+  // Log date
+  document.getElementById("log-date").textContent = new Date().toISOString().split("T")[0];
+
+  // Boss alert
+  const todayEntries = data.entries.filter(e => e.date === new Date().toISOString().split("T")[0]);
+  const todayUrges = todayEntries.reduce((s, e) => s + (e.urges || 0), 0);
+  const bossContainer = document.getElementById("boss-alert-container");
+  if (todayUrges >= 3) {
+    bossContainer.innerHTML = '<div class="boss-alert">BOSS BATTLE DAY — 3+ urges! Survive clean for DOUBLE POINTS</div>';
+  } else {
+    bossContainer.innerHTML = "";
+  }
+
+  // Settings
+  document.getElementById("settings-total").textContent = data.entries.length;
+  document.getElementById("settings-start").textContent = data.entries.length ? data.entries[0].date : "—";
+
+  // Moves
+  renderMoves();
+}
+
+// ─── Moves ──────────────────────────────────────────────────
+function renderMoves() {
+  const today = new Date().toISOString().split("T")[0];
+  const checked = JSON.parse(localStorage.getItem("gk_moves_" + today) || "[]");
+  const list = document.getElementById("moves-list");
+  list.innerHTML = "";
+  MOVES.forEach((m, i) => {
+    const done = checked.includes(i);
+    const div = document.createElement("div");
+    div.className = "move-item" + (done ? " checked" : "");
+    div.innerHTML = `
+      <div class="move-check">${done ? "&#10003;" : ""}</div>
+      <div><div class="move-name">${m.name}</div><div class="move-cat">${m.cat}</div></div>
+    `;
+    div.onclick = () => {
+      const c = JSON.parse(localStorage.getItem("gk_moves_" + today) || "[]");
+      if (c.includes(i)) c.splice(c.indexOf(i), 1);
+      else c.push(i);
+      localStorage.setItem("gk_moves_" + today, JSON.stringify(c));
+      renderMoves();
+    };
+    list.appendChild(div);
+  });
+}
+
+// ─── Toggle Buttons ─────────────────────────────────────────
+function toggleBtn(id) {
+  const btn = document.getElementById(id);
+  const isOn = btn.classList.contains("on");
+  btn.classList.toggle("on", !isOn);
+  btn.classList.toggle("off", isOn);
+  btn.textContent = isOn ? "NO" : "YES";
+}
+
+// ─── Submit ─────────────────────────────────────────────────
+function submitLog() {
+  const data = loadData();
+  const streak = getStreak(data);
+
+  const entry = {
+    date: new Date().toISOString().split("T")[0],
+    morning: document.getElementById("tog-morning").classList.contains("on"),
+    urges: parseInt(document.getElementById("inp-urges").value) || 0,
+    intensity: parseInt(document.getElementById("inp-intensity").value) || 0,
+    money: parseInt(document.getElementById("inp-money").value) || 0,
+    ping: document.getElementById("tog-ping").classList.contains("on"),
+    bee: parseInt(document.getElementById("inp-bee").value) || 0,
+    review: document.getElementById("tog-review").classList.contains("on"),
+  };
+
+  entry.points = calcPoints(entry, streak);
+  entry.cumulative = totalPoints(data) + entry.points;
+  data.entries.push(entry);
+  saveData(data);
+
+  // Reset form
+  document.getElementById("tog-morning").classList.remove("on");
+  document.getElementById("tog-morning").classList.add("off");
+  document.getElementById("tog-morning").textContent = "NO";
+  document.getElementById("tog-ping").classList.remove("on");
+  document.getElementById("tog-ping").classList.add("off");
+  document.getElementById("tog-ping").textContent = "NO";
+  document.getElementById("tog-review").classList.remove("on");
+  document.getElementById("tog-review").classList.add("off");
+  document.getElementById("tog-review").textContent = "NO";
+  document.getElementById("inp-urges").value = 0;
+  document.getElementById("inp-intensity").value = 0;
+  document.getElementById("inp-money").value = 0;
+  document.getElementById("inp-bee").value = 0;
+
+  showToast("+" + entry.points + " GK Points earned!");
+  showPage("dashboard");
+  render();
+}
+
+// ─── Navigation ─────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  document.getElementById("nav-" + name).classList.add("active");
+}
+
+// ─── Toast ──────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+// ─── Export / Reset ─────────────────────────────────────────
+function exportData() {
+  const data = loadData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "gegenkraft-data.json";
+  a.click();
+}
+
+function resetData() {
+  localStorage.removeItem("gk_data");
+  // Clear all move checklists
+  Object.keys(localStorage).filter(k => k.startsWith("gk_moves_")).forEach(k => localStorage.removeItem(k));
+  render();
+  showToast("All data cleared");
+}
+
+// ─── Init ───────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
