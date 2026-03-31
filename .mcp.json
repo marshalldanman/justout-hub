@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "google-sheets": {
+      "command": "uvx",
+      "args": ["mcp-google-sheets@latest"],
+      "env": {
+        "SERVICE_ACCOUNT_PATH": "gegenkraft/service-account-key.json",
+        "DRIVE_FOLDER_ID": "1yi4qVotXKBys3so3DuQaG5TginlMrCeo",
+        "no_proxy": "localhost,127.0.0.1",
+        "NO_PROXY": "localhost,127.0.0.1",
+        "GLOBAL_AGENT_NO_PROXY": "localhost,127.0.0.1"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-playwright@latest"]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    }
+  }
+}
