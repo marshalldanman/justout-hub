@@ -12,9 +12,9 @@
       --text: #e2e8f0;
       --muted: #64748b;
       --accent: #00e5ff;
-      --deep: #004d5a;
       --green: #76ff03;
       --red: #ff4444;
+      --yellow: #fbbf24;
       --border: rgba(0, 229, 255, 0.12);
       --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
@@ -39,11 +39,10 @@
       align-items: center; justify-content: center;
       background: var(--bg); text-align: center; padding: 40px;
     }
-
     #authGate.hidden { display: none; }
 
     .auth-title { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
-    .auth-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+    .auth-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
 
     .auth-btn {
       padding: 14px 40px; border-radius: 50px;
@@ -55,7 +54,7 @@
     }
     .auth-btn:hover { background: rgba(0,229,255,0.15); box-shadow: 0 0 30px rgba(0,229,255,0.15); }
 
-    .auth-err { color: var(--red); font-size: 0.75rem; margin-top: 12px; }
+    .auth-err { color: var(--red); font-size: 0.75rem; margin-top: 12px; min-height: 1.2em; }
     .auth-loading { color: var(--muted); font-size: 0.75rem; margin-top: 8px; }
 
     /* ---- Top Bar ---- */
@@ -96,7 +95,6 @@
     /* ---- Feed ---- */
     .feed {
       flex: 1; overflow-y: auto; padding: 12px 16px 80px;
-      scroll-behavior: smooth;
     }
 
     .feed-entry {
@@ -131,33 +129,18 @@
       border-radius: 3px; font-weight: 600;
       letter-spacing: 0.04em;
     }
-    .type-voice { background: rgba(0,229,255,0.08); color: var(--accent); }
-    .type-note { background: rgba(251,191,36,0.1); color: #fbbf24; }
+    .type-bee { background: rgba(0,229,255,0.08); color: var(--accent); }
+    .type-note { background: rgba(251,191,36,0.1); color: var(--yellow); }
 
     .feed-text {
       font-size: 1rem; line-height: 1.7;
       color: var(--text);
     }
 
-    .feed-note .feed-text {
-      color: #fbbf24;
-      font-style: italic;
-    }
+    .feed-note .feed-text { color: var(--yellow); font-style: italic; }
 
-    /* Silence gap */
-    .feed-gap {
-      padding: 8px 0;
-      text-align: center;
-      font-size: 0.55rem;
-      color: rgba(100,116,139,0.3);
-      letter-spacing: 0.2em;
-      font-family: var(--mono);
-    }
-
-    /* Empty state */
     .feed-empty {
-      text-align: center; padding: 60px 20px;
-      color: var(--muted);
+      text-align: center; padding: 80px 20px; color: var(--muted);
     }
     .feed-empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
     .feed-empty-text { font-size: 0.85rem; line-height: 1.8; }
@@ -169,45 +152,34 @@
       backdrop-filter: blur(12px);
       border-top: 1px solid var(--border);
       padding: 8px 12px;
-      display: flex; gap: 8px; align-items: center;
+      display: flex; gap: 6px; align-items: center;
     }
 
     .note-input {
-      flex: 1;
+      flex: 1; min-width: 0;
       padding: 9px 14px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.04);
-      color: var(--text);
-      font-size: 0.8rem;
+      color: var(--text); font-size: 0.8rem;
       font-family: var(--font);
-      outline: none;
-      transition: border-color 0.2s;
+      outline: none; transition: border-color 0.2s;
     }
     .note-input::placeholder { color: var(--muted); }
     .note-input:focus { border-color: var(--accent); }
 
     .bb-btn {
-      padding: 9px 14px;
-      border-radius: 8px;
+      padding: 9px 14px; border-radius: 8px;
       font-size: 0.65rem; font-weight: 600;
-      font-family: var(--mono);
-      letter-spacing: 0.04em;
+      font-family: var(--mono); letter-spacing: 0.04em;
       border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
+      background: transparent; color: var(--muted);
       cursor: pointer; transition: all 0.2s;
       white-space: nowrap;
     }
     .bb-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .bb-btn:active { transform: scale(0.97); }
 
-    .bb-btn-send {
-      background: rgba(0,229,255,0.1);
-      border-color: rgba(0,229,255,0.3);
-      color: var(--accent);
-    }
-
+    .bb-btn-send { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); color: var(--accent); }
     .autoflow-on { color: var(--green) !important; border-color: rgba(118,255,3,0.3) !important; }
 
     /* ---- Scroll indicator ---- */
@@ -221,7 +193,6 @@
     }
     .scroll-down.visible { display: flex; }
 
-    /* ---- Responsive ---- */
     @media (max-width: 480px) {
       .feed-text { font-size: 0.9rem; }
       .topbar-user span { display: none; }
@@ -254,13 +225,12 @@
     <div class="feed-empty" id="feedEmpty">
       <div class="feed-empty-icon">&#x1f41d;</div>
       <div class="feed-empty-text">
-        Waiting for BEE feed...<br>
-        Transcripts will appear here in real-time.
+        Listening for BEE...<br>
+        Transcripts appear here as JAP-B records them.
       </div>
     </div>
   </div>
 
-  <!-- Scroll-to-bottom indicator -->
   <div class="scroll-down" id="scrollDown">&#x2193;</div>
 
   <!-- Bottom Bar -->
@@ -269,16 +239,12 @@
     <button class="bb-btn bb-btn-send" id="btnSend">Add</button>
     <button class="bb-btn autoflow-on" id="btnAutoflow" title="Toggle auto-scroll">Auto</button>
     <button class="bb-btn" id="btnCopy">Copy</button>
-    <button class="bb-btn" id="btnClear">Clear</button>
   </div>
 
   <script>
     (function () {
       'use strict';
 
-      /* ============================================================
-         CONFIG
-         ============================================================ */
       var FIREBASE_CONFIG = {
         apiKey: 'AIzaSyBgYAPO_0cEvhPzfU6GZykJVUnF55LEzXQ',
         authDomain: 'fpcs-dashboard-63b25.firebaseapp.com',
@@ -297,22 +263,18 @@
 
       var DB_PATH = 'jap/feed';
 
-      /* ============================================================
-         STATE
-         ============================================================ */
-      var feedEl      = document.getElementById('feed');
-      var feedEmpty   = document.getElementById('feedEmpty');
-      var feedBadge   = document.getElementById('feedBadge');
-      var noteInput   = document.getElementById('noteInput');
-      var scrollBtn   = document.getElementById('scrollDown');
+      var feedEl    = document.getElementById('feed');
+      var feedEmpty = document.getElementById('feedEmpty');
+      var feedBadge = document.getElementById('feedBadge');
+      var noteInput = document.getElementById('noteInput');
+      var scrollBtn = document.getElementById('scrollDown');
+
       var autoflow    = true;
-      var entries     = [];  // in-memory transcript log
+      var entries     = [];
       var dbRef       = null;
       var currentUser = null;
 
-      /* ============================================================
-         AUTH — same SHA-256 whitelist model as hub
-         ============================================================ */
+      /* ---- Auth ---- */
       function hashEmail(email) {
         if (!crypto.subtle) return Promise.resolve('');
         return crypto.subtle.digest('SHA-256', new TextEncoder().encode(email))
@@ -341,7 +303,7 @@
                 showApp(user);
                 connectFeed();
               } else {
-                document.getElementById('authErr').textContent = 'Not authorized. Ask the Commander.';
+                document.getElementById('authErr').textContent = 'Not authorized.';
                 auth.signOut();
               }
             });
@@ -349,7 +311,7 @@
         });
 
         document.getElementById('googleSignIn').addEventListener('click', function () {
-          var btn = document.getElementById('googleSignIn');
+          var btn = this;
           var err = document.getElementById('authErr');
           var load = document.getElementById('authLoading');
           err.textContent = '';
@@ -375,29 +337,23 @@
         document.getElementById('bottombar').style.display = 'flex';
 
         var info = document.getElementById('userInfo');
-        if (user.photoURL) {
-          info.innerHTML = '<img src="' + esc(user.photoURL) + '" alt="">';
-        }
-        info.innerHTML += '<span>' + esc(user.displayName || 'User') + '</span>';
+        var html = '';
+        if (user.photoURL) html += '<img src="' + esc(user.photoURL) + '" alt="">';
+        html += '<span>' + esc(user.displayName || 'User') + '</span>';
+        info.innerHTML = html;
       }
 
-      /* ============================================================
-         FIREBASE REALTIME DB — FEED
-         ============================================================ */
+      /* ---- Firebase feed ---- */
       function connectFeed() {
         var db = firebase.database();
         dbRef = db.ref(DB_PATH);
 
-        // Listen for new entries (last 200)
         dbRef.orderByChild('ts').limitToLast(200).on('child_added', function (snap) {
           var data = snap.val();
-          if (!data) return;
-          addEntry(data, snap.key);
+          if (data) addEntry(data, snap.key);
         });
 
-        // Connection state
-        var connRef = db.ref('.info/connected');
-        connRef.on('value', function (snap) {
+        db.ref('.info/connected').on('value', function (snap) {
           if (snap.val() === true) {
             feedBadge.textContent = 'LIVE';
             feedBadge.className = 'badge badge-live';
@@ -408,19 +364,13 @@
         });
       }
 
-      /* ============================================================
-         FEED RENDERING
-         ============================================================ */
+      /* ---- Render ---- */
       function addEntry(data, key) {
-        // Remove empty state
         if (feedEmpty && feedEmpty.parentNode) {
           feedEmpty.remove();
           feedEmpty = null;
         }
-
-        // Duplicate check
         if (entries.some(function (e) { return e.key === key; })) return;
-
         entries.push({ key: key, data: data });
 
         var el = document.createElement('div');
@@ -435,68 +385,59 @@
           '<div class="feed-meta">' +
             '<span class="feed-time">' + date + ' ' + time + '</span>' +
             '<span class="feed-speaker">' + esc(data.speaker || 'BEE') + '</span>' +
-            '<span class="feed-type ' + (isNote ? 'type-note' : 'type-voice') + '">' +
-              (isNote ? 'NOTE' : 'VOICE') +
+            '<span class="feed-type ' + (isNote ? 'type-note' : 'type-bee') + '">' +
+              (isNote ? 'NOTE' : 'BEE') +
             '</span>' +
           '</div>' +
           '<div class="feed-text">' + esc(data.text || '') + '</div>';
 
         feedEl.appendChild(el);
-
-        if (autoflow) {
-          feedEl.scrollTop = feedEl.scrollHeight;
-        }
+        while (feedEl.children.length > 300) feedEl.removeChild(feedEl.firstChild);
+        if (autoflow) feedEl.scrollTop = feedEl.scrollHeight;
       }
 
-      /* ============================================================
-         ADD NOTE
-         ============================================================ */
+      /* ---- Add note ---- */
       function addNote() {
         var text = noteInput.value.trim();
-        if (!text || !dbRef) return;
+        if (!text) return;
 
-        dbRef.push({
-          type: 'note',
-          speaker: currentUser.displayName || 'Commander',
-          text: text,
-          ts: firebase.database.ServerValue.TIMESTAMP,
-          uid: currentUser.uid
-        });
-
+        if (dbRef && currentUser) {
+          dbRef.push({
+            type: 'note',
+            speaker: currentUser.displayName || 'Commander',
+            text: text,
+            ts: firebase.database.ServerValue.TIMESTAMP,
+            uid: currentUser.uid
+          });
+        } else {
+          addEntry({ type: 'note', speaker: 'Local', text: text, ts: Date.now() },
+            'local-' + Date.now());
+        }
         noteInput.value = '';
       }
 
-      /* ============================================================
-         AUTOFLOW (auto-scroll)
-         ============================================================ */
+      document.getElementById('btnSend').addEventListener('click', addNote);
+      noteInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addNote(); }
+      });
+
+      /* ---- Autoflow ---- */
       function isNearBottom() {
-        return feedEl.scrollHeight - feedEl.scrollTop - feedEl.clientHeight < 60;
+        return feedEl.scrollHeight - feedEl.scrollTop - feedEl.clientHeight < 80;
       }
 
       feedEl.addEventListener('scroll', function () {
         if (!autoflow && isNearBottom()) {
-          // User scrolled back to bottom — re-enable
           autoflow = true;
           document.getElementById('btnAutoflow').classList.add('autoflow-on');
           scrollBtn.classList.remove('visible');
         } else if (autoflow && !isNearBottom()) {
-          // User scrolled up — disable
           autoflow = false;
           document.getElementById('btnAutoflow').classList.remove('autoflow-on');
           scrollBtn.classList.add('visible');
         }
       });
 
-      /* ============================================================
-         CONTROLS
-         ============================================================ */
-      // Send note
-      document.getElementById('btnSend').addEventListener('click', addNote);
-      noteInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); addNote(); }
-      });
-
-      // Toggle autoflow
       document.getElementById('btnAutoflow').addEventListener('click', function () {
         autoflow = !autoflow;
         this.classList.toggle('autoflow-on', autoflow);
@@ -506,7 +447,6 @@
         }
       });
 
-      // Scroll to bottom
       scrollBtn.addEventListener('click', function () {
         autoflow = true;
         document.getElementById('btnAutoflow').classList.add('autoflow-on');
@@ -514,12 +454,12 @@
         scrollBtn.classList.remove('visible');
       });
 
-      // Copy
+      /* ---- Copy ---- */
       document.getElementById('btnCopy').addEventListener('click', function () {
         var text = entries.map(function (e) {
           var d = e.data;
           var ts = d.ts ? new Date(d.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-          var prefix = d.type === 'note' ? '[NOTE] ' : '';
+          var prefix = d.type === 'note' ? '[NOTE] ' : '[BEE] ';
           return ts + ' ' + prefix + (d.text || '');
         }).join('\n');
 
@@ -531,22 +471,12 @@
         });
       });
 
-      // Clear (local view only — doesn't delete from DB)
-      document.getElementById('btnClear').addEventListener('click', function () {
-        entries = [];
-        feedEl.innerHTML = '';
-      });
-
-      /* ============================================================
-         UTILITY
-         ============================================================ */
+      /* ---- Util ---- */
       function esc(s) {
         return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
-      /* ============================================================
-         BOOT — Load Firebase SDKs then init auth
-         ============================================================ */
+      /* ---- Boot ---- */
       function loadScript(src) {
         return new Promise(function (resolve, reject) {
           var s = document.createElement('script');
