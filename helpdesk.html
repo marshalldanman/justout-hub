@@ -85,7 +85,7 @@
   .view-panel { display: none; }
   .view-panel.active { display: block; }
   /* TICKET DETAIL MODAL */
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100000; justify-content: center; align-items: center; }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--card); border-radius: 16px; padding: 28px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; border: 2px solid var(--orange); }
   .modal h2 { color: var(--orange); margin-bottom: 16px; font-size: 20px; }
@@ -141,6 +141,10 @@
   .stat-link:hover .drill-arrow{opacity:.6}
   .drill-row{cursor:pointer;transition:background .15s}
   .drill-row:hover{background:rgba(251,146,60,.06) !important}
+
+  /* SUCCESS TOAST */
+  .fpcs-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #166534; color: #bbf7d0; padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 200000; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 24px rgba(0,0,0,0.4); border: 1px solid #22c55e; }
+  .fpcs-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body class="theme-helpdesk">
@@ -548,6 +552,23 @@ function addComment(id) {
   openTicket(id);
 }
 
+// === TOAST NOTIFICATION ===
+function showToast(msg) {
+  var existing = document.querySelector('.fpcs-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.className = 'fpcs-toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { toast.classList.add('show'); });
+  });
+  setTimeout(function() {
+    toast.classList.remove('show');
+    setTimeout(function() { toast.remove(); }, 400);
+  }, 3000);
+}
+
 // === CREATE TICKET ===
 function createTicket() {
   var title = document.getElementById('newTitle').value.trim();
@@ -569,6 +590,7 @@ function createTicket() {
   tickets.push(t);
   clearForm();
   renderAll();
+  showToast('Ticket ' + t.id + ' created successfully!');
   openTicket(t.id);
 }
 
