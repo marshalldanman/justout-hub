@@ -182,6 +182,24 @@
     .bb-btn-send { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); color: var(--accent); }
     .autoflow-on { color: var(--green) !important; border-color: rgba(118,255,3,0.3) !important; }
 
+    .mic-on { color: var(--red) !important; border-color: var(--red) !important; background: rgba(255,68,68,0.1) !important; animation: mic-pulse 1.5s ease-in-out infinite; }
+    @keyframes mic-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    .type-mic { background: rgba(255,68,68,0.1); color: var(--red); }
+
+    /* Interim text shown above bottom bar */
+    .interim-bar {
+      position: fixed; bottom: 52px; left: 0; right: 0; z-index: 9;
+      padding: 6px 16px;
+      background: rgba(10, 14, 26, 0.85);
+      backdrop-filter: blur(8px);
+      font-size: 0.8rem; color: rgba(0,229,255,0.5);
+      font-style: italic;
+      display: none;
+      border-top: 1px solid var(--border);
+    }
+    .interim-bar.visible { display: block; }
+
     /* ---- Scroll indicator ---- */
     .scroll-down {
       position: fixed; bottom: 64px; right: 16px; z-index: 11;
@@ -237,9 +255,12 @@
   <div class="bottombar" id="bottombar" style="display:none">
     <input type="text" class="note-input" id="noteInput" placeholder="Add a note..." maxlength="500" aria-label="Add a note to the feed">
     <button class="bb-btn bb-btn-send" id="btnSend">Add</button>
+    <button class="bb-btn" id="btnMic" title="Toggle browser mic dictation">Mic</button>
     <button class="bb-btn autoflow-on" id="btnAutoflow" title="Toggle auto-scroll">Auto</button>
     <button class="bb-btn" id="btnCopy">Copy</button>
   </div>
+
+  <div class="interim-bar" id="interimBar"></div>
 
   <script>
     (function () {
@@ -375,19 +396,21 @@
 
         var el = document.createElement('div');
         var isNote = data.type === 'note';
+        var isMic = data.type === 'mic';
         el.className = 'feed-entry' + (isNote ? ' feed-note' : '');
 
         var ts = data.ts ? new Date(data.ts) : new Date();
         var time = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         var date = ts.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
+        var typeClass = isNote ? 'type-note' : (isMic ? 'type-mic' : 'type-bee');
+        var typeLabel = isNote ? 'NOTE' : (isMic ? 'MIC' : 'BEE');
+
         el.innerHTML =
           '<div class="feed-meta">' +
             '<span class="feed-time">' + date + ' ' + time + '</span>' +
             '<span class="feed-speaker">' + esc(data.speaker || 'BEE') + '</span>' +
-            '<span class="feed-type ' + (isNote ? 'type-note' : 'type-bee') + '">' +
-              (isNote ? 'NOTE' : 'BEE') +
-            '</span>' +
+            '<span class="feed-type ' + typeClass + '">' + typeLabel + '</span>' +
           '</div>' +
           '<div class="feed-text">' + esc(data.text || '') + '</div>';
 
@@ -454,12 +477,144 @@
         scrollBtn.classList.remove('visible');
       });
 
+      /* ---- Browser Mic (Speech Recognition) ---- */
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      var micOn = false;
+      var rec = null;
+      var micBtn = document.getElementById('btnMic');
+      var interimBar = document.getElementById('interimBar');
+      var restartTimer = null;
+
+      if (SR) {
+        rec = new SR();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.lang = 'en-US';
+        rec.maxAlternatives = 3;
+
+        rec.onstart = function () {
+          micOn = true;
+          micBtn.classList.add('mic-on');
+          micBtn.textContent = 'Stop';
+          feedBadge.textContent = 'MIC LIVE';
+          feedBadge.className = 'badge badge-live';
+          // Restart every 50s to avoid Chrome 60s timeout
+          clearTimeout(restartTimer);
+          restartTimer = setTimeout(function () {
+            if (micOn) { try { rec.stop(); } catch(e){} }
+          }, 50000);
+        };
+
+        rec.onend = function () {
+          clearTimeout(restartTimer);
+          if (micOn) {
+            // Auto-restart
+            try { rec.start(); } catch(e) { stopMic(); }
+            return;
+          }
+          stopMic();
+        };
+
+        rec.onerror = function (e) {
+          if (e.error === 'not-allowed') {
+            stopMic();
+            feedBadge.textContent = 'MIC DENIED';
+            feedBadge.className = 'badge badge-off';
+          }
+          // Ignore no-speech, aborted — keep listening
+        };
+
+        rec.onresult = function (event) {
+          var finals = '';
+          var interim = '';
+
+          for (var i = event.resultIndex; i < event.results.length; i++) {
+            var r = event.results[i];
+            if (r.isFinal) {
+              var best = r[0].transcript;
+              var bestC = r[0].confidence;
+              for (var a = 1; a < r.length; a++) {
+                if (r[a].confidence > bestC) { best = r[a].transcript; bestC = r[a].confidence; }
+              }
+              finals += best;
+            } else {
+              interim += r[0].transcript;
+            }
+          }
+
+          // Show interim
+          if (interim) {
+            interimBar.textContent = interim;
+            interimBar.classList.add('visible');
+          } else {
+            interimBar.classList.remove('visible');
+          }
+
+          // Commit finals
+          if (finals) {
+            interimBar.classList.remove('visible');
+            var cleaned = cleanText(finals);
+            if (cleaned) {
+              var entry = { type: 'mic', speaker: 'Commander', text: cleaned, ts: Date.now() };
+              // Push to Firebase if connected
+              if (dbRef && currentUser) {
+                dbRef.push({
+                  type: 'mic',
+                  speaker: currentUser.displayName || 'Commander',
+                  text: cleaned,
+                  ts: firebase.database.ServerValue.TIMESTAMP,
+                  uid: currentUser.uid
+                });
+              } else {
+                addEntry(entry, 'mic-' + Date.now() + '-' + Math.random());
+              }
+            }
+          }
+        };
+      } else {
+        micBtn.style.display = 'none';
+      }
+
+      function startMic() {
+        if (!rec) return;
+        try { rec.start(); } catch(e) {}
+      }
+
+      function stopMic() {
+        micOn = false;
+        clearTimeout(restartTimer);
+        try { rec.stop(); } catch(e) {}
+        micBtn.classList.remove('mic-on');
+        micBtn.textContent = 'Mic';
+        interimBar.classList.remove('visible');
+        if (!dbRef) {
+          feedBadge.textContent = 'LOCAL';
+          feedBadge.className = 'badge badge-off';
+        }
+      }
+
+      function cleanText(raw) {
+        var t = raw.trim();
+        if (!t) return '';
+        t = t.charAt(0).toUpperCase() + t.slice(1);
+        if (!/[.!?;:,]$/.test(t)) t += '.';
+        t = t.replace(/\s{2,}/g, ' ')
+             .replace(/\bi\b/g, 'I')
+             .replace(/([.!?]\s+)([a-z])/g, function(m,p,c) { return p + c.toUpperCase(); })
+             .replace(/\s+([.!?,;:])/g, '$1');
+        return t;
+      }
+
+      micBtn.addEventListener('click', function () {
+        if (micOn) { stopMic(); } else { startMic(); }
+      });
+
       /* ---- Copy ---- */
       document.getElementById('btnCopy').addEventListener('click', function () {
         var text = entries.map(function (e) {
           var d = e.data;
           var ts = d.ts ? new Date(d.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-          var prefix = d.type === 'note' ? '[NOTE] ' : '[BEE] ';
+          var prefix = d.type === 'note' ? '[NOTE] ' : (d.type === 'mic' ? '[MIC] ' : '[BEE] ');
           return ts + ' ' + prefix + (d.text || '');
         }).join('\n');
 
