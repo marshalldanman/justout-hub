@@ -32,24 +32,18 @@
   if (parts.length < 3) return; // Not a subdomain, skip routing
 
   var sub = parts[0];
-  var target = ROUTES[sub];
 
+  // "dashboard" is the canonical domain — never redirect between its own pages
+  if (sub === 'dashboard') return;
+
+  var target = ROUTES[sub];
   if (!target) return; // Unknown subdomain, let it load normally
 
-  // Redirect to dashboard.justout.today with the correct page path.
+  // Redirect non-dashboard subdomains to dashboard.justout.today with correct page.
   // This ensures Firebase Auth works (only dashboard.justout.today is authorized).
   // Subdomain URLs still work as friendly entry points — they just bounce here.
-  if (sub !== 'dashboard') {
-    window.location.replace(
-      'https://dashboard.justout.today' + target +
-      window.location.search + window.location.hash
-    );
-    return;
-  }
-
-  // For dashboard subdomain: route to correct page if needed
-  var currentPage = path === '/' ? '/index.html' : path;
-  if (currentPage !== target) {
-    window.location.replace(target + window.location.search + window.location.hash);
-  }
+  window.location.replace(
+    'https://dashboard.justout.today' + target +
+    window.location.search + window.location.hash
+  );
 })();
