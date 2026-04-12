@@ -1,0 +1,113 @@
+{
+  "video": "/home/user/justout-hub/twitch-recorder/recordings/subeyvideography_20260411_215111.ts",
+  "fps": 30.0,
+  "width": 1920,
+  "height": 1080,
+  "segments": [
+    {
+      "start": 0.33,
+      "end": 39.67,
+      "crop_bbox": [
+        503,
+        0,
+        882,
+        1080
+      ]
+    },
+    {
+      "start": 45.67,
+      "end": 52.67,
+      "crop_bbox": [
+        587,
+        194,
+        635,
+        748
+      ]
+    },
+    {
+      "start": 57.0,
+      "end": 61.0,
+      "crop_bbox": [
+        582,
+        73,
+        589,
+        1006
+      ]
+    },
+    {
+      "start": 63.0,
+      "end": 70.0,
+      "crop_bbox": [
+        538,
+        66,
+        689,
+        1014
+      ]
+    },
+    {
+      "start": 87.67,
+      "end": 92.67,
+      "crop_bbox": [
+        413,
+        0,
+        1094,
+        1080
+      ]
+    },
+    {
+      "start": 108.0,
+      "end": 112.67,
+      "crop_bbox": [
+        621,
+        290,
+        569,
+        790
+      ]
+    },
+    {
+      "start": 115.0,
+      "end": 124.0,
+      "crop_bbox": [
+        544,
+        0,
+        615,
+        868
+      ]
+    },
+    {
+      "start": 142.67,
+      "end": 146.67,
+      "crop_bbox": [
+        756,
+        149,
+        596,
+        634
+      ]
+    },
+    {
+      "start": 169.0,
+      "end": 177.0,
+      "crop_bbox": [
+        585,
+        0,
+        655,
+        1080
+      ]
+    },
+    {
+      "start": 207.0,
+      "end": 395.67,
+      "crop_bbox": [
+        0,
+        0,
+        1920,
+        1080
+      ]
+    }
+  ],
+  "raw_stats": {
+    "total_samples": 1188,
+    "maroon_detected": 962,
+    "dancing_detected": 903
+  }
+}
