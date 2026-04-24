@@ -74,22 +74,30 @@ fi
 
 mkdir -p "$INBOX_DIR"
 
-cat > "$INBOX_DIR/$FILENAME" <<EOJSON
-{
-  "id": "$ID",
-  "timestamp": "$TIMESTAMP",
-  "speaker": "Commander",
-  "rawTranscript": "$TRANSCRIPT",
-  "parsedIntent": "$INTENT",
-  "confidence": 0.92,
-  "targetChannel": $CHANNEL_JSON,
-  "metadata": {
-    "duration": $(echo "scale=1; ${#TRANSCRIPT} / 12" | bc),
-    "noiseLevel": "quiet",
-    "source": "bee-simulator"
-  }
-}
-EOJSON
+DURATION=$(echo "scale=1; ${#TRANSCRIPT} / 12" | bc)
+
+jq -n \
+  --arg id "$ID" \
+  --arg timestamp "$TIMESTAMP" \
+  --arg speaker "Commander" \
+  --arg rawTranscript "$TRANSCRIPT" \
+  --arg parsedIntent "$INTENT" \
+  --argjson targetChannel "$CHANNEL_JSON" \
+  --argjson duration "$DURATION" \
+  '{
+    id: $id,
+    timestamp: $timestamp,
+    speaker: $speaker,
+    rawTranscript: $rawTranscript,
+    parsedIntent: $parsedIntent,
+    confidence: 0.92,
+    targetChannel: $targetChannel,
+    metadata: {
+      duration: $duration,
+      noiseLevel: "quiet",
+      source: "bee-simulator"
+    }
+  }' > "$INBOX_DIR/$FILENAME"
 
 echo "BEE > Inbox: $INBOX_DIR/$FILENAME"
 echo "  Speaker:    Commander"

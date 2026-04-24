@@ -34,15 +34,13 @@ TOKEN="${3:-${JAP_FIREBASE_TOKEN:-}}"
 SPEAKER="Commander"
 TIMESTAMP=$(date +%s000)  # milliseconds
 
-# Build JSON payload
-PAYLOAD=$(cat <<EOJSON
-{
-  "type": "$TYPE",
-  "speaker": "$SPEAKER",
-  "text": "$TEXT",
-  "ts": $TIMESTAMP
-}
-EOJSON
+# Build JSON payload safely using jq
+PAYLOAD=$(jq -n \
+  --arg type "$TYPE" \
+  --arg speaker "$SPEAKER" \
+  --arg text "$TEXT" \
+  --argjson ts "$TIMESTAMP" \
+  '{type: $type, speaker: $speaker, text: $text, ts: $ts}'
 )
 
 if [ -n "$TOKEN" ]; then

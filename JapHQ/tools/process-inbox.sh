@@ -76,19 +76,24 @@ for FILE_PATH in "${FILES[@]}"; do
     echo ","
   fi
 
-  # Surface to Claude Code via stdout
-  cat <<EOJSON
-{
-  "jap_inbox": true,
-  "id": "$ID",
-  "speaker": "$SPEAKER",
-  "intent": "$INTENT",
-  "channel": "$CHANNEL",
-  "transcript": $(jq -Rs '.' <<< "$TRANSCRIPT"),
-  "timestamp": "$TIMESTAMP",
-  "instruction": "Process this JAP voice command. The speaker said: $TRANSCRIPT. Intent type: $INTENT. Target channel: $CHANNEL. Respond concisely and write the response to .jap/outbox/${ID}-response.json"
-}
-EOJSON
+  # Surface to Claude Code via stdout (safe JSON construction)
+  jq -n \
+    --arg id "$ID" \
+    --arg speaker "$SPEAKER" \
+    --arg intent "$INTENT" \
+    --arg channel "$CHANNEL" \
+    --arg transcript "$TRANSCRIPT" \
+    --arg timestamp "$TIMESTAMP" \
+    '{
+      jap_inbox: true,
+      id: $id,
+      speaker: $speaker,
+      intent: $intent,
+      channel: $channel,
+      transcript: $transcript,
+      timestamp: $timestamp,
+      instruction: ("Process this JAP voice command. The speaker said: " + $transcript + ". Intent type: " + $intent + ". Target channel: " + $channel + ". Respond concisely and write the response to .jap/outbox/" + $id + "-response.json")
+    }'
 done
 
 exit 0
