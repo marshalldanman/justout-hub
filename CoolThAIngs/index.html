@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src 'none'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>DanMan's Cool ThAIngs</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <style>
@@ -285,8 +287,18 @@ function openDetail(thing) {
   document.getElementById('detailWhy').textContent = thing.whyHot;
   document.getElementById('detailMoney').textContent = thing.moneyPotential;
   document.getElementById('detailDiff').textContent = thing.difficulty;
-  document.getElementById('detailSource').innerHTML = thing.source.startsWith('http') ?
-    '<a href="' + thing.source + '" target="_blank">' + thing.source + '</a>' : thing.source;
+  var sourceEl = document.getElementById('detailSource');
+  sourceEl.textContent = '';
+  if (thing.source.startsWith('http')) {
+    var a = document.createElement('a');
+    a.href = thing.source;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = thing.source;
+    sourceEl.appendChild(a);
+  } else {
+    sourceEl.textContent = thing.source;
+  }
   document.getElementById('detailNotes').value = thing.notes || '';
   overlay.classList.add('open');
 }

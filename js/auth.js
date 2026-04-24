@@ -53,9 +53,18 @@
     return div.innerHTML;
   }
 
+  var SRI_HASHES = {
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js': 'sha384-/zdZG9zo5F9UsG337DbLcDGPLVXNexb2sv/b7ps/zQAaMQo0EFPzc2uie+RFK6ze',
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js': 'sha384-I1LYojsZ5RM1cOda44Z2h42Qa6YfsQ1XkXxREnhp4ueYBR/4d1pG1K+NZM537Vsj'
+  };
+
   function loadScript(src, cb) {
     var s = document.createElement('script');
     s.src = src;
+    if (SRI_HASHES[src]) {
+      s.integrity = SRI_HASHES[src];
+      s.crossOrigin = 'anonymous';
+    }
     s.onload = cb;
     s.onerror = function () { console.error('[JustOut Auth] Failed to load:', src); };
     document.head.appendChild(s);
@@ -98,7 +107,7 @@
           var label = rec ? rec.label : 'Guest';
 
           logLogin(user, role);
-          console.log('[JustOut Auth] ' + role.toUpperCase() + ': ' + user.email);
+          console.log('[JustOut Auth] ' + role.toUpperCase() + ' authenticated');
 
           window.JUSTOUT_USER = Object.freeze({
             email: user.email,
