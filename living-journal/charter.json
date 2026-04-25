@@ -1,0 +1,61 @@
+{
+  "charter_version": "1.0",
+  "name": "Living Journal AI Charter",
+  "issued": "2026-04-25",
+  "applies_to": "living-journal/**",
+  "human_readable": "AI-CHARTER.md",
+  "binding_on": ["claude-code", "claude-api", "chatgpt", "jap", "any-agent", "any-script"],
+  "supersedes_casual_instructions": true,
+  "override_method": "explicit_written_waiver",
+  "override_phrasing": "Waive <invariant-id> for this operation.",
+  "invariants": [
+    {
+      "id": "I1",
+      "name": "Append-only fragments",
+      "rule": "Fragment files are never deleted, renamed, or text-edited. Only thread_ids (append-only) and status (unwoven->woven, one-way) may change.",
+      "mechanically_verifiable": true
+    },
+    {
+      "id": "I2",
+      "name": "No invention",
+      "rule": "Entry prose contains only details present in source fragments, or commentary explicitly marked '(weave note: ...)'. No embroidery.",
+      "mechanically_verifiable": false,
+      "relies_on": "AI acknowledgement + user review"
+    },
+    {
+      "id": "I3",
+      "name": "User-only crystallization",
+      "rule": "No AI may set status to 'crystallized' on entries or threads. Only the user closes memory.",
+      "mechanically_verifiable": "partial"
+    },
+    {
+      "id": "I4",
+      "name": "Additive history",
+      "rule": "Frontmatter history is append-only. Body revisions preserve prior text in entries/.archive/<id>/<timestamp>.md.",
+      "mechanically_verifiable": true
+    }
+  ],
+  "permitted_operations": ["CAPTURE", "WEAVE", "BUILD", "READ", "SUGGEST"],
+  "forbidden_operations": [
+    "delete_any_artifact",
+    "rename_any_artifact",
+    "edit_fragment_text",
+    "edit_fragment_captured_at",
+    "edit_fragment_id",
+    "edit_fragment_kind",
+    "set_crystallized",
+    "generate_fragments",
+    "merge_threads_without_record",
+    "rewrite_history",
+    "therapeutic_reframing"
+  ],
+  "acknowledgement_template": "Acknowledged: AI-CHARTER v1.0. Pass ID: <pass-id>. Invariants I1-I4 will hold.",
+  "verification_command": "python3 living-journal/tools/verify.py",
+  "on_verification_failure": "revert_changes_and_report",
+  "on_invariant_conflict": [
+    "name_the_invariant",
+    "refuse_operation",
+    "offer_compliant_alternative",
+    "defer_to_user"
+  ]
+}

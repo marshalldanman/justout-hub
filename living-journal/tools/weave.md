@@ -1,5 +1,7 @@
 # The Weaving Protocol
 
+> **Governed by `AI-CHARTER.md` v1.0.** In any conflict between this document and the charter, the charter wins. Acknowledge the charter (per its §4) before performing a weave pass.
+
 A **weaving pass** is a single act of attention: an AI agent (Claude, via Claude Code or JAP) reads new fragments and decides — quietly, conservatively — what they belong to.
 
 Run a pass whenever you feel like it. Daily, weekly, or never. Fragments do not spoil.

@@ -62,7 +62,8 @@ cat > "$FILE" <<EOF
   "time_period": null,
   "mood": ${ESC_MOOD},
   "thread_ids": [],
-  "status": "unwoven"
+  "status": "unwoven",
+  "governed_by": "AI-CHARTER.md v1.0"
 }
 EOF
 

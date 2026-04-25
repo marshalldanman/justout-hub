@@ -62,6 +62,8 @@ Nothing is ever deleted.
 - **It will use your voice.** Drafts pull directly from your fragment text wherever possible.
 - **You always own the close.** Only you crystallize an entry. AI never does.
 
+These promises are enforced by the **AI Charter** (`AI-CHARTER.md`, v1.0), which binds every AI you work with on this journal. See `PREFLIGHT.md` for the copy-paste briefing to use with any new AI session, and `charter.json` for the machine-readable spec. After every write, `tools/verify.py` checks the structural invariants.
+
 ---
 
 ## Where to start
