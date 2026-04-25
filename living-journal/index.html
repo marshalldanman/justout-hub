@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Living Journal</title>
+<style>
+  :root {
+    --bg: #0a0a14;
+    --bg-2: #11111e;
+    --ink: #e8e8f0;
+    --ink-dim: #9090a8;
+    --ink-faint: #5a5a70;
+    --accent: #c084fc;
+    --seedling: #4ade80;
+    --sprouting: #38bdf8;
+    --blooming: #fbbf24;
+    --crystallized: #f472b6;
+    --rule: #2a2a40;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 10% 70%, rgba(255,255,255,0.3), transparent);
+    background-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 28px 120px;
+  }
+  header { text-align: center; margin-bottom: 64px; }
+  header h1 {
+    font-size: 2.2rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  header .epigraph {
+    font-style: italic;
+    color: var(--ink-dim);
+    max-width: 32em;
+    margin: 24px auto 0;
+    font-size: 0.98rem;
+  }
+  header .stats {
+    margin-top: 32px;
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  section.stage {
+    margin-bottom: 56px;
+  }
+  section.stage > h2 {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px;
+    margin-bottom: 24px;
+  }
+  article.entry {
+    background: var(--bg-2);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 22px 26px;
+    margin-bottom: 18px;
+  }
+  article.entry.seedling   { border-left-color: var(--seedling); }
+  article.entry.sprouting  { border-left-color: var(--sprouting); }
+  article.entry.blooming   { border-left-color: var(--blooming); }
+  article.entry.crystallized { border-left-color: var(--crystallized); }
+  article.entry h3 {
+    margin: 0 0 6px;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  article.entry .meta {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+  }
+  article.entry .body {
+    color: var(--ink-dim);
+    font-size: 0.98rem;
+  }
+  article.entry .body blockquote {
+    border-left: 2px solid var(--rule);
+    margin: 12px 0;
+    padding: 4px 0 4px 16px;
+    color: var(--ink);
+    font-style: italic;
+  }
+  .fragments-floor {
+    margin-top: 80px;
+    padding-top: 40px;
+    border-top: 1px dashed var(--rule);
+  }
+  .fragments-floor h2 {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 24px;
+  }
+  .fragments-floor .frag {
+    color: var(--ink-dim);
+    font-size: 0.92rem;
+    padding: 10px 0;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .fragments-floor .frag .fid {
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    margin-right: 12px;
+  }
+  .empty {
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: 0.92rem;
+  }
+  .err {
+    color: #f87171;
+    font-family: monospace;
+    font-size: 0.85rem;
+    background: rgba(248, 113, 113, 0.08);
+    padding: 12px 16px;
+    border-radius: 4px;
+    border-left: 3px solid #f87171;
+  }
+  footer {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 0.78rem;
+    margin-top: 100px;
+    letter-spacing: 0.08em;
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; border-bottom: 1px dotted var(--ink-faint); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>The Living Journal</h1>
+    <div class="epigraph">
+      Memories are like travelers — you never know when they will show up.<br>
+      But you must always be ready anyway.
+    </div>
+    <div class="stats" id="stats">listening…</div>
+  </header>
+
+  <div id="content"></div>
+
+  <footer>
+    a channel of <a href="/">justout</a> · capture via <code>tools/capture.sh</code>
+  </footer>
+</main>
+
+<script>
+  // The viewer reads a manifest.json kept up-to-date by the weaving pass.
+  // No backend, no build step. The journal is files on disk; this just renders them.
+  async function load() {
+    const root = document.getElementById('content');
+    const stats = document.getElementById('stats');
+    try {
+      const manifest = await fetch('manifest.json', { cache: 'no-cache' }).then(r => {
+        if (!r.ok) throw new Error('manifest.json not found — run a weave pass to generate it');
+        return r.json();
+      });
+
+      const entries = manifest.entries || [];
+      const fragments = manifest.fragments || [];
+      const woven = fragments.filter(f => f.status === 'woven').length;
+      const unwoven = fragments.length - woven;
+
+      stats.textContent = `${entries.length} entries · ${fragments.length} fragments · ${unwoven} unwoven`;
+
+      const stages = ['crystallized', 'blooming', 'sprouting', 'seedling'];
+      const stageLabels = {
+        crystallized: 'Crystallized',
+        blooming: 'Blooming',
+        sprouting: 'Sprouting',
+        seedling: 'Seedlings',
+      };
+
+      stages.forEach(stage => {
+        const inStage = entries.filter(e => e.status === stage);
+        if (!inStage.length) return;
+        const sec = document.createElement('section');
+        sec.className = 'stage';
+        sec.innerHTML = `<h2>${stageLabels[stage]}</h2>`;
+        inStage.forEach(e => {
+          const a = document.createElement('article');
+          a.className = `entry ${stage}`;
+          a.innerHTML = `
+            <h3>${escapeHTML(e.title)}</h3>
+            <div class="meta">${e.source_fragments.length} fragment${e.source_fragments.length === 1 ? '' : 's'} · last woven ${formatDate(e.last_woven)}</div>
+            <div class="body">${e.preview ? escapeHTML(e.preview) : '<em>(awaiting weave)</em>'}</div>
+          `;
+          sec.appendChild(a);
+        });
+        root.appendChild(sec);
+      });
+
+      // The travelers floor — solitary fragments not yet in any entry.
+      const solitary = fragments.filter(f => !f.thread_ids || f.thread_ids.length === 0);
+      if (solitary.length) {
+        const floor = document.createElement('section');
+        floor.className = 'fragments-floor';
+        floor.innerHTML = `<h2>Travelers passing through</h2>`;
+        solitary.forEach(f => {
+          const div = document.createElement('div');
+          div.className = 'frag';
+          div.innerHTML = `<span class="fid">${escapeHTML(f.id)}</span>${escapeHTML(f.text)}`;
+          floor.appendChild(div);
+        });
+        root.appendChild(floor);
+      }
+
+      if (!entries.length && !solitary.length) {
+        root.innerHTML = '<p class="empty">No fragments yet. Drop the first one.</p>';
+      }
+    } catch (err) {
+      root.innerHTML = `<div class="err">${escapeHTML(err.message)}</div>`;
+      stats.textContent = '';
+    }
+  }
+
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function formatDate(iso) {
+    if (!iso) return 'never';
+    try { return new Date(iso).toISOString().slice(0, 10); } catch { return iso; }
+  }
+
+  load();
+</script>
+</body>
+</html>
