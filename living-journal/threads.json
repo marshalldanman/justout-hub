@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "updated": "2026-04-25",
+  "threads": [
+    {
+      "id": "thr-on-memory",
+      "name": "On Memory",
+      "summary": "Memory as something that arrives, not something we fetch.",
+      "fragment_ids": [
+        "frag-2026-04-25-001",
+        "frag-2026-04-25-002"
+      ],
+      "entry_id": "entry-001-on-memory",
+      "first_fragment_at": "2026-04-25T00:00:00Z",
+      "last_fragment_at": "2026-04-25T00:01:00Z",
+      "stage": "sprouting"
+    }
+  ]
+}

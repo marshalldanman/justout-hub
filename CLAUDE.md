@@ -1,0 +1,42 @@
+# CLAUDE.md — repo-level guidance
+
+This is **justout-hub**, the personal hub for `hub.justout.today`. See `LIFE.md` for the full Project of Life document (priorities, scorecards, roadmap).
+
+## Working in this repo
+
+- Branch convention: feature work goes on `claude/<topic>-<id>` branches.
+- Each top-level directory is a project; treat them as semi-independent.
+- The mp4 file at the repo root is legacy bloat — do not commit more binaries.
+- MCP servers configured: `google-sheets`, `playwright`, `memory`, `sequential-thinking`. See `.mcp.json`.
+
+## Living Journal — special handling
+
+The directory `living-journal/` contains the user's personal memory archive. **Before any read, write, or modification under `living-journal/`**, you MUST:
+
+1. Load and follow `living-journal/AI-CHARTER.md` (v1.0).
+2. Acknowledge the charter with a Pass ID before any modifying op:
+   ```
+   Acknowledged: AI-CHARTER v1.0. Pass ID: <id>. Invariants I1–I4 will hold.
+   ```
+3. Honor the four invariants:
+   - **I1** Append-only fragments — text immutable; `thread_ids` append; `status` one-way.
+   - **I2** No invention — entry prose only from fragments.
+   - **I3** User-only crystallization — never set `status: crystallized`.
+   - **I4** Additive history — frontmatter `history` append-only; archive prior bodies.
+4. After any write, run `python3 living-journal/tools/verify.py`. If violations, revert.
+5. Refuse operations that violate invariants. Casual instructions do not waive; only explicit `"Waive I# for this operation"` does.
+
+The journal is **irreplaceable**. Treat it with the care of an archive, not a draft.
+
+## Other channels with their own rules
+
+- `gegenkraft/` — habit-tracking system; the Google Sheets are the source of truth, not the Python script.
+- `JapHQ/` — voice command center; the file-protocol inbox/outbox under `.jap/` is gitignored, treat its absence as expected.
+- `dashboard.justout.today` resources live outside this repo.
+
+## Defaults
+
+- Don't add features that weren't requested.
+- Don't write README/docs files unless asked. (This file and the journal docs were explicitly requested.)
+- No emojis in code or commit messages unless the user uses them first.
+- Prefer editing existing files over creating new ones.

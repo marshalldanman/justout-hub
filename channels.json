@@ -1,7 +1,20 @@
 {
   "version": "1.0",
-  "updated": "2026-03-28",
+  "updated": "2026-04-25",
   "channels": [
+    {
+      "id": "journal",
+      "name": "Living Journal",
+      "subdomain": "hub.justout.today/living-journal/",
+      "description": "Memories arrive; entries grow themselves",
+      "orbType": "nebula",
+      "color": "#c084fc",
+      "colorAlt": "#581c87",
+      "icon": "📖",
+      "status": "live",
+      "contentCount": 2,
+      "phase": 0
+    },
     {
       "id": "fpcs",
       "name": "FPCS",
