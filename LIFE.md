@@ -167,6 +167,7 @@ Phase 3: Dreams, Meditation, Good News, Games.
 - Cash the urge → divert to savings.
 - Carrier: SIM lock + port-out lock + eSIM where possible + hardware-key 2FA.
 - Scan opportunities 5×/day → **paused** until one lane converts (override of the existing CoolThAIngs cadence).
+- **Private by default.** Any new project, repo, deployment, dataset, doc, or hosted artifact is private unless I explicitly ask for public. Casual "ship it" / "put it up" does not authorize public exposure. (See `CLAUDE.md` for the AI-binding version.) — added 2026-04-26
 
 ---
 
