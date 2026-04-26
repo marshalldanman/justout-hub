@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-P0-003 — Twitch Recorder Verdict
+==============================================================================
+Friendly Name:  Twitch Recorder: Decide or Archive
+Assigned AI:    Commander (human decision required)
+Approx Tokens:  ~5,000 tokens (~$0.08)
+Approx Time:    10 minutes (decision only)
+Project:        Twitch Recorder (P3 — aimless per LIFE.md)
+==============================================================================
+
+Status:         AWAITING DECISION
+Burner:         FRONT BURNER — P0 this week per LIFE.md.
+Branch:         twitch-download (merged), claude/setup-twitch-recording-52xTi (merged)
+Time Worked:    ~5 hrs (recorder, dancer detection, .ts capture all done)
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+LIFE.md Part II: "No declared end-product. Effort without definition."
+Write one sentence of purpose, or `git rm -r twitch-recorder/`.
+If no answer in one week, archive the directory.
+
+Delegation:
+- Commander writes one-sentence purpose OR says "archive"
+- Any agent executes `git rm -r twitch-recorder/` if archived
+==============================================================================

@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-P1-003 — Bot HQ P&L Pass
+==============================================================================
+Friendly Name:  Bot HQ Fleet P&L Audit
+Assigned AI:    Commander (data) + Claude Haiku 4.5 (documentation)
+Approx Tokens:  ~25,000 tokens (~$0.40)
+Approx Time:    3-5 hours
+Project:        Bot HQ / Realbotville (P2)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         MID BURNER — P1 per LIFE.md. Fleet is opaque.
+Branch:         none
+Time Worked:    0 hrs
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+16 bots in fleet, undocumented. Only 3 identified from branches:
+The Finger (sheet scanner), Gegenkraft Buddy (companion), Dark Twin
+Detector (SIM fraud probes). 13 others unknown. LIFE.md Goal G6:
+Each bot labeled earning/costing/strategic with monthly $ figure.
+
+Delegation:
+- Commander provides per-bot data (only person who knows)
+- Claude Haiku 4.5 writes standardized per-bot P&L docs
+- Claude Sonnet 4.6 updates Bot HQ dashboard with P&L data
+==============================================================================

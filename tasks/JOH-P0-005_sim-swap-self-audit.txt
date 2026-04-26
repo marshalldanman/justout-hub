@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-P0-005 — SIM Swap Self-Audit
+==============================================================================
+Friendly Name:  SIM Swap Self-Audit
+Assigned AI:    Commander (manual — carrier account access required)
+Approx Tokens:  ~10,000 tokens (~$0.15)
+Approx Time:    1-2 hours (carrier calls/settings)
+Project:        SIM Swap Detector / Security (P2)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         FRONT BURNER — P0 this week per LIFE.md.
+Branch:         claude/detect-sim-swap-fraud-zsMQC (1 commit: Dark Twin Detector)
+Time Worked:    ~3 hrs (detector tool built, not self-applied)
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+Apply your own 7-step SIM swap prevention protocol to all phone
+lines. Mark each step done/not-done. LIFE.md standing directive:
+"SIM lock + port-out lock + eSIM + hardware-key 2FA."
+Dark Twin Detector tool built on branch but not yet run on own accounts.
+
+Delegation:
+- Commander contacts carriers, enables locks (human action)
+- Claude Haiku 4.5 documents the 7-step checklist results
+- Dark Twin Detector bot runs automated probes post-lockdown
+==============================================================================

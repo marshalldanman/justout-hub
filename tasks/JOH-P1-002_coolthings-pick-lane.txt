@@ -1,0 +1,30 @@
+==============================================================================
+TASK: JOH-P1-002 — CoolThAIngs: Pick Lane, Close Client
+==============================================================================
+Friendly Name:  CoolThAIngs Revenue Conversion
+Assigned AI:    Commander (decision) + Claude Opus 4.6 (build MVP)
+Approx Tokens:  ~200,000 tokens (~$3.00)
+Approx Time:    20-40 hrs (full acquisition cycle)
+Project:        CoolThAIngs / AI Opportunity (P1)
+==============================================================================
+
+Status:         IN PROGRESS (5 leads, 0 conversions)
+Burner:         FRONT BURNER — P1. Discovery without conversion = hobby.
+Branch:         none (discoveries on master)
+Time Worked:    ~3 hrs (5 leads surfaced, showcase page built)
+Created:        2026-02-25
+Updated:        2026-04-26
+
+Description:
+5 active leads: Claude Code Security, MCP Servers, Cline 2.0,
+Booking Bots, Agent SDK Teams. LIFE.md Goal G4: one paying client
+by end of June. Recommended lane: Local AI Booking Bot ($300-$500/mo
+per client, lowest difficulty, fastest cash). Stretch: MCP Server.
+LIFE.md: "No more scanning until one converts."
+
+Delegation:
+- Commander picks lane (recommended: Booking Bots)
+- Claude Opus 4.6 builds MVP bot for first client
+- Claude Sonnet 4.6 builds landing page / sales material
+- CoolThAIngs scanning paused per LIFE.md until conversion
+==============================================================================

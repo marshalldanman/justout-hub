@@ -1,0 +1,27 @@
+==============================================================================
+TASK: JOH-NEW-005 — Gegenkraft Sheet Generation (Overdue)
+==============================================================================
+Friendly Name:  Generate 30-Day Gegenkraft Sheet
+Assigned AI:    Claude Opus 4.6 (via google-sheets MCP)
+Approx Tokens:  ~15,000 tokens (~$0.25)
+Approx Time:    30 minutes
+Project:        Gegenkraft / Health (NEWLY IDENTIFIED — IMMEDIATE)
+==============================================================================
+
+Status:         OVERDUE (LIFE.md said "starting today 2026-04-25")
+Burner:         IMMEDIATE — P0 item, 1 day overdue.
+Branch:         none (script exists on master: gegenkraft/generate_gegenkraft_sheet.py)
+Time Worked:    0 hrs (script exists but not run for this period)
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+LIFE.md Part V NOW #1: "Generate a fresh 30-day sheet starting today
+(2026-04-25)." Script exists at gegenkraft/generate_gegenkraft_sheet.py.
+Needs google-sheets MCP + service-account-key.json to execute.
+One day overdue as of this appraisal.
+
+Delegation:
+- Claude Opus 4.6 runs: python3 gegenkraft/generate_gegenkraft_sheet.py --start-date 2026-04-26 --days 30
+- Requires google-sheets MCP server + service-account-key.json
+==============================================================================

@@ -1,0 +1,32 @@
+==============================================================================
+TASK: JOH-NEW-001 — Merge Backlog Flush
+==============================================================================
+Friendly Name:  Flush 6 Unmerged Branches
+Assigned AI:    Claude Opus 4.6 (review) + Commander (merge approval)
+Approx Tokens:  ~50,000 tokens (~$0.75)
+Approx Time:    3-5 hours (review all 6)
+Project:        Infrastructure / Git Hygiene (NEWLY IDENTIFIED)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         IMMEDIATE — stale branches create confusion + conflicts
+Branch:         6 unmerged branches with completed work:
+  1. claude/read-onboarding-L0PiX (3 commits — security)
+  2. claude/private-by-default-and-journal-auth (1 commit)
+  3. claude/remote-code-execution-EK3mb (3 commits — Claude Visit)
+  4. claude/gagenkraft-gambling-moves-Ykkih (1 commit — Buddy)
+  5. claude/detect-sim-swap-fraud-zsMQC (1 commit — Dark Twin)
+  6. claude/urgent-task-reminder-email-ELFB0 (3 commits — The Finger)
+Time Worked:    0 hrs (review not started)
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+6 branches have completed work sitting unmerged. Total: 12 commits
+of finished features waiting for review. Stale branches increase
+merge conflict risk and create confusion about what's shipped vs not.
+
+Delegation:
+- Claude Opus 4.6 reviews each branch for quality + security
+- Commander approves merges (one by one or batch)
+==============================================================================

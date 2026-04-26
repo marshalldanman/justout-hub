@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-P1-007 — Private-by-Default + Journal Auth Merge
+==============================================================================
+Friendly Name:  Journal Auth Gate Merge
+Assigned AI:    Claude Opus 4.6 (review) + Commander (merge)
+Approx Tokens:  ~15,000 tokens (~$0.25)
+Approx Time:    1 hour (review + merge)
+Project:        Living Journal / Security
+==============================================================================
+
+Status:         WORK COMPLETE — needs review + merge
+Burner:         FRONT BURNER — done work sitting unmerged.
+Branch:         claude/private-by-default-and-journal-auth (1 commit)
+Time Worked:    ~2 hrs
+Created:        2026-04-25 (estimated)
+Updated:        2026-04-26
+
+Description:
+Adds private-by-default directive and Firebase auth gate on Living
+Journal web page. Protects irreplaceable personal memory archive
+per AI-CHARTER v1.0 principles.
+
+Delegation:
+- Claude Opus 4.6 reviews auth implementation
+- Commander approves and merges PR
+==============================================================================

@@ -1,0 +1,29 @@
+==============================================================================
+TASK: JOH-P2-001 — Living Journal Ongoing Weaving
+==============================================================================
+Friendly Name:  Living Journal Weave Cycle
+Assigned AI:    Claude Opus 4.6 (charter-aware weaving)
+Approx Tokens:  ~50,000 tokens per weave session (~$0.75)
+Approx Time:    Ongoing (30 min per weave session)
+Project:        Living Journal (P1 — new, high value)
+==============================================================================
+
+Status:         ACTIVE — 1 thread, 2 fragments, 1 sprouting entry
+Burner:         FRONT BURNER — newly shipped, needs daily use.
+Branch:         claude/organize-life-projects-ZcxLG (merged to master)
+Time Worked:    ~6 hrs (full system: charter, tools, fragments, entry-001)
+Created:        2026-04-25
+Updated:        2026-04-26
+
+Description:
+Living journal system is live. Thread "On Memory" has 2 woven fragments
+and a sprouting entry. Needs ongoing fragment capture + periodic
+weaving. AI-CHARTER v1.0 governs all operations (4 invariants).
+Opus must acknowledge charter before any modifying operation.
+
+Delegation:
+- Commander captures fragments (human voice/thought)
+- Claude Opus 4.6 weaves per AI-CHARTER v1.0 + weave.md protocol
+- verify.py runs after every write; revert on failure
+- NEVER set status: crystallized (user-only per I3)
+==============================================================================

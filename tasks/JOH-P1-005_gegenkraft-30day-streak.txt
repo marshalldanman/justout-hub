@@ -1,0 +1,29 @@
+==============================================================================
+TASK: JOH-P1-005 — Gegenkraft 30-Day Streak
+==============================================================================
+Friendly Name:  Gegenkraft 30-Day Streak Monitoring
+Assigned AI:    The Finger (bot) + Commander (daily action)
+Approx Tokens:  ~20,000 tokens (~$0.30)
+Approx Time:    30 calendar days + 2-3 hrs tool support
+Project:        Gegenkraft / Health (P0/P1 ongoing)
+==============================================================================
+
+Status:         IN PROGRESS (tools built, streak not started)
+Burner:         FRONT BURNER — P0/P1. Health is infrastructure.
+Branch:         claude/urgent-task-reminder-email-ELFB0 (3 commits)
+Time Worked:    ~6 hrs (The Finger scanner, CLI polish, reminder system)
+Created:        2026-04-25
+Updated:        2026-04-26
+
+Description:
+LIFE.md Goal G2: 30-day unbroken morning declaration streak, then 90.
+The Finger bot built to autonomously scan Google Sheet for missed days
+and send urgent reminders. Commander must do daily declarations.
+Standing directives: daily morning declaration, accountability ping,
+cash-the-urge divert to savings.
+
+Delegation:
+- Commander does daily declarations (human discipline)
+- The Finger bot monitors sheet adherence + sends alerts
+- Gegenkraft Buddy provides companion support
+==============================================================================

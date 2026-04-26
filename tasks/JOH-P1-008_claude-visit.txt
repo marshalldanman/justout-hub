@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-P1-008 — Claude Visit (Remote Diagnostics)
+==============================================================================
+Friendly Name:  Claude Visit Installer + VM Provisioner
+Assigned AI:    Claude Opus 4.6
+Approx Tokens:  ~40,000 tokens (~$0.60)
+Approx Time:    2-3 hours (testing + merge)
+Project:        FPCS / Business Tools
+==============================================================================
+
+Status:         BUILT — needs production testing + merge
+Burner:         MID BURNER — complete but unvalidated.
+Branch:         claude/remote-code-execution-EK3mb (3 commits)
+Time Worked:    ~5 hrs
+Created:        2026-03-01 (estimated)
+Updated:        2026-04-26
+
+Description:
+On-site Windows 11 diagnostics installer for FPCS clients. Includes
+hardened Claude Visit installer and Hyper-V VM provisioner for safe
+testing. Security-sensitive — needs careful review before deploy.
+
+Delegation:
+- Claude Opus 4.6 reviews hardening
+- Commander tests on real Hyper-V host before production use
+==============================================================================

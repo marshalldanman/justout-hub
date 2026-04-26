@@ -1,0 +1,29 @@
+==============================================================================
+TASK: JOH-P0-001 — Gegenkraft Daily Declaration
+==============================================================================
+Friendly Name:  Gegenkraft Daily Declaration + 30-Day Sheet
+Assigned AI:    Claude Opus 4.6 (via google-sheets MCP)
+Approx Tokens:  ~40,000 tokens (~$0.60)
+Approx Time:    1-2 hours
+Project:        Gegenkraft / Health (P0 — highest priority per LIFE.md)
+==============================================================================
+
+Status:         IN PROGRESS (Buddy app built, sheet gen overdue)
+Burner:         FRONT BURNER — P0. "Health is infrastructure."
+Branch:         claude/gagenkraft-gambling-moves-Ykkih (1 commit)
+Time Worked:    ~3 hrs
+Created:        2026-04-25 (per LIFE.md roadmap)
+Updated:        2026-04-26
+
+Description:
+Generate fresh 30-day Gegenkraft sheet starting 2026-04-25 using
+generate_gegenkraft_sheet.py + google-sheets MCP. Run morning
+declaration. Set accountability ping via The Finger bot.
+LIFE.md Goal G1: Reach 751+ points. G2: 30-day unbroken streak.
+
+Delegation:
+- Claude Opus 4.6 runs sheet generation script
+- The Finger bot monitors daily adherence (JOH-P1-005)
+- Gegenkraft Buddy provides user guide / companion features
+- Commander does daily declarations (human action)
+==============================================================================

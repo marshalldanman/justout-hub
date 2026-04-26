@@ -1,0 +1,25 @@
+==============================================================================
+TASK: JOH-NEW-004 — Session-Start Hook Enhancement
+==============================================================================
+Friendly Name:  Enhance Session-Start Hook
+Assigned AI:    Claude Sonnet 4.6
+Approx Tokens:  ~10,000 tokens (~$0.15)
+Approx Time:    30 minutes
+Project:        Infrastructure / DevOps (NEWLY IDENTIFIED)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         LOW PRIORITY — nice-to-have improvement.
+Branch:         none
+Time Worked:    0 hrs
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+Current session-start.sh only installs Python deps for Gegenkraft.
+Could also print LIFE.md Part V "NOW" items as a reminder at session
+start so every agent session begins aware of current priorities.
+
+Delegation:
+- Claude Sonnet 4.6 edits .claude/hooks/session-start.sh
+==============================================================================

@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-P0-002 — Tax Pipeline Audit (2022-2025)
+==============================================================================
+Friendly Name:  Tax Pipeline Audit
+Assigned AI:    Commander (manual) + Claude Haiku 4.5 (documentation)
+Approx Tokens:  ~15,000 tokens (~$0.25)
+Approx Time:    1-2 hours (manual review)
+Project:        FPCS / Tax HQ (P0 — highest financial risk)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         FRONT BURNER — P0. 2022 mature; 2023+ unknown.
+Branch:         none
+Time Worked:    0 hrs
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+Tax HQ shows 1,185 items for 2022. Status of 2023, 2024, 2025 is
+unknown. For each year: mark filed / in-prep / not-started. Write
+one-line summary back into LIFE.md Part II. LIFE.md Goal G5.
+
+Delegation:
+- Commander reviews actual tax accounts (human access required)
+- Claude Haiku 4.5 writes summary into LIFE.md once data provided
+==============================================================================

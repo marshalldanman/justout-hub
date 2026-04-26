@@ -1,0 +1,27 @@
+==============================================================================
+TASK: JOH-NEW-002 — Bot Fleet Inventory
+==============================================================================
+Friendly Name:  Document 13 Unknown Bots
+Assigned AI:    Commander (data) + Claude Haiku 4.5 (docs)
+Approx Tokens:  ~20,000 tokens (~$0.30)
+Approx Time:    2-3 hours
+Project:        Bot HQ / Realbotville (NEWLY IDENTIFIED)
+==============================================================================
+
+Status:         NOT STARTED (prerequisite for JOH-P1-003 P&L pass)
+Burner:         MID BURNER — needed before P&L can be done.
+Branch:         none
+Time Worked:    0 hrs
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+Bot HQ has 16 bots. Only 3 identified from branches: The Finger
+(sheet scanner), Gegenkraft Buddy (companion), Dark Twin Detector
+(SIM fraud probes). The other 13 are completely undocumented.
+Must audit each before the P&L pass (JOH-P1-003) can happen.
+
+Delegation:
+- Commander inventories all 16 bots (only person with access)
+- Claude Haiku 4.5 creates standardized inventory docs
+==============================================================================

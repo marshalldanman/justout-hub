@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-P1-004 — Helpdesk vs SentryLion Decision
+==============================================================================
+Friendly Name:  Helpdesk vs SentryLion: Adopt or Retire
+Assigned AI:    Commander (decision) + Claude Sonnet 4.6 (populate)
+Approx Tokens:  ~40,000 tokens (~$0.60)
+Approx Time:    30 min (decision) + 3-5 hrs (populate chosen one)
+Project:        Helpdesk + SentryLion (P2 — decide/finish)
+==============================================================================
+
+Status:         AWAITING DECISION
+Burner:         MID BURNER — P1 per LIFE.md. Empty trackers rot.
+Branch:         none
+Time Worked:    ~1 hr each (channels live, content = 0)
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+Both channels LIVE with 0 content. LIFE.md: "Adopt one as canonical
+tracker for everything in this document, or retire it." Helpdesk
+(helpdesk.justout.today) or SentryLion (sentrylion.html) — pick one
+for project tracking, repurpose or retire the other.
+
+Delegation:
+- Commander decides which becomes the canonical tracker
+- Claude Sonnet 4.6 populates the chosen tracker with LIFE.md items
+- Retired channel removed from channels.json or repurposed
+==============================================================================

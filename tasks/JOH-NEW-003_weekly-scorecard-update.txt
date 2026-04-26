@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-NEW-003 — LIFE.md Weekly Scorecard Update
+==============================================================================
+Friendly Name:  Weekly Scorecard Cadence
+Assigned AI:    Commander + Claude Sonnet 4.6
+Approx Tokens:  ~10,000 tokens per update (~$0.15)
+Approx Time:    20 minutes per week (ongoing)
+Project:        Infrastructure / Project Management (NEWLY IDENTIFIED)
+==============================================================================
+
+Status:         NOT STARTED (cadence not yet begun)
+Burner:         MID BURNER — LIFE.md Part VII defines weekly cadence.
+Branch:         none
+Time Worked:    0 hrs
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+LIFE.md Part VII Cadence: "Weekly (Sun 20 min): Update Part VI
+scorecards. One sentence per row: what moved." First scorecard
+update has not happened yet. Should begin this Sunday.
+
+Delegation:
+- Commander reviews what moved each week
+- Claude Sonnet 4.6 updates LIFE.md Part VI scorecard table
+==============================================================================

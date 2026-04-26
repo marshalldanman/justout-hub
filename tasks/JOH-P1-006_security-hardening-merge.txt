@@ -1,0 +1,26 @@
+==============================================================================
+TASK: JOH-P1-006 — Security Hardening Merge
+==============================================================================
+Friendly Name:  Security Hardening (CSP + SRI + Auth Gates)
+Assigned AI:    Claude Opus 4.6 (review) + Commander (merge)
+Approx Tokens:  ~30,000 tokens (~$0.45)
+Approx Time:    1-2 hours (review + merge)
+Project:        Infrastructure / Security
+==============================================================================
+
+Status:         WORK COMPLETE — needs review + merge
+Burner:         FRONT BURNER — done work sitting unmerged.
+Branch:         claude/read-onboarding-L0PiX (3 commits ahead of master)
+Time Worked:    ~5 hrs
+Created:        2026-03-01 (estimated)
+Updated:        2026-04-26
+
+Description:
+3 commits: CSP headers, SRI hashes, unsafe-inline removal, XSS pattern
+fixes, Firebase auth gate on all public pages. Hardens JapHQ,
+SimSwapDetect, and shell scripts. Needs security review and merge.
+
+Delegation:
+- Claude Opus 4.6 does final security review
+- Commander approves and merges PR
+==============================================================================

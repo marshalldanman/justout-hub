@@ -1,0 +1,28 @@
+==============================================================================
+TASK: JOH-P0-004 — Repo Cleanup (mp4 + service-account-key)
+==============================================================================
+Friendly Name:  Repo Cleanup
+Assigned AI:    Claude Sonnet 4.6
+Approx Tokens:  ~30,000 tokens (~$0.45)
+Approx Time:    1-2 hours
+Project:        Infrastructure (P0)
+==============================================================================
+
+Status:         NOT STARTED
+Burner:         FRONT BURNER — P0. ~74MB binary bloats every clone.
+Branch:         none
+Time Worked:    0 hrs
+Created:        2026-04-26
+Updated:        2026-04-26
+
+Description:
+subeyvideography_20260411_720p.mp4 (~74MB) committed at repo root.
+Move to external storage (Drive/S3), remove from working tree.
+Also verify gegenkraft/service-account-key.json is gitignored and
+absent from git history. CLAUDE.md already flags mp4 as legacy bloat.
+
+Delegation:
+- Claude Sonnet 4.6 removes mp4, updates .gitignore
+- Commander uploads to Drive/S3 manually if needed
+- Sonnet verifies service-account-key.json not in history
+==============================================================================

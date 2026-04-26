@@ -1,0 +1,29 @@
+==============================================================================
+TASK: JOH-P1-001 — JAP Phase 1 Scope Freeze
+==============================================================================
+Friendly Name:  JAP Phase 1 Scope Freeze + Build
+Assigned AI:    Claude Opus 4.6 (scope) + Claude Sonnet 4.6 (build)
+Approx Tokens:  ~150,000 tokens (~$2.25)
+Approx Time:    2-3 hrs (scope) + 15-25 hrs (build)
+Project:        JAP HQ / Voice Command Center (P1)
+==============================================================================
+
+Status:         IN PROGRESS (Phase 0 done, redesign loop flagged)
+Burner:         FRONT BURNER — P1. LIFE.md flags redesign churn as risk.
+Branch:         claude/jap-integration-research-vMknA (4 commits)
+Time Worked:    ~8 hrs (HQ, pipeline tools, inbox processor, Live page)
+Created:        2026-02-24 (initial architecture)
+Updated:        2026-04-26
+
+Description:
+Phase 0 deliverables complete: HQ dashboard, file-based inbox/outbox,
+architecture doc, channel router. LIFE.md says: "Define Phase 1
+done-criteria in 5 bullet points and stop redesigning until met."
+Phase 1 deliverables per jap-architecture.json: live transcript feed,
+command history, Firebase auth, jap.justout.today subdomain.
+
+Delegation:
+- Claude Opus 4.6 writes frozen 5-bullet scope document
+- Claude Sonnet 4.6 builds to that spec (no scope changes mid-build)
+- Commander reviews and approves scope before build starts
+==============================================================================

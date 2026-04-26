@@ -1,230 +1,329 @@
 ==============================================================================
-  JUSTOUT HUB — FULL TASK APPRAISAL DASHBOARD
-  Generated: 2026-03-01
-  Project: JustOut Universe Portal (justout.today)
+  JUSTOUT UNIVERSE — FULL TASK APPRAISAL DASHBOARD
+  Generated: 2026-04-26
+  Source of truth: LIFE.md (2026-04-25)
   Repo: marshalldanman/justout-hub
-  Local Task Store: C:\Users\James\AI_Tasks
+  Local onboarding: C:\Users\James\AI_Projects (subfolders)
+  Local Claude config: C:\Users\James\.claude\claude.md
 ==============================================================================
 
-PROJECT OVERVIEW
-----------------
-JustOut is a cosmic-themed personal universe portal with 18 channels across
-4 phases (0-3). Firebase-authenticated, 3-tier access (admin/member/guest).
-Built with vanilla JS, Canvas particle engine, CSS animations.
-Project age: 5 days (Feb 24 - Mar 1, 2026). 6 commits total.
+This appraisal reads LIFE.md as canonical, cross-references all 12 git
+branches, channels.json (23 channels), and every project directory on
+master. Where LIFE.md and channels.json disagree, LIFE.md wins.
 
 ==============================================================================
-TASK APPRAISAL — ALL TASKS
+PART A — ACTIVE TASK INVENTORY (sourced from branches + LIFE.md roadmap)
 ==============================================================================
 
-KEY:  [FB] = Front Burner   [BB] = Back Burner   [NEW] = Newly Identified
+Each task has: ID, project, summary (150 char max), assigned agent,
+time transpired, ETA, burner status, best-suited bot/agent, delegation.
+
+Branches map to tasks. Where a branch exists, that task has active work.
 
 ------------------------------------------------------------------------------
-PHASE 0 — LIVE CHANNELS (Maintenance & Enhancement)
+P0 — DO NOW (LIFE.md "NOW — This week" items)
 ------------------------------------------------------------------------------
 
-ID       | Task                        | Assigned    | Summary (150 char max)
----------|-----------------------------|-----------  |--------------------------------------------------
-JOH-001  | FPCS Dashboard Content      | Claude Sonnet| FPCS channel live but contentCount=0. Needs job/invoice content population & dashboard page buildout.
-JOH-002  | Tax HQ Maintenance          | Claude Haiku | Tax HQ live w/ 1185 items. Routine maintenance, data validation, potential UI refresh for tax season.
-JOH-003  | Bot HQ Fleet Expansion      | Claude Opus  | Bot HQ has 16 bots. Needs fleet inventory audit, new bot creation pipeline, command center upgrades.
-JOH-004  | SentryLion Security Buildout | Claude Opus  | SentryLion live but contentCount=0. Needs endpoint monitoring, threat dashboard, alert system built out.
+JOH-P0-001 | Gegenkraft Daily Declaration
+  Project:     Gegenkraft / Health (P0 — highest priority)
+  Summary:     Generate fresh 30-day sheet starting today. Run morning declaration. Set accountability ping.
+  Assigned:    Claude Opus 4.6 (via google-sheets MCP)
+  Branch:      claude/gagenkraft-gambling-moves-Ykkih (1 commit ahead of master)
+  Transpired:  ~3 hrs (Gegenkraft Buddy app + user guide built)
+  ETA:         1-2 hrs (sheet generation + ping setup)
+  Burner:      FRONT BURNER — P0 per LIFE.md. Non-negotiable.
+  Best Agent:  Claude Opus 4.6 (needs MCP google-sheets for Sheets API)
+  Delegation:  Opus generates sheet via generate_gegenkraft_sheet.py, sets ping
 
-         | Time Worked | ETA to Complete | Burner Status | Project Category
----------|-------------|-----------------|---------------|------------------
-JOH-001  | ~2 hrs      | 8-12 hrs        | [FB] 1 day    | FPCS / Business Tools
-JOH-002  | ~1 hr       | 2-4 hrs         | [FB] 1 day    | Tax / Finance
-JOH-003  | ~2 hrs      | 15-25 hrs       | [FB] 1 day    | Bot Fleet / Automation
-JOH-004  | ~1 hr       | 20-30 hrs       | [FB] 1 day    | Security / Infrastructure
+JOH-P0-002 | Tax Pipeline Audit (2022-2025)
+  Project:     FPCS / Tax HQ (P0 — highest financial risk)
+  Summary:     Open Tax HQ, mark each year 2022-2025 as filed/in-prep/not-started. One-line summary.
+  Assigned:    Commander (manual — requires account access)
+  Branch:      none
+  Transpired:  0 hrs
+  ETA:         1-2 hrs (manual review)
+  Burner:      FRONT BURNER — P0. Tax HQ shows 2022 only; 2023+ unknown.
+  Best Agent:  Claude Haiku 4.5 (summarize findings once Commander provides data)
+  Delegation:  Commander reviews accounts; Haiku writes summary into LIFE.md
 
-         | Best Suited Agent        | Delegation Plan
----------|--------------------------|------------------------------------------
-JOH-001  | Claude Sonnet 4.6        | Sonnet builds FPCS content pages, forms, invoice UI
-JOH-002  | Claude Haiku 4.5         | Haiku handles routine data checks, minor UI tweaks
-JOH-003  | Claude Opus 4.6          | Opus architects bot management system, delegates bot builds to Sonnet
-JOH-004  | Claude Opus 4.6          | Opus designs security architecture, builds threat detection logic
+JOH-P0-003 | Twitch Recorder Verdict
+  Project:     Twitch Recorder (P3 — decide or archive)
+  Summary:     Write one sentence of purpose, or git rm -r twitch-recorder/. No purpose = archive it.
+  Assigned:    Commander (decision required)
+  Branch:      twitch-download (merged), claude/setup-twitch-recording-52xTi (merged)
+  Transpired:  ~5 hrs (recorder built, dancer detection done, .ts captured)
+  ETA:         10 min (just a decision)
+  Burner:      FRONT BURNER — P0 per LIFE.md. Aimless effort.
+  Best Agent:  n/a — human decision
+  Delegation:  Commander decides; any agent archives if answer is "no purpose"
 
-------------------------------------------------------------------------------
-INFRASTRUCTURE — CRITICAL GAPS (No tracking, no docs, no CI/CD)
-------------------------------------------------------------------------------
+JOH-P0-004 | Repo Cleanup (mp4 + service-account-key)
+  Project:     Infrastructure
+  Summary:     Remove ~74MB subeyvideography mp4 from working tree to Drive. Verify service-account-key.json gitignored.
+  Assigned:    Claude Sonnet 4.6
+  Branch:      none
+  Transpired:  0 hrs
+  ETA:         1-2 hrs
+  Burner:      FRONT BURNER — P0. Binary bloats every clone.
+  Best Agent:  Claude Sonnet 4.6
+  Delegation:  Sonnet moves mp4 reference, verifies .gitignore, cleans tree
 
-ID       | Task                        | Assigned     | Summary (150 char max)
----------|-----------------------------|-----------   |--------------------------------------------------
-JOH-005  | README & Onboarding Docs    | Claude Sonnet| No README exists. Need onboarding guide, project overview, setup instructions, pointer to AI_Tasks.
-JOH-006  | CLAUDE.md Agent Guidance     | Claude Sonnet| No CLAUDE.md for AI agents. Need coding standards, project context, task workflow, file conventions.
-JOH-007  | Task Tracking System Setup   | Claude Opus  | Establish task logistics: ID naming, file format, assignment workflow, progress tracking conventions.
-
-         | Time Worked | ETA to Complete | Burner Status | Project Category
----------|-------------|-----------------|---------------|------------------
-JOH-005  | 0 hrs       | 2-3 hrs         | [NEW] 0 days  | Infrastructure / Documentation
-JOH-006  | 0 hrs       | 1-2 hrs         | [NEW] 0 days  | Infrastructure / AI Ops
-JOH-007  | 0 hrs       | 3-5 hrs         | [NEW] 0 days  | Infrastructure / Project Mgmt
-
-         | Best Suited Agent        | Delegation Plan
----------|--------------------------|------------------------------------------
-JOH-005  | Claude Sonnet 4.6        | Sonnet writes docs with project context, includes C:\Users\James\AI_Tasks pointer
-JOH-006  | Claude Sonnet 4.6        | Sonnet creates CLAUDE.md with coding standards and conventions
-JOH-007  | Claude Opus 4.6          | Opus designs system, this appraisal is step 1 (IN PROGRESS)
-
-------------------------------------------------------------------------------
-PHASE 1 — NEXT UP (6 Channels — Not Started)
-------------------------------------------------------------------------------
-
-ID       | Task                        | Assigned     | Summary (150 char max)
----------|-----------------------------|-----------   |--------------------------------------------------
-JOH-008  | Ideas/Notes Channel         | Claude Sonnet| Build quick-capture notes app at notes.justout.today. Tagging, organizing, search. localStorage first.
-JOH-009  | Music Channel               | Claude Sonnet| Build music library/playlist manager at music.justout.today. Spotify/YouTube integration potential.
-JOH-010  | AI Music Channel            | Claude Sonnet| Build AI music creation lab at aimusic.justout.today. Experiment tracking, audio player, generation UI.
-JOH-011  | Books Channel               | Claude Sonnet| Build reading list tracker at books.justout.today. Notes, quotes, ratings, reading progress tracking.
-JOH-012  | Art Channel                 | Claude Sonnet| Build art gallery at art.justout.today. Image grid, favorites, creation showcase, lightbox viewer.
-JOH-013  | Food Channel                | Claude Sonnet| Build food hub at food.justout.today. Restaurant saves, recipes, meal planning, rating system.
-
-         | Time Worked | ETA to Complete | Burner Status     | Project Category
----------|-------------|-----------------|-------------------|------------------
-JOH-008  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Productivity / Notes
-JOH-009  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Media / Music
-JOH-010  | 0 hrs       | 12-18 hrs       | [BB] 5 days       | AI / Creative
-JOH-011  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Media / Reading
-JOH-012  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Creative / Gallery
-JOH-013  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Lifestyle / Food
-
-         | Best Suited Agent        | Delegation Plan
----------|--------------------------|------------------------------------------
-JOH-008  | Claude Sonnet 4.6        | Sonnet builds UI + localStorage CRUD. Opus reviews architecture.
-JOH-009  | Claude Sonnet 4.6        | Sonnet builds player UI + playlist logic. Haiku handles metadata.
-JOH-010  | Claude Opus 4.6          | Opus handles AI integration architecture. Sonnet builds UI.
-JOH-011  | Claude Sonnet 4.6        | Sonnet builds reading tracker UI. Haiku handles data templates.
-JOH-012  | Claude Sonnet 4.6        | Sonnet builds gallery grid + lightbox. Haiku handles image metadata.
-JOH-013  | Claude Sonnet 4.6        | Sonnet builds recipe/restaurant UI. Haiku handles data entry forms.
+JOH-P0-005 | SIM Swap Self-Audit
+  Project:     SIM Swap Detector / Security (P2)
+  Summary:     Apply 7-step SIM swap prevention protocol to own carrier accounts. Mark each step done/not.
+  Assigned:    Commander (manual — requires carrier account access)
+  Branch:      claude/detect-sim-swap-fraud-zsMQC (1 commit: Dark Twin Detector)
+  Transpired:  ~3 hrs (detector tool built)
+  ETA:         1-2 hrs (manual carrier steps)
+  Burner:      FRONT BURNER — P0 per LIFE.md this week.
+  Best Agent:  n/a — human action on carrier accounts
+  Delegation:  Commander does steps; Claude Haiku documents done/not-done checklist
 
 ------------------------------------------------------------------------------
-PHASE 2 — MID-TERM (5 Channels — Not Started)
+P1 — ACTIVE FOCUS (LIFE.md "NEXT — This month" items)
 ------------------------------------------------------------------------------
 
-ID       | Task                        | Assigned     | Summary (150 char max)
----------|-----------------------------|-----------   |--------------------------------------------------
-JOH-014  | Movies Channel              | Claude Sonnet| Build watchlist/ratings app at movies.justout.today. TMDB API integration, reviews, recommendations.
-JOH-015  | My YouTube Channel          | Claude Sonnet| Build curated YouTube hub at myyoutube.justout.today. Playlist manager, favorites, embed player.
-JOH-016  | AI Lab Channel              | Claude Opus  | Build AI experimentation lab at ai.justout.today. Prompt library, tool tracker, experiment logs.
-JOH-017  | Health Channel              | Claude Sonnet| Build health tracker at health.justout.today. Goals, wellness metrics, workout logs, habit tracking.
-JOH-018  | Business Card Channel       | Claude Sonnet| Build digital business card at businesscard.justout.today. Contact info, portfolio, QR code, vCard.
+JOH-P1-001 | JAP Phase 1 Scope Freeze
+  Project:     JAP HQ / Voice Command Center (P1)
+  Summary:     Define JAP Phase 1 done-criteria in 5 bullet points. Stop redesigning. Build to that scope only.
+  Assigned:    Claude Opus 4.6
+  Branch:      claude/jap-integration-research-vMknA (4 commits: HQ, pipeline, inbox, Live page)
+  Transpired:  ~8 hrs (Phase 0 architecture done, Live page built, multiple rewrites)
+  ETA:         2-3 hrs (scope doc) + 15-25 hrs (build Phase 1)
+  Burner:      FRONT BURNER — P1. LIFE.md flags redesign loop as risk.
+  Best Agent:  Claude Opus 4.6 (architecture), Claude Sonnet 4.6 (UI build)
+  Delegation:  Opus writes frozen scope doc; Sonnet implements to that spec
 
-         | Time Worked | ETA to Complete | Burner Status     | Project Category
----------|-------------|-----------------|-------------------|------------------
-JOH-014  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Media / Movies
-JOH-015  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Media / YouTube
-JOH-016  | 0 hrs       | 15-25 hrs       | [BB] 5 days       | AI / Lab
-JOH-017  | 0 hrs       | 10-15 hrs       | [BB] 5 days       | Health / Wellness
-JOH-018  | 0 hrs       | 6-10 hrs        | [BB] 5 days       | Business / Identity
+JOH-P1-002 | CoolThAIngs — Pick Lane, Close One Client
+  Project:     CoolThAIngs / AI Opportunity (P1)
+  Summary:     Pick one of 5 leads (recommended: Booking Bots). Target: one paying client by end of June.
+  Assigned:    Commander (business decision) + Claude Opus 4.6 (build)
+  Branch:      none (content on master)
+  Transpired:  ~3 hrs (5 leads surfaced, discovery page built)
+  ETA:         20-40 hrs (client acquisition cycle)
+  Burner:      FRONT BURNER — P1. Five leads, zero conversion.
+  Best Agent:  Claude Opus 4.6 (build booking bot MVP), Claude Sonnet 4.6 (landing page)
+  Delegation:  Commander picks lane; Opus builds MVP bot; Sonnet builds sales page
 
-         | Best Suited Agent        | Delegation Plan
----------|--------------------------|------------------------------------------
-JOH-014  | Claude Sonnet 4.6        | Sonnet builds UI + API integration. Haiku handles data models.
-JOH-015  | Claude Sonnet 4.6        | Sonnet builds embed player + playlist UI.
-JOH-016  | Claude Opus 4.6          | Opus architects AI tool integration. Sonnet builds prompt library UI.
-JOH-017  | Claude Sonnet 4.6        | Sonnet builds tracker UI + charts. Haiku handles data templates.
-JOH-018  | Claude Haiku 4.5         | Haiku can handle this — simple static page with vCard export.
+JOH-P1-003 | Bot HQ P&L Pass
+  Project:     Bot HQ / Realbotville (P2)
+  Summary:     For each of 16 bots: document purpose, earning/costing/strategic, monthly $ figure.
+  Assigned:    Commander (data) + Claude Haiku 4.5 (documentation)
+  Branch:      none
+  Transpired:  0 hrs (bots exist but undocumented)
+  ETA:         3-5 hrs
+  Burner:      FRONT BURNER — P1 per LIFE.md. Bot fleet is opaque.
+  Best Agent:  Claude Haiku 4.5 (templating), Commander provides bot data
+  Delegation:  Commander inventories bots; Haiku writes per-bot P&L docs
+
+JOH-P1-004 | Helpdesk vs SentryLion Decision
+  Project:     Helpdesk + SentryLion (P2 — decide/finish)
+  Summary:     Adopt one as canonical tracker for LIFE.md items; retire or repurpose the other. Both are empty.
+  Assigned:    Commander (decision)
+  Branch:      none
+  Transpired:  ~1 hr each (channels created, zero content)
+  ETA:         30 min (decision) + 3-5 hrs (populate chosen one)
+  Burner:      FRONT BURNER — P1. Empty trackers rot per LIFE.md.
+  Best Agent:  Claude Sonnet 4.6 (populate chosen tracker)
+  Delegation:  Commander picks; Sonnet builds content for the survivor
+
+JOH-P1-005 | Gegenkraft 30-Day Streak
+  Project:     Gegenkraft / Health (P0)
+  Summary:     Maintain unbroken 30-day morning declaration streak. Track via Google Sheets. Then target 90.
+  Assigned:    Commander (daily action) + The Finger bot (monitoring)
+  Branch:      claude/urgent-task-reminder-email-ELFB0 (3 commits: reminder system + The Finger scanner)
+  Transpired:  ~6 hrs (reminder system built, The Finger prototype, CLI polish)
+  ETA:         30 calendar days (streak) — tool support: 2-3 hrs remaining
+  Burner:      FRONT BURNER — P0/P1 ongoing. Health is infrastructure.
+  Best Agent:  The Finger (autonomous Sheet scanner built on this branch)
+  Delegation:  The Finger monitors sheet adherence; alerts Commander on missed days
 
 ------------------------------------------------------------------------------
-PHASE 3 — LONG-TERM (4 Channels — Not Started)
+P1 — ACTIVE FOCUS (Security hardening — in-progress branches)
 ------------------------------------------------------------------------------
 
-ID       | Task                        | Assigned     | Summary (150 char max)
----------|-----------------------------|-----------   |--------------------------------------------------
-JOH-019  | Dreams Channel              | Claude Sonnet| Build dream journal at dreams.justout.today. Voice-to-text entry, pattern analysis, dream dictionary.
-JOH-020  | Meditation Channel          | Claude Sonnet| Build meditation app at meditation.justout.today. Timer, guided sessions, streak tracking, ambient sounds.
-JOH-021  | Good News Channel           | Claude Opus  | Build positive news feed at thegoodnews.justout.today. RSS/API aggregation, curated stories, mood boost.
-JOH-022  | Games Channel               | Claude Sonnet| Build game library at games.justout.today. Collection tracker, achievements, saves, play history.
+JOH-P1-006 | Security Hardening (CSP + SRI + Auth Gates)
+  Project:     Infrastructure / Security
+  Summary:     CSP headers, SRI hashes, remove unsafe-inline, Firebase auth gate on all public pages.
+  Assigned:    Claude Opus 4.6
+  Branch:      claude/read-onboarding-L0PiX (3 commits ahead of master — NOT MERGED)
+  Transpired:  ~5 hrs (CSP, SRI, XSS fixes, auth gates added)
+  ETA:         1-2 hrs (review + merge)
+  Burner:      FRONT BURNER — work done, needs merge.
+  Best Agent:  Claude Opus 4.6 (security review before merge)
+  Delegation:  Opus reviews; Commander merges PR
 
-         | Time Worked | ETA to Complete | Burner Status     | Project Category
----------|-------------|-----------------|-------------------|------------------
-JOH-019  | 0 hrs       | 12-18 hrs       | [BB] 5 days       | Wellness / Journal
-JOH-020  | 0 hrs       | 12-18 hrs       | [BB] 5 days       | Wellness / Mindfulness
-JOH-021  | 0 hrs       | 15-20 hrs       | [BB] 5 days       | Media / News
-JOH-022  | 0 hrs       | 8-12 hrs        | [BB] 5 days       | Entertainment / Gaming
+JOH-P1-007 | Private-by-Default + Journal Auth
+  Project:     Living Journal / Security
+  Summary:     Add private-by-default directive and Firebase auth gate on Living Journal web page.
+  Assigned:    Claude Opus 4.6
+  Branch:      claude/private-by-default-and-journal-auth (1 commit ahead — NOT MERGED)
+  Transpired:  ~2 hrs
+  ETA:         1 hr (review + merge)
+  Burner:      FRONT BURNER — work done, needs merge.
+  Best Agent:  Claude Opus 4.6
+  Delegation:  Opus reviews; Commander merges PR
 
-         | Best Suited Agent        | Delegation Plan
----------|--------------------------|------------------------------------------
-JOH-019  | Claude Sonnet 4.6        | Sonnet builds journal UI. Opus adds AI pattern analysis.
-JOH-020  | Claude Sonnet 4.6        | Sonnet builds timer + session UI. Haiku handles audio asset config.
-JOH-021  | Claude Opus 4.6          | Opus designs RSS aggregation + content curation pipeline.
-JOH-022  | Claude Sonnet 4.6        | Sonnet builds collection tracker. Haiku handles data templates.
+JOH-P1-008 | Claude Visit (Remote Code Execution tool)
+  Project:     FPCS / Business Tools
+  Summary:     Hyper-V VM provisioner for testing Claude Visit — on-site Windows 11 diagnostics installer.
+  Assigned:    Claude Opus 4.6
+  Branch:      claude/remote-code-execution-EK3mb (3 commits — NOT MERGED)
+  Transpired:  ~5 hrs (installer + hardening + VM provisioner)
+  ETA:         2-3 hrs (testing + merge)
+  Burner:      MID BURNER — built but not validated in production.
+  Best Agent:  Claude Opus 4.6 (security-sensitive)
+  Delegation:  Opus reviews hardening; Commander tests on real Hyper-V host
 
 ------------------------------------------------------------------------------
-NEWLY IDENTIFIED TASKS (Gaps Found During Appraisal)
+P2 — DECIDE/FINISH
 ------------------------------------------------------------------------------
 
-ID       | Task                        | Assigned     | Summary (150 char max)
----------|-----------------------------|-----------   |--------------------------------------------------
-JOH-023  | CI/CD Pipeline Setup        | Claude Opus  | No deployment pipeline exists. Need GitHub Actions for build, test, deploy to justout.today hosting.
-JOH-024  | CoolThAIngs Auto-Scanner    | Claude Opus  | Discovery page has 5 manual entries. Build auto-scan pipeline to find & surface AI opportunities daily.
-JOH-025  | Subdomain DNS/Hosting Setup | Claude Sonnet| 14 planned subdomains need DNS records, hosting config, SSL certs before channel pages can go live.
-JOH-026  | Mobile Responsive Audit     | Claude Sonnet| Hub constellation needs mobile optimization. Orb layout, touch events, viewport scaling not tested.
-JOH-027  | Performance Optimization    | Claude Haiku | Canvas particle engine runs continuously. Need lazy loading, requestIdleCallback, reduced motion support.
-JOH-028  | Analytics & Monitoring      | Claude Sonnet| No analytics or error monitoring. Need basic page view tracking and error reporting for live channels.
-JOH-029  | Onboarding Pointer to Local | Claude Haiku | Onboarding docs must reference C:\Users\James\AI_Tasks as the canonical local task store for all agents.
+JOH-P2-001 | Living Journal Ongoing Weaving
+  Project:     Living Journal (P1 — new, high value)
+  Summary:     Journal has 1 thread, 2 fragments, 1 sprouting entry. Capture + weave cycle needs to begin.
+  Assigned:    Claude Opus 4.6 (weaving), Commander (fragment capture)
+  Branch:      claude/organize-life-projects-ZcxLG (3 commits — MERGED to master)
+  Transpired:  ~6 hrs (charter, README, fragments, tools, entry-001 all created)
+  ETA:         Ongoing — this is a living system, not a task to "finish"
+  Burner:      FRONT BURNER — newly shipped, needs daily use to prove value.
+  Best Agent:  Claude Opus 4.6 (charter-aware weaving per AI-CHARTER v1.0)
+  Delegation:  Commander captures fragments; Opus weaves per weave.md protocol
 
-         | Time Worked | ETA to Complete | Burner Status     | Project Category
----------|-------------|-----------------|-------------------|------------------
-JOH-023  | 0 hrs       | 4-6 hrs         | [NEW] should be FB| Infrastructure / DevOps
-JOH-024  | 0 hrs       | 8-12 hrs        | [NEW] should be FB| AI / Discovery
-JOH-025  | 0 hrs       | 3-5 hrs         | [NEW] should be FB| Infrastructure / Hosting
-JOH-026  | 0 hrs       | 4-6 hrs         | [NEW] should be FB| UI/UX / Mobile
-JOH-027  | 0 hrs       | 2-4 hrs         | [NEW] low priority | Performance / Optimization
-JOH-028  | 0 hrs       | 3-5 hrs         | [NEW] should be FB| Infrastructure / Monitoring
-JOH-029  | 0 hrs       | 1 hr            | [NEW] immediate   | Infrastructure / Documentation
+JOH-P2-002 | channels.json Reconciliation
+  Project:     JustOut Hub / Infrastructure
+  Summary:     Reconcile channels.json with LIFE.md roadmap. Planned channels = actual priority, not wishlist.
+  Assigned:    Claude Sonnet 4.6
+  Branch:      none
+  Transpired:  0 hrs
+  ETA:         1-2 hrs
+  Burner:      MID BURNER — LIFE.md flags this in Part V "NEXT".
+  Best Agent:  Claude Sonnet 4.6
+  Delegation:  Sonnet updates channels.json to match LIFE.md Part V ordering
 
-         | Best Suited Agent        | Delegation Plan
----------|--------------------------|------------------------------------------
-JOH-023  | Claude Opus 4.6          | Opus designs CI/CD pipeline. Sonnet implements Actions workflows.
-JOH-024  | Claude Opus 4.6          | Opus builds scraping + AI analysis pipeline for discovery scanning.
-JOH-025  | Claude Sonnet 4.6        | Sonnet writes DNS configs + hosting setup docs/scripts.
-JOH-026  | Claude Sonnet 4.6        | Sonnet audits responsive CSS, fixes layout, adds touch support.
-JOH-027  | Claude Haiku 4.5         | Haiku applies known performance patterns — simple optimizations.
-JOH-028  | Claude Sonnet 4.6        | Sonnet integrates lightweight analytics (Plausible or custom).
-JOH-029  | Claude Haiku 4.5         | Haiku adds one line to onboarding: local task store path reference.
+------------------------------------------------------------------------------
+P3 — FROZEN (Do not start until P0/P1 clear)
+------------------------------------------------------------------------------
+
+JOH-P3-001 | Phase 1 Channels (6): Ideas, Music, AI Music, Books, Art, Food
+  Burner:      DEEP BACK BURNER — frozen per LIFE.md decision rule.
+  Rule:        Do not start until JAP Phase 1 ships AND Gegenkraft 30-day streak.
+
+JOH-P3-002 | Phase 2 Channels (5): Movies, YouTube, AI Lab, Health, Biz Card
+  Burner:      DEEP BACK BURNER — frozen.
+  Rule:        Only after Phase 1 channels actually in use.
+
+JOH-P3-003 | Phase 3 Channels (4): Dreams, Meditation, Good News, Games
+  Burner:      HORIZON — late 2026/2027.
 
 ==============================================================================
-SUMMARY STATISTICS
+PART B — AGENT/BOT ROSTER & DELEGATION MAP
 ==============================================================================
 
-Total Tasks:           29
-  Phase 0 (Live):       4  — Front Burner (active maintenance)
-  Infrastructure:       3  — CRITICAL GAP (no docs, no tracking)
-  Phase 1 (Next):       6  — Back Burner 5 days
-  Phase 2 (Mid):        5  — Back Burner 5 days
-  Phase 3 (Long):       4  — Back Burner 5 days
-  Newly Identified:     7  — Mixed priority
+KNOWN AGENTS:
+  Claude Opus 4.6    — Complex architecture, security, AI integration, charter-aware journal work
+  Claude Sonnet 4.6  — UI builds, channel pages, moderate complexity, fast iteration
+  Claude Haiku 4.5   — Simple docs, config, templates, data entry, low-cost tasks
 
-Agent Workload Distribution:
-  Claude Opus 4.6:      9 tasks  (complex architecture, security, AI integration)
-  Claude Sonnet 4.6:   16 tasks  (UI builds, channel pages, moderate complexity)
-  Claude Haiku 4.5:     4 tasks  (simple docs, config, performance tweaks)
+KNOWN BOTS (Bot HQ — 16 registered, purpose undocumented):
+  The Finger         — Autonomous Google Sheet scanner + urgent task reminder (branch: urgent-task-reminder)
+  Gegenkraft Buddy   — User guide + accountability companion (branch: gagenkraft-gambling-moves)
+  Dark Twin Detector — 5 automated network probes for SIM swap fraud (branch: detect-sim-swap-fraud)
+  13 others          — UNDOCUMENTED. JOH-P1-003 (Bot HQ P&L) will inventory these.
 
-Estimated Total Project Hours:  200-310 hrs
-Estimated Total Token Cost:     ~$45-75 (across all tasks)
+MCP SERVERS CONFIGURED:
+  google-sheets      — Gegenkraft sheet generation, data reads
+  playwright         — Browser automation, testing
+  memory             — Cross-session persistence
+  sequential-thinking — Complex reasoning chains
 
-Time Transpired on Project:     5 days (Feb 24 - Mar 1, 2026)
-Active Development Days:        4 days (6 commits)
-Commits:                        6
+DELEGATION PLAN BY TASK:
+  Opus:   JOH-P0-001, P1-001, P1-002 (build), P1-006, P1-007, P1-008, P2-001
+  Sonnet: JOH-P0-004, P1-004 (populate), P2-002, future channel builds
+  Haiku:  JOH-P0-002 (doc), P1-003 (templates)
+  Human:  JOH-P0-002, P0-003, P0-005, P1-002 (decision), P1-003 (data), P1-004 (decision), P1-005
+  Bots:   The Finger (P1-005 monitoring), Gegenkraft Buddy (P0-001 support)
 
 ==============================================================================
-TASK LOGISTICS COMPLIANCE CHECK
+PART C — BURNER STATUS SUMMARY
 ==============================================================================
 
-REQUIRED FORMAT FOR NEW TASKS:
-  When a new task is created, a .txt file must be generated with:
-  1. Title with ID (e.g., JOH-001)
+FRONT BURNER (active/urgent):
+  JOH-P0-001  Gegenkraft declaration     — P0, non-negotiable
+  JOH-P0-002  Tax pipeline audit          — P0, highest financial risk
+  JOH-P0-003  Twitch verdict              — P0, 10 min decision
+  JOH-P0-004  Repo cleanup (mp4)          — P0, bloat
+  JOH-P0-005  SIM swap self-audit         — P0, this week
+  JOH-P1-001  JAP Phase 1 scope freeze    — P1, stop redesign loop
+  JOH-P1-002  CoolThAIngs pick lane       — P1, revenue conversion
+  JOH-P1-005  Gegenkraft 30-day streak    — P0/P1, ongoing
+  JOH-P1-006  Security hardening merge    — done, needs merge
+  JOH-P1-007  Journal auth merge          — done, needs merge
+
+MID BURNER (decide/finish):
+  JOH-P1-003  Bot HQ P&L                  — P1, opaque fleet
+  JOH-P1-004  Helpdesk vs SentryLion      — P1, empty trackers
+  JOH-P1-008  Claude Visit                — built, untested
+  JOH-P2-001  Living Journal weaving      — ongoing system
+  JOH-P2-002  channels.json reconcile     — cleanup
+
+DEEP BACK BURNER (frozen):
+  JOH-P3-001  Phase 1 channels (6)        — blocked on JAP P1 + Gegenkraft streak
+  JOH-P3-002  Phase 2 channels (5)        — blocked on Phase 1 usage
+  JOH-P3-003  Phase 3 channels (4)        — horizon 2026/2027
+
+UNMERGED BRANCHES (work done, needs review/merge):
+  claude/read-onboarding-L0PiX            — 3 commits (security hardening)
+  claude/private-by-default-and-journal-auth — 1 commit (journal auth)
+  claude/remote-code-execution-EK3mb      — 3 commits (Claude Visit)
+  claude/gagenkraft-gambling-moves-Ykkih  — 1 commit (Gegenkraft Buddy)
+  claude/detect-sim-swap-fraud-zsMQC      — 1 commit (Dark Twin Detector)
+  claude/urgent-task-reminder-email-ELFB0 — 3 commits (The Finger)
+
+==============================================================================
+PART D — NEWLY IDENTIFIED TASKS (gaps found during appraisal)
+==============================================================================
+
+JOH-NEW-001 | Merge Backlog Flush
+  Summary:     6 branches have completed work sitting unmerged. Review and merge or close each.
+  Assigned:    Claude Opus 4.6 (review) + Commander (merge approval)
+  ETA:         3-5 hrs for all 6
+  Priority:    IMMEDIATE — stale branches create confusion and merge conflicts
+
+JOH-NEW-002 | Bot HQ Fleet Inventory
+  Summary:     13 of 16 bots are completely undocumented. Audit what each does before P&L pass.
+  Assigned:    Commander (only person who knows) + Claude Haiku 4.5 (document)
+  ETA:         2-3 hrs
+
+JOH-NEW-003 | LIFE.md Weekly Scorecard Update
+  Summary:     Part VII cadence says weekly Sun 20-min scorecard update. First one should happen now.
+  Assigned:    Commander + Claude Sonnet 4.6
+  ETA:         20 min per week (ongoing)
+
+JOH-NEW-004 | Session-Start Hook Enhancement
+  Summary:     Current hook only installs Python deps. Could also print LIFE.md Part V "NOW" items as reminder.
+  Assigned:    Claude Sonnet 4.6
+  ETA:         30 min
+
+JOH-NEW-005 | Gegenkraft Sheet Generation (overdue)
+  Summary:     LIFE.md says "generate 30-day sheet starting today (2026-04-25)". One day overdue if not done.
+  Assigned:    Claude Opus 4.6 (via google-sheets MCP)
+  ETA:         30 min
+  Priority:    IMMEDIATE — P0 item
+
+==============================================================================
+PART E — TASK LOGISTICS FORMAT (for all future tasks)
+==============================================================================
+
+When any new task is created, generate a .txt file in /tasks/ with:
+  1. Title with ID (JOH-XX-NNN)
   2. Friendly name
   3. Assigned AI agent
   4. Approx token usage with dollar cost
   5. Approx time to finish
   6. Project it relates to
 
-STATUS: Individual task files created in /tasks/ folder (this repo)
-        Canonical local store: C:\Users\James\AI_Tasks
-
-ONBOARDING NOTE: All agents must check C:\Users\James\AI_Tasks for
-existing task context before starting work on any task.
+Naming:  JOH-{priority}-{number}_{slug}.txt
+  P0 = do now, P1 = active focus, P2 = decide/finish, P3 = frozen, NEW = gap
 
 ==============================================================================
