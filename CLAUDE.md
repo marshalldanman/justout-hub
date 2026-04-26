@@ -1,6 +1,6 @@
 # CLAUDE.md — repo-level guidance
 
-This is **justout-hub**, the personal hub for `hub.justout.today`. See `LIFE.md` for the full Project of Life document (priorities, scorecards, roadmap).
+This is **justout-hub**, the personal hub for `hub.justout.today`. The canonical Project of Life document is `PRIVATE-LIFE.md` (gitignored, local-only). `LIFE.md` is the public skeleton; if you need priorities, scorecards, or the roadmap, read `PRIVATE-LIFE.md` from the working tree. If it's missing on this device, surface that to the user — don't reconstruct from memory.
 
 ## Working in this repo
 
@@ -40,3 +40,18 @@ The journal is **irreplaceable**. Treat it with the care of an archive, not a dr
 - Don't write README/docs files unless asked. (This file and the journal docs were explicitly requested.)
 - No emojis in code or commit messages unless the user uses them first.
 - Prefer editing existing files over creating new ones.
+
+## Standing directive: PRIVATE BY DEFAULT
+
+**Any new project, repository, deployment, dataset, document, or hosted artifact is private by default. Never publicize without an explicit ask.**
+
+This applies to:
+- New GitHub repositories — create as `private`. Never `public`.
+- New deployments / Pages sites / hosted resources — visibility off by default; gated behind auth.
+- New shared documents, sheets, drives — link sharing off; explicit invites only.
+- New domains and subdomains — DNS public is fine, but the resource it points to must be auth-gated unless the user says otherwise.
+- New code that exposes data — assume the data is sensitive until told otherwise.
+
+If a task requires public visibility (e.g., a marketing landing page, an open-source library), **confirm with the user first** and proceed only after explicit approval. Casual phrases like "just put it up" or "ship it" do **not** authorize public exposure.
+
+When unsure: pick private. Reversing public → private is harder than the opposite.

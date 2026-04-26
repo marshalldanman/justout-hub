@@ -4,6 +4,10 @@
 # JAP local runtime data (transcripts, state, outbox)
 .jap/
 
+# Personal life document — local only, never commit
+PRIVATE-LIFE.md
+PRIVATE-*.md
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>The Living Journal</title>
+<link rel="stylesheet" href="../css/hub.css">
 <style>
   :root {
     --bg: #0a0a14;
@@ -168,6 +172,27 @@
 </style>
 </head>
 <body>
+
+<!-- ============ AUTH GATE ============ -->
+<div id="authGate">
+  <div class="auth-cosmos">
+    <canvas id="authParticles"></canvas>
+  </div>
+  <div class="auth-content">
+    <div class="auth-logo">📖</div>
+    <h1 class="auth-title">Living Journal</h1>
+    <p class="auth-sub">A private archive. Sign in to read.</p>
+    <button class="g-btn" id="googleSignIn">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Enter the Journal
+    </button>
+    <div class="auth-err" id="authErr"></div>
+    <div class="auth-loading" id="authLoading"></div>
+  </div>
+</div>
+
+<!-- ============ JOURNAL CONTENT (hidden until auth) ============ -->
+<div id="hubContent" style="display:none">
 <main>
   <header>
     <h1>The Living Journal</h1>
@@ -184,7 +209,12 @@
     a channel of <a href="/">justout</a> · capture via <code>tools/capture.sh</code>
   </footer>
 </main>
+</div>
 
+<script>
+  window.FPCS_PAGE = { name: 'Living Journal', theme: 'theme-journal' };
+</script>
+<script src="../js/auth.js"></script>
 <script>
   // The viewer reads a manifest.json kept up-to-date by the weaving pass.
   // No backend, no build step. The journal is files on disk; this just renders them.
@@ -263,7 +293,8 @@
     try { return new Date(iso).toISOString().slice(0, 10); } catch { return iso; }
   }
 
-  load();
+  // Wait for auth gate to resolve before loading journal data.
+  document.addEventListener('justout-authed', load);
 </script>
 </body>
 </html>
