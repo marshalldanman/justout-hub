@@ -1,6 +1,6 @@
 # CLAUDE.md — repo-level guidance
 
-This is **justout-hub**, the personal hub for `hub.justout.today`. See `LIFE.md` for the full Project of Life document (priorities, scorecards, roadmap).
+This is **justout-hub**, the personal hub for `hub.justout.today`. The canonical Project of Life document is `PRIVATE-LIFE.md` (gitignored, local-only). `LIFE.md` is the public skeleton; if you need priorities, scorecards, or the roadmap, read `PRIVATE-LIFE.md` from the working tree. If it's missing on this device, surface that to the user — don't reconstruct from memory.
 
 ## Working in this repo
 
