@@ -1,7 +1,20 @@
 {
-  "version": "1.0",
-  "updated": "2026-04-25",
+  "version": "1.1",
+  "updated": "2026-04-28",
   "channels": [
+    {
+      "id": "gegenkraft",
+      "name": "Gegenkraft",
+      "subdomain": "hub.justout.today/gegenkraft/",
+      "description": "Daily declaration — Gambling habit breaker",
+      "orbType": "star",
+      "color": "#f87171",
+      "colorAlt": "#7f1d1d",
+      "icon": "🔥",
+      "status": "live",
+      "contentCount": 0,
+      "phase": 0
+    },
     {
       "id": "journal",
       "name": "Living Journal",
@@ -13,6 +26,19 @@
       "icon": "📖",
       "status": "live",
       "contentCount": 2,
+      "phase": 0
+    },
+    {
+      "id": "appraisal",
+      "name": "Task Appraisal",
+      "subdomain": "hub.justout.today/appraisal.html",
+      "description": "Mission Control — Task inventory dashboard",
+      "orbType": "gem",
+      "color": "#fbbf24",
+      "colorAlt": "#78350f",
+      "icon": "📋",
+      "status": "live",
+      "contentCount": 23,
       "phase": 0
     },
     {

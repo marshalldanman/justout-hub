@@ -154,23 +154,29 @@
       }
     });
 
-    // Sign-in handler
+    // Handle redirect result (fires on page load after Google redirect)
+    auth.getRedirectResult().then(function (result) {
+      if (result.user) {
+        if (loadEl) loadEl.textContent = '';
+      }
+    }).catch(function (error) {
+      if (loadEl) loadEl.textContent = '';
+      if (errEl) errEl.textContent = error.message || 'Sign-in failed';
+      var btn = document.getElementById('googleSignIn');
+      if (btn) btn.disabled = false;
+    });
+
+    // Sign-in handler — uses redirect (works with popup blockers + mobile)
     var signInBtn = document.getElementById('googleSignIn');
     if (signInBtn) {
       signInBtn.addEventListener('click', function () {
-        errEl.textContent = '';
-        loadEl.textContent = 'Opening the portal...';
+        if (errEl) errEl.textContent = '';
+        if (loadEl) loadEl.textContent = 'Redirecting to Google...';
         signInBtn.disabled = true;
 
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        auth.signInWithPopup(provider).then(function () {
-          loadEl.textContent = '';
-        }).catch(function (error) {
-          loadEl.textContent = '';
-          signInBtn.disabled = false;
-          errEl.textContent = error.message || 'Sign-in failed';
-        });
+        auth.signInWithRedirect(provider);
       });
     }
 

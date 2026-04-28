@@ -8,8 +8,8 @@ Approx Time:    20-40 hrs (full acquisition cycle)
 Project:        CoolThAIngs / AI Opportunity (P1)
 ==============================================================================
 
-Status:         IN PROGRESS (5 leads, 0 conversions)
-Burner:         FRONT BURNER — P1. Discovery without conversion = hobby.
+Status:         PAUSED — Commander directive 2026-04-28.
+Burner:         PAUSED — Resume when Commander directs.
 Branch:         none (discoveries on master)
 Time Worked:    ~3 hrs (5 leads surfaced, showcase page built)
 Created:        2026-02-25

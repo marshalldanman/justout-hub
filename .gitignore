@@ -4,6 +4,16 @@
 # JAP local runtime data (transcripts, state, outbox)
 .jap/
 
+# Secrets / credentials
+service-account-key.json
+**/service-account-key*.json
+*.pem
+.env
+.env.*
+
+# Recordings / large media
+twitch-recorder/recordings/
+
 # OS files
 .DS_Store
 Thumbs.db

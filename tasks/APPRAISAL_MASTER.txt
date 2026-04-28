@@ -74,10 +74,10 @@ JOH-P0-005 | SIM Swap Self-Audit
   Assigned:    Commander (manual — requires carrier account access)
   Branch:      claude/detect-sim-swap-fraud-zsMQC (1 commit: Dark Twin Detector)
   Transpired:  ~3 hrs (detector tool built)
-  ETA:         1-2 hrs (manual carrier steps)
-  Burner:      FRONT BURNER — P0 per LIFE.md this week.
-  Best Agent:  n/a — human action on carrier accounts
-  Delegation:  Commander does steps; Claude Haiku documents done/not-done checklist
+  ETA:         COMPLETE — Commander confirms no more work needed
+  Burner:      DONE — Per Commander 2026-04-28.
+  Best Agent:  n/a
+  Delegation:  Complete.
 
 ------------------------------------------------------------------------------
 P1 — ACTIVE FOCUS (LIFE.md "NEXT — This month" items)
@@ -89,10 +89,10 @@ JOH-P1-001 | JAP Phase 1 Scope Freeze
   Assigned:    Claude Opus 4.6
   Branch:      claude/jap-integration-research-vMknA (4 commits: HQ, pipeline, inbox, Live page)
   Transpired:  ~8 hrs (Phase 0 architecture done, Live page built, multiple rewrites)
-  ETA:         2-3 hrs (scope doc) + 15-25 hrs (build Phase 1)
-  Burner:      FRONT BURNER — P1. LIFE.md flags redesign loop as risk.
+  ETA:         ON HOLD — BEE Pioneer AI audio recorder died; Commander shopping for replacement.
+  Burner:      PAUSED — Blocked on hardware. Resume when new audio recorder arrives.
   Best Agent:  Claude Opus 4.6 (architecture), Claude Sonnet 4.6 (UI build)
-  Delegation:  Opus writes frozen scope doc; Sonnet implements to that spec
+  Delegation:  Paused until new device selected and received.
 
 JOH-P1-002 | CoolThAIngs — Pick Lane, Close One Client
   Project:     CoolThAIngs / AI Opportunity (P1)
@@ -100,10 +100,10 @@ JOH-P1-002 | CoolThAIngs — Pick Lane, Close One Client
   Assigned:    Commander (business decision) + Claude Opus 4.6 (build)
   Branch:      none (content on master)
   Transpired:  ~3 hrs (5 leads surfaced, discovery page built)
-  ETA:         20-40 hrs (client acquisition cycle)
-  Burner:      FRONT BURNER — P1. Five leads, zero conversion.
+  ETA:         PAUSED — Commander directive 2026-04-28.
+  Burner:      PAUSED — Commander paused this task. Resume when directed.
   Best Agent:  Claude Opus 4.6 (build booking bot MVP), Claude Sonnet 4.6 (landing page)
-  Delegation:  Commander picks lane; Opus builds MVP bot; Sonnet builds sales page
+  Delegation:  Paused until Commander resumes.
 
 JOH-P1-003 | Bot HQ P&L Pass
   Project:     Bot HQ / Realbotville (P2)
@@ -253,12 +253,17 @@ FRONT BURNER (active/urgent):
   JOH-P0-002  Tax pipeline audit          — P0, highest financial risk
   JOH-P0-003  Twitch verdict              — P0, 10 min decision
   JOH-P0-004  Repo cleanup (mp4)          — P0, bloat
-  JOH-P0-005  SIM swap self-audit         — P0, this week
-  JOH-P1-001  JAP Phase 1 scope freeze    — P1, stop redesign loop
-  JOH-P1-002  CoolThAIngs pick lane       — P1, revenue conversion
   JOH-P1-005  Gegenkraft 30-day streak    — P0/P1, ongoing
   JOH-P1-006  Security hardening merge    — done, needs merge
   JOH-P1-007  Journal auth merge          — done, needs merge
+
+COMPLETED / RESOLVED:
+  JOH-P0-005  SIM swap self-audit         — DONE per Commander 2026-04-28
+  JOH-NEW-004 Session-start hook          — DONE (built 2026-04-28)
+
+PAUSED (Commander directive 2026-04-28):
+  JOH-P1-001  JAP Phase 1 scope freeze    — ON HOLD (BEE device died, shopping replacement)
+  JOH-P1-002  CoolThAIngs pick lane       — PAUSED by Commander
 
 MID BURNER (decide/finish):
   JOH-P1-003  Bot HQ P&L                  — P1, opaque fleet
