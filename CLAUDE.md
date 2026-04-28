@@ -2,12 +2,60 @@
 
 This is **justout-hub**, the personal hub for `hub.justout.today`. See `LIFE.md` for the full Project of Life document (priorities, scorecards, roadmap).
 
+## Onboarding — read these first
+
+1. **This file** — repo conventions and rules.
+2. **`LIFE.md`** — canonical Project of Life: priorities, scorecards, roadmap. When this file disagrees with anything else, this file wins.
+3. **`tasks/APPRAISAL_MASTER.txt`** — full task inventory with assignments, ETAs, burner status.
+4. **`tasks/JOH-*.txt`** — individual task files (one per task, logistics format).
+
+Local paths on Commander's machine:
+- Projects root: `C:\Users\James\AI_Projects` (subfolders per project)
+- Claude config: `C:\Users\James\.claude\claude.md`
+
+## Current priorities (from LIFE.md Part V)
+
+Three guiding pressures, in order:
+1. **Order before expansion.** Finish/retire what's on the board before adding more.
+2. **Health is infrastructure.** Gegenkraft is non-negotiable.
+3. **Convert one opportunity to revenue.** Pick one CoolThAIngs lane and ship a paying customer.
+
 ## Working in this repo
 
 - Branch convention: feature work goes on `claude/<topic>-<id>` branches.
 - Each top-level directory is a project; treat them as semi-independent.
 - The mp4 file at the repo root is legacy bloat — do not commit more binaries.
 - MCP servers configured: `google-sheets`, `playwright`, `memory`, `sequential-thinking`. See `.mcp.json`.
+
+## Task logistics — required for all new tasks
+
+When creating a new task, generate a `.txt` file in `tasks/` with this format:
+```
+Title:          JOH-{priority}-{number} — {descriptive title}
+Friendly Name:  {short human-readable name}
+Assigned AI:    {Claude Opus 4.6 | Claude Sonnet 4.6 | Claude Haiku 4.5 | Commander | bot name}
+Approx Tokens:  ~{N} tokens (~${cost})
+Approx Time:    {estimate}
+Project:        {project name} ({priority tier})
+```
+Priority tiers: P0 = do now, P1 = active focus, P2 = decide/finish, P3 = frozen, NEW = gap.
+File naming: `tasks/JOH-{tier}-{NNN}_{slug}.txt`
+
+After creating or updating tasks, update `tasks/APPRAISAL_MASTER.txt` to reflect changes.
+
+## Agent hierarchy
+
+| Agent | Role | Use for |
+|-------|------|---------|
+| Claude Opus 4.6 | Architect | Complex architecture, security, AI integration, charter-aware journal work |
+| Claude Sonnet 4.6 | Builder | UI builds, channel pages, moderate complexity, fast iteration |
+| Claude Haiku 4.5 | Assistant | Simple docs, config, templates, data entry, low-cost tasks |
+
+Known bots (Bot HQ — 16 registered):
+- **The Finger** — autonomous Google Sheet scanner + urgent task reminders
+- **Gegenkraft Buddy** — accountability companion app
+- **Dark Twin Detector** — 5 automated SIM swap fraud probes
+- 13 others — undocumented (see task JOH-P1-003)
 
 ## Living Journal — special handling
 

@@ -1,0 +1,638 @@
+/* ============================================================
+   Task Appraisal Dashboard — JustOut Universe
+   Cosmic dark theme matching hub.css design tokens
+   ============================================================ */
+
+:root {
+  --bg: #050a18;
+  --bg-deep: #020510;
+  --card: #0f1729;
+  --card-hover: #131d33;
+  --accent: #38bdf8;
+  --green: #4ade80;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #1e293b;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --pink: #f472b6;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   AUTH GATE (shared with hub)
+   ============================================================ */
+
+#authGate {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-cosmos {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, #0a1628 0%, #020510 70%);
+}
+.auth-cosmos canvas { width: 100%; height: 100%; }
+
+.auth-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 48px;
+}
+
+.auth-logo {
+  font-size: 72px;
+  margin-bottom: 8px;
+  animation: auth-float 3s ease-in-out infinite;
+}
+
+@keyframes auth-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.auth-title {
+  font-size: 48px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 40%, #f472b6 70%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.auth-sub {
+  color: var(--muted);
+  font-size: 16px;
+  margin-bottom: 36px;
+  letter-spacing: 0.5px;
+}
+
+.g-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid #1e293b;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.25s;
+  backdrop-filter: blur(8px);
+}
+.g-btn:hover {
+  border-color: var(--accent);
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.15);
+  transform: translateY(-1px);
+}
+.g-btn svg { width: 22px; height: 22px; }
+
+.auth-err { color: var(--red); font-size: 13px; margin-top: 16px; min-height: 20px; }
+.auth-loading { color: var(--muted); font-size: 14px; margin-top: 12px; }
+
+
+/* ============================================================
+   COSMOS CANVAS
+   ============================================================ */
+
+#cosmosCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   DASHBOARD HEADER
+   ============================================================ */
+
+.dash-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: linear-gradient(180deg, rgba(5, 10, 24, 0.98) 0%, rgba(5, 10, 24, 0) 100%);
+}
+
+.dash-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dash-back {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 20px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.dash-back:hover {
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.dash-logo { font-size: 24px; }
+
+.dash-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #38bdf8, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hub-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.hub-user img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+.hub-user-name { font-weight: 600; color: var(--text); }
+.hub-logout {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.hub-logout:hover { color: var(--red); border-color: var(--red); }
+
+
+/* ============================================================
+   MAIN LAYOUT
+   ============================================================ */
+
+.dash-main {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px 60px;
+}
+
+
+/* ============================================================
+   SUMMARY STRIP — Top-level metric cards
+   ============================================================ */
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.summary-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.25s;
+}
+.summary-card:hover {
+  border-color: var(--accent);
+  background: var(--card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.summary-value {
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.summary-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+
+/* ============================================================
+   BURNER GAUGE — Visual heat map
+   ============================================================ */
+
+.burner-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin-bottom: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.burner-lanes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.burner-lane {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.25s;
+}
+.burner-lane:hover {
+  background: var(--card-hover);
+  transform: translateY(-1px);
+}
+
+.burner-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.burner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.burner-dot-front { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.burner-dot-mid { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+.burner-dot-back { background: var(--muted); box-shadow: 0 0 4px var(--muted); }
+
+.burner-task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.burner-task:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.burner-task-id {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--muted);
+  min-width: 80px;
+}
+
+.burner-task-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+
+/* ============================================================
+   TIER SECTION — Task cards grouped by priority
+   ============================================================ */
+
+.tier-section {
+  margin-bottom: 32px;
+}
+
+.tier-group {
+  margin-bottom: 24px;
+}
+
+.tier-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tier-badge {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.tier-badge-p0 { background: rgba(248, 113, 113, 0.15); color: var(--red); border: 1px solid rgba(248, 113, 113, 0.3); }
+.tier-badge-p1 { background: rgba(251, 191, 36, 0.15); color: var(--yellow); border: 1px solid rgba(251, 191, 36, 0.3); }
+.tier-badge-p2 { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.3); }
+.tier-badge-p3 { background: rgba(148, 163, 184, 0.1); color: var(--muted); border: 1px solid rgba(148, 163, 184, 0.2); }
+.tier-badge-new { background: rgba(167, 139, 250, 0.15); color: var(--purple); border: 1px solid rgba(167, 139, 250, 0.3); }
+
+.tier-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.task-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.task-card:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.task-card-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+}
+.task-card-stripe-p0 { background: var(--red); }
+.task-card-stripe-p1 { background: var(--yellow); }
+.task-card-stripe-p2 { background: var(--accent); }
+.task-card-stripe-p3 { background: var(--muted); }
+.task-card-stripe-new { background: var(--purple); }
+
+.task-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.task-card-id {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--muted);
+}
+
+.task-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.task-card-summary {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.task-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.task-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--muted);
+}
+
+.task-meta-tag-agent { color: var(--purple); border-color: rgba(167,139,250,0.2); }
+.task-meta-tag-eta { color: var(--green); border-color: rgba(74,222,128,0.2); }
+.task-meta-tag-branch { color: var(--accent); border-color: rgba(56,189,248,0.2); }
+.task-meta-tag-human { color: var(--orange); border-color: rgba(251,146,60,0.2); }
+.task-meta-tag-done { color: var(--green); border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.08); }
+.task-meta-tag-immediate { color: var(--red); border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.08); animation: pulse-tag 2s ease-in-out infinite; }
+
+@keyframes pulse-tag {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+
+/* ============================================================
+   AGENT SECTION — Workload bars
+   ============================================================ */
+
+.agent-section {
+  margin-bottom: 32px;
+}
+
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.agent-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.25s;
+}
+.agent-card:hover {
+  background: var(--card-hover);
+  transform: translateY(-1px);
+}
+
+.agent-name {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.agent-role {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.agent-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.agent-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.agent-tasks {
+  font-size: 11px;
+  color: var(--muted);
+}
+.agent-task-count {
+  font-weight: 700;
+  color: var(--text);
+}
+
+
+/* ============================================================
+   BRANCH SECTION — Merge status
+   ============================================================ */
+
+.branch-section {
+  margin-bottom: 32px;
+}
+
+.branch-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+}
+
+.branch-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: all 0.2s;
+}
+.branch-item:hover {
+  background: var(--card-hover);
+  border-color: var(--accent);
+}
+
+.branch-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.branch-dot-unmerged { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.branch-dot-merged { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+.branch-name {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--accent);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch-commits {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.branch-desc {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.hub-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 24px;
+  color: #334155;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .dash-main { padding: 72px 12px 40px; }
+  .summary-strip { grid-template-columns: repeat(2, 1fr); }
+  .burner-lanes { grid-template-columns: 1fr; }
+  .task-grid { grid-template-columns: 1fr; }
+  .branch-list { grid-template-columns: 1fr; }
+  .dash-header { padding: 12px 16px; }
+  .auth-title { font-size: 36px; }
+  .auth-logo { font-size: 56px; }
+}
+
+@media (max-width: 480px) {
+  .summary-strip { grid-template-columns: 1fr; }
+  .agent-grid { grid-template-columns: 1fr; }
+  .auth-title { font-size: 28px; }
+}
