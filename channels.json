@@ -1,7 +1,49 @@
 {
   "version": "1.0",
-  "updated": "2026-03-28",
+  "updated": "2026-04-30",
   "channels": [
+    {
+      "id": "yt_justouttoday",
+      "name": "JustOutToday",
+      "subdomain": "https://www.youtube.com/@justouttoday",
+      "description": "JustOutToday \u2014 Daniel's YouTube channel",
+      "orbType": "star",
+      "color": "#fb923c",
+      "colorAlt": "#7c2d12",
+      "icon": "\u25b6\ufe0f",
+      "status": "live",
+      "contentCount": 0,
+      "phase": 0,
+      "kind": "youtube"
+    },
+    {
+      "id": "yt_marshalldanman",
+      "name": "MarshallDanman",
+      "subdomain": "https://www.youtube.com/@marshalldanman",
+      "description": "MarshallDanman \u2014 Daniel's main YouTube",
+      "orbType": "gem",
+      "color": "#ef4444",
+      "colorAlt": "#7f1d1d",
+      "icon": "\u25b6\ufe0f",
+      "status": "live",
+      "contentCount": 0,
+      "phase": 0,
+      "kind": "youtube"
+    },
+    {
+      "id": "yt_cavedanman",
+      "name": "CaveDanman",
+      "subdomain": "https://www.youtube.com/@cavedanman",
+      "description": "CaveDanman \u2014 adventures from the cave",
+      "orbType": "crystal",
+      "color": "#fbbf24",
+      "colorAlt": "#78350f",
+      "icon": "\u25b6\ufe0f",
+      "status": "live",
+      "contentCount": 0,
+      "phase": 0,
+      "kind": "youtube"
+    },
     {
       "id": "fpcs",
       "name": "FPCS",
@@ -88,7 +130,7 @@
       "orbType": "nebula",
       "color": "#00e5ff",
       "colorAlt": "#004d5a",
-      "icon": "\ud83d\uddE3\ufe0f",
+      "icon": "\ud83d\udde3\ufe0f",
       "status": "live",
       "contentCount": 0,
       "phase": 0
@@ -180,19 +222,6 @@
       "color": "#f87171",
       "colorAlt": "#7f1d1d",
       "icon": "\ud83c\udfac",
-      "status": "planned",
-      "contentCount": 0,
-      "phase": 2
-    },
-    {
-      "id": "youtube",
-      "name": "My YouTube",
-      "subdomain": "myyoutube.justout.today",
-      "description": "Curated favorites & playlists",
-      "orbType": "star",
-      "color": "#fb923c",
-      "colorAlt": "#9a3412",
-      "icon": "\u25b6\ufe0f",
       "status": "planned",
       "contentCount": 0,
       "phase": 2

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>JustOut — Orbs</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; min-height: 100vh;
+    background: radial-gradient(ellipse at center, #1e1b4b 0%, #0f172a 70%, #020617 100%);
+    color: #e2e8f0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Star background */
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 18%, #fff, transparent),
+      radial-gradient(1px 1px at 24% 75%, #fff, transparent),
+      radial-gradient(1px 1px at 47% 33%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 66% 12%, #fbbf24, transparent),
+      radial-gradient(1px 1px at 88% 64%, #fff, transparent),
+      radial-gradient(1px 1px at 31% 89%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 78% 22%, #a78bfa, transparent),
+      radial-gradient(1px 1px at 5% 56%, #fff, transparent),
+      radial-gradient(2px 2px at 92% 80%, #38bdf8, transparent),
+      radial-gradient(1px 1px at 56% 71%, #fff, transparent);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    animation: twinkle 8s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.65; }
+    50%      { opacity: 1; }
+  }
+
+  /* Header */
+  .hub-header {
+    position: relative; z-index: 10;
+    text-align: center;
+    padding: 56px 20px 24px;
+  }
+  .hub-logo { font-size: 56px; line-height: 1; }
+  .hub-title {
+    font-size: 36px; font-weight: 800;
+    background: linear-gradient(90deg, #fbbf24, #a78bfa, #38bdf8);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: 4px; letter-spacing: 1px;
+  }
+  .hub-sub {
+    font-size: 13px; color: #94a3b8; margin-top: 8px;
+  }
+  .hub-sub a { color: #38bdf8; text-decoration: none; }
+  .hub-sub a:hover { text-decoration: underline; }
+
+  /* Section labels */
+  .section-label {
+    text-align: center;
+    margin: 48px auto 18px;
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 700;
+    position: relative;
+    z-index: 5;
+  }
+  .section-label::before, .section-label::after {
+    content: '';
+    display: inline-block;
+    width: 60px; height: 1px;
+    background: linear-gradient(90deg, transparent, #475569, transparent);
+    margin: 0 14px; vertical-align: middle;
+  }
+
+  /* Constellation grid */
+  .constellation {
+    position: relative; z-index: 5;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 36px 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+  }
+
+  /* Featured (YouTube) row uses bigger cards */
+  .featured-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 28px;
+    max-width: 1100px;
+    margin: 12px auto 0;
+    padding: 0 32px;
+    position: relative; z-index: 5;
+  }
+
+  /* === ORB === */
+  .orb-card {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer;
+    text-decoration: none; color: inherit;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .orb-card:hover { transform: translateY(-8px); }
+  .orb-card:active { transform: translateY(-4px) scale(0.98); }
+
+  .orb-body {
+    position: relative;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 32%, var(--glow) 0%, var(--core) 65%, transparent 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px;
+    box-shadow:
+      0 0 30px var(--glow),
+      0 0 60px var(--glow),
+      inset 0 0 25px rgba(0, 0, 0, 0.4),
+      inset 0 0 8px rgba(255, 255, 255, 0.2);
+    animation: orb-pulse var(--pulse, 3.6s) ease-in-out infinite,
+               orb-bob 5s ease-in-out infinite;
+    will-change: transform, box-shadow;
+  }
+  .orb-card:hover .orb-body {
+    box-shadow:
+      0 0 50px var(--glow),
+      0 0 100px var(--glow),
+      inset 0 0 25px rgba(0, 0, 0, 0.4),
+      inset 0 0 12px rgba(255, 255, 255, 0.3);
+  }
+  .orb-body::before {
+    content: '';
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ring);
+    opacity: 0.65;
+    animation: orb-ring-rotate 12s linear infinite;
+  }
+  .orb-body::after {
+    content: '';
+    position: absolute; inset: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 50%);
+    pointer-events: none;
+  }
+  @keyframes orb-pulse {
+    0%, 100% { box-shadow: 0 0 30px var(--glow), 0 0 60px var(--glow), inset 0 0 25px rgba(0,0,0,0.4), inset 0 0 8px rgba(255,255,255,0.2); }
+    50%      { box-shadow: 0 0 45px var(--glow), 0 0 90px var(--glow), inset 0 0 30px rgba(0,0,0,0.5), inset 0 0 14px rgba(255,255,255,0.35); }
+  }
+  @keyframes orb-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+  @keyframes orb-ring-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .orb-label {
+    margin-top: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f1f5f9;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .orb-desc {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+    text-align: center;
+    max-width: 180px;
+    line-height: 1.4;
+  }
+  .orb-status {
+    margin-top: 8px;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+  .orb-status.live    { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
+  .orb-status.planned { background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); }
+
+  /* Featured (YouTube) — bigger orbs */
+  .featured-row .orb-body { width: 120px; height: 120px; font-size: 48px; }
+  .featured-row .orb-label { font-size: 17px; }
+  .featured-row .orb-desc { font-size: 12px; max-width: 220px; }
+  .featured-row .yt-badge {
+    margin-top: 6px;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 0, 0, 0.12);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #ff6b6b;
+  }
+  .featured-row .yt-badge::before {
+    content: '';
+    width: 12px; height: 9px;
+    background: #ff0000;
+    border-radius: 2px;
+    position: relative;
+  }
+
+  /* Footer */
+  .hub-footer {
+    position: relative; z-index: 5;
+    text-align: center;
+    padding: 24px 20px 36px;
+    color: #64748b;
+    font-size: 12px;
+  }
+  .hub-footer a { color: #94a3b8; text-decoration: none; }
+  .hub-footer a:hover { color: #38bdf8; }
+
+  /* Loading state */
+  .loading {
+    text-align: center; padding: 80px 20px; color: #64748b;
+    position: relative; z-index: 5;
+  }
+  .loading-orb {
+    display: inline-block;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #a78bfa, #4c1d95);
+    box-shadow: 0 0 30px #a78bfa;
+    animation: orb-pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid #a78bfa;
+    color: #e2e8f0;
+    padding: 12px 20px;
+    border-radius: 10px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    font-size: 13px;
+    animation: toast-in 0.3s ease-out;
+  }
+  @keyframes toast-in { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+  @media (max-width: 640px) {
+    .hub-title { font-size: 28px; }
+    .constellation { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 28px 16px; padding: 0 16px 60px; }
+    .featured-row { grid-template-columns: 1fr; gap: 20px; padding: 0 16px; }
+    .orb-body { width: 80px; height: 80px; font-size: 30px; }
+    .featured-row .orb-body { width: 100px; height: 100px; font-size: 40px; }
+  }
+</style>
+</head>
+
+<body>
+  <div class="stars"></div>
+
+  <header class="hub-header">
+    <div class="hub-logo">✨</div>
+    <h1 class="hub-title">JustOut</h1>
+    <p class="hub-sub">
+      Daniel's universe · <a href="https://dashboard.justout.today">dashboard</a> · <a href="https://helpdesk.justout.today">helpdesk</a> · <a href="https://dashboard.justout.today/bothq.html">bot orbs</a>
+    </p>
+  </header>
+
+  <!-- Featured: YouTube channels -->
+  <div class="section-label">YouTube Channels</div>
+  <div class="featured-row" id="featuredRow">
+    <div class="loading"><div class="loading-orb"></div></div>
+  </div>
+
+  <!-- Live channels -->
+  <div class="section-label">Live</div>
+  <div class="constellation" id="liveOrbs"></div>
+
+  <!-- Planned -->
+  <div class="section-label">Coming Soon</div>
+  <div class="constellation" id="plannedOrbs"></div>
+
+  <footer class="hub-footer">
+    <p>JustOut Hub · 24 orbs in the constellation · <a href="#" id="refreshBtn">refresh</a></p>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ─── Helpers ──────────────────────────────────────────────────────
+  function el(tag, attrs, text) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'class')      e.className = attrs[k];
+      else if (k === 'style') e.style.cssText = attrs[k];
+      else                    e.setAttribute(k, attrs[k]);
+    });
+    if (text != null) e.textContent = String(text);
+    return e;
+  }
+
+  function buildOrb(channel, opts) {
+    opts = opts || {};
+    var url = channel.subdomain || '#';
+    if (url.indexOf('http') !== 0) {
+      // not a fully-qualified URL — treat as subdomain.justout.today
+      url = url.indexOf('.') >= 0 ? ('https://' + url) : ('https://' + url + '.justout.today');
+    }
+    var card = el('a', {
+      class: 'orb-card',
+      href: url,
+      target: opts.newTab ? '_blank' : '_self',
+      rel: opts.newTab ? 'noopener' : ''
+    });
+
+    // Pulse rate randomized so the constellation doesn't sync up
+    var pulse = (3 + Math.random() * 3).toFixed(1) + 's';
+
+    var body = el('div', { class: 'orb-body' }, channel.icon || '✦');
+    body.style.setProperty('--glow', channel.color || '#38bdf8');
+    body.style.setProperty('--core', channel.colorAlt || '#1e3a5f');
+    body.style.setProperty('--ring', channel.color || '#38bdf8');
+    body.style.setProperty('--pulse', pulse);
+    card.appendChild(body);
+
+    card.appendChild(el('div', { class: 'orb-label' }, channel.name || 'Unknown'));
+    if (channel.description) {
+      card.appendChild(el('div', { class: 'orb-desc' }, channel.description));
+    }
+
+    if (channel.kind === 'youtube') {
+      var badge = el('div', { class: 'yt-badge' });
+      badge.appendChild(document.createTextNode(' YouTube'));
+      card.appendChild(badge);
+    } else {
+      var status = el('div', {
+        class: 'orb-status ' + (channel.status || 'planned')
+      }, channel.status || 'planned');
+      card.appendChild(status);
+    }
+
+    card.addEventListener('click', function (e) {
+      if (channel.status === 'planned' && channel.kind !== 'youtube') {
+        e.preventDefault();
+        showToast(channel.name + ' — coming in phase ' + (channel.phase || '?'));
+      }
+    });
+
+    return card;
+  }
+
+  function showToast(msg) {
+    var t = el('div', { class: 'toast' }, msg);
+    document.body.appendChild(t);
+    setTimeout(function () {
+      t.style.transition = 'opacity 0.4s';
+      t.style.opacity = '0';
+      setTimeout(function () { t.remove(); }, 400);
+    }, 2500);
+  }
+
+  // ─── Render ──────────────────────────────────────────────────────
+  function render(data) {
+    var channels = (data && data.channels) || [];
+    var youtube = channels.filter(function (c) { return c.kind === 'youtube'; });
+    var live    = channels.filter(function (c) { return c.kind !== 'youtube' && c.status === 'live'; });
+    var planned = channels.filter(function (c) { return c.kind !== 'youtube' && c.status !== 'live'; });
+
+    var featured = document.getElementById('featuredRow');
+    featured.replaceChildren();
+    youtube.forEach(function (c) { featured.appendChild(buildOrb(c, { newTab: true })); });
+
+    var liveEl = document.getElementById('liveOrbs');
+    liveEl.replaceChildren();
+    live.forEach(function (c) { liveEl.appendChild(buildOrb(c, { newTab: false })); });
+
+    var plannedEl = document.getElementById('plannedOrbs');
+    plannedEl.replaceChildren();
+    planned.forEach(function (c) { plannedEl.appendChild(buildOrb(c, { newTab: false })); });
+
+    document.querySelector('.hub-footer p').textContent =
+      'JustOut Hub · ' + channels.length + ' orbs in the constellation · last updated ' + (data.updated || '—');
+  }
+
+  function load() {
+    fetch('channels.json?t=' + Date.now())
+      .then(function (r) { return r.json(); })
+      .then(render)
+      .catch(function (err) {
+        var liveEl = document.getElementById('liveOrbs');
+        liveEl.replaceChildren();
+        liveEl.appendChild(el('div', { class: 'loading' }, 'Could not load channels.json: ' + err.message));
+      });
+  }
+
+  load();
+  document.getElementById('refreshBtn').addEventListener('click', function (e) {
+    e.preventDefault();
+    load();
+    showToast('Refreshed');
+  });
+})();
+</script>
+</body>
+</html>
