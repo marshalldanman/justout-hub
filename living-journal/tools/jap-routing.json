@@ -1,0 +1,65 @@
+{
+  "channel": "journal",
+  "name": "Living Journal",
+  "applies_to": "living-journal/**",
+  "charter": "living-journal/AI-CHARTER.md",
+  "preflight": "living-journal/PREFLIGHT.md",
+  "intent_routes": [
+    {
+      "intent": "capture_fragment",
+      "trigger_phrases": [
+        "drop a fragment",
+        "capture this",
+        "remember this",
+        "journal this",
+        "add to my journal",
+        "memory just arrived",
+        "a memory came up"
+      ],
+      "action": "shell",
+      "command": "living-journal/tools/capture.sh \"{transcript}\"",
+      "ai_required": false,
+      "charter_acknowledgement_required": false,
+      "note": "Pure capture. No AI in the loop. Voice text becomes fragment text verbatim."
+    },
+    {
+      "intent": "weave_pass",
+      "trigger_phrases": [
+        "weave the journal",
+        "weave a pass",
+        "tend the journal",
+        "look at new fragments"
+      ],
+      "action": "agent",
+      "agent_brief": "preflight + load AI-CHARTER.md v1.0; perform a weave pass per tools/weave.md; honor invariants I1-I4; run tools/verify.py; if violations, revert.",
+      "ai_required": true,
+      "charter_acknowledgement_required": true
+    },
+    {
+      "intent": "read_journal",
+      "trigger_phrases": [
+        "open the journal",
+        "show me the journal",
+        "read my journal",
+        "what's in the journal"
+      ],
+      "action": "url",
+      "target": "https://hub.justout.today/living-journal/",
+      "ai_required": false,
+      "charter_acknowledgement_required": false
+    },
+    {
+      "intent": "crystallize",
+      "trigger_phrases": [
+        "crystallize this entry",
+        "close this entry",
+        "this memory has fully arrived"
+      ],
+      "action": "user_only",
+      "response": "Crystallization is yours. Open the entry frontmatter and set status: crystallized by hand. AI cannot perform this.",
+      "ai_required": false,
+      "charter_acknowledgement_required": false,
+      "note": "I3 invariant: AIs may never crystallize."
+    }
+  ]
+}
