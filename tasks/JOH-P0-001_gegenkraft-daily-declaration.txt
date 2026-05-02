@@ -8,8 +8,8 @@ Approx Time:    1-2 hours
 Project:        Gegenkraft / Health (P0 — highest priority per LIFE.md)
 ==============================================================================
 
-Status:         IN PROGRESS (Buddy app built, sheet gen overdue)
-Burner:         FRONT BURNER — P0. "Health is infrastructure."
+Status:         ON HOLD (Commander directive 2026-05-02)
+Burner:         ON HOLD — paused until further notice per Commander.
 Branch:         claude/gagenkraft-gambling-moves-Ykkih (1 commit)
 Time Worked:    ~3 hrs
 Created:        2026-04-25 (per LIFE.md roadmap)
