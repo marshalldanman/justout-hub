@@ -1,6 +1,6 @@
 {
-  "version": "1.1",
-  "updated": "2026-04-28",
+  "version": "2.0",
+  "updated": "2026-05-02",
   "channels": [
     {
       "id": "gegenkraft",
@@ -57,7 +57,7 @@
     {
       "id": "fpcs",
       "name": "FPCS",
-      "subdomain": "dashboard.justout.today",
+      "subdomain": "hub.justout.today/dashboard/",
       "description": "Friendly PC Support \u2014 Tech Jobs & Invoices",
       "orbType": "crystal",
       "color": "#4ade80",
@@ -70,7 +70,7 @@
     {
       "id": "tax",
       "name": "Tax HQ",
-      "subdomain": "dashboard.justout.today",
+      "subdomain": "hub.justout.today/dashboard/",
       "description": "FPCS 2022 Tax Preparation Dashboard",
       "orbType": "star",
       "color": "#38bdf8",
@@ -83,7 +83,7 @@
     {
       "id": "bots",
       "name": "Bot HQ",
-      "subdomain": "dashboard.justout.today/bots.html",
+      "subdomain": "hub.justout.today/dashboard/bots.html",
       "description": "Realbotville \u2014 Bot Fleet Command",
       "orbType": "gem",
       "color": "#a78bfa",
@@ -96,7 +96,7 @@
     {
       "id": "helpdesk",
       "name": "Helpdesk",
-      "subdomain": "helpdesk.justout.today",
+      "subdomain": "hub.justout.today/helpdesk/",
       "description": "Issues & Project Tracker",
       "orbType": "star",
       "color": "#fb923c",
@@ -109,7 +109,7 @@
     {
       "id": "security",
       "name": "SentryLion",
-      "subdomain": "dashboard.justout.today/sentrylion.html",
+      "subdomain": "hub.justout.today/dashboard/sentrylion.html",
       "description": "Endpoint Security & Fleet Protection",
       "orbType": "prism",
       "color": "#f97316",
