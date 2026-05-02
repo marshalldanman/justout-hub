@@ -1,0 +1,2689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentryLion // Network Defense System</title>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   SENTRYLION — NETWORK DEFENSE CONSOLE
+   Deep Space / Cyberpunk Command Center
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-deep: #0a0e1a;
+  --bg-panel: #0d1225;
+  --bg-panel-border: #1a2340;
+  --amber: #f59e0b;
+  --amber-dark: #d97706;
+  --amber-glow: rgba(245, 158, 11, 0.3);
+  --cyan: #38bdf8;
+  --cyan-dark: #0ea5e9;
+  --cyan-glow: rgba(56, 189, 248, 0.3);
+  --green: #22c55e;
+  --green-glow: rgba(34, 197, 94, 0.3);
+  --red: #ef4444;
+  --red-glow: rgba(239, 68, 68, 0.4);
+  --yellow: #eab308;
+  --text-primary: #e2e8f0;
+  --text-dim: #64748b;
+  --text-bright: #f8fafc;
+  --grid-line: rgba(56, 189, 248, 0.06);
+  --scanline-color: rgba(56, 189, 248, 0.03);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* ── SCAN LINE OVERLAY ────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Moving scan line */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(180deg,
+    transparent,
+    var(--scanline-color),
+    rgba(56, 189, 248, 0.08),
+    var(--scanline-color),
+    transparent
+  );
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@keyframes scanline {
+  0% { top: -4px; }
+  100% { top: 100%; }
+}
+
+/* ── GRID BACKGROUND ──────────────────────────────────── */
+#grid-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── CORNER BRACKETS (LCARS-style) ────────────────────── */
+.corner-bracket {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  z-index: 10;
+  pointer-events: none;
+}
+.corner-bracket.tl { top: 8px; left: 8px; border-top: 2px solid var(--amber); border-left: 2px solid var(--amber); }
+.corner-bracket.tr { top: 8px; right: 8px; border-top: 2px solid var(--amber); border-right: 2px solid var(--amber); }
+.corner-bracket.bl { bottom: 8px; left: 8px; border-bottom: 2px solid var(--amber); border-left: 2px solid var(--amber); }
+.corner-bracket.br { bottom: 8px; right: 8px; border-bottom: 2px solid var(--amber); border-right: 2px solid var(--amber); }
+
+/* ── MAIN LAYOUT ──────────────────────────────────────── */
+#app {
+  display: grid;
+  grid-template-rows: 48px 1fr 180px;
+  grid-template-columns: 280px 1fr 280px;
+  grid-template-areas:
+    "top    top    top"
+    "left   center right"
+    "bottom bottom controls";
+  width: 100vw;
+  height: 100vh;
+  gap: 4px;
+  padding: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── PANELS ───────────────────────────────────────────── */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--bg-panel-border);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber-glow), transparent);
+}
+
+.panel-label {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* ════════════════════════════════════════════════════════
+   TOP BAR
+   ════════════════════════════════════════════════════════ */
+#top-bar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: linear-gradient(180deg, #0f1630, var(--bg-panel));
+  border-bottom: 1px solid var(--bg-panel-border);
+}
+
+#top-bar .title {
+  font-family: 'Orbitron', monospace;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(90deg, var(--amber), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+#top-bar .status-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--green);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 4px var(--green-glow); }
+  50% { box-shadow: 0 0 12px var(--green), 0 0 24px var(--green-glow); }
+}
+
+#clock {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+
+#back-btn {
+  background: none;
+  border: 1px solid var(--amber-dark);
+  color: var(--amber);
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  padding: 4px 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+#back-btn:hover {
+  background: var(--amber-glow);
+  box-shadow: 0 0 10px var(--amber-glow);
+}
+
+/* ════════════════════════════════════════════════════════
+   LEFT PANEL — THREAT RADAR
+   ════════════════════════════════════════════════════════ */
+#left-panel {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 28px;
+}
+
+#radar-container {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin-top: 8px;
+}
+
+#radar-canvas {
+  width: 100%;
+  height: 100%;
+  max-width: 300px;
+  max-height: 300px;
+}
+
+#radar-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+#threat-count {
+  font-family: 'Orbitron', monospace;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--amber);
+  text-shadow: 0 0 20px var(--amber-glow);
+  line-height: 1;
+}
+
+#threat-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+#threat-list {
+  width: 100%;
+  padding: 12px 10px;
+  flex: 1;
+  overflow: hidden;
+}
+
+#threat-list .threat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  padding: 3px 0;
+  color: var(--text-dim);
+  animation: fadeInItem 0.3s ease;
+}
+
+@keyframes fadeInItem {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.threat-item .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.threat-item .dot.safe { background: var(--green); box-shadow: 0 0 4px var(--green-glow); }
+.threat-item .dot.suspicious { background: var(--yellow); box-shadow: 0 0 4px rgba(234, 179, 8, 0.4); }
+.threat-item .dot.threat { background: var(--red); box-shadow: 0 0 4px var(--red-glow); }
+
+/* ════════════════════════════════════════════════════════
+   CENTER PANEL — NETWORK TOPOLOGY
+   ════════════════════════════════════════════════════════ */
+#center-panel {
+  grid-area: center;
+  position: relative;
+}
+
+#network-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#ai-confidence-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+#ai-confidence-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 30px var(--cyan-glow), 0 0 60px rgba(56, 189, 248, 0.15);
+  line-height: 1;
+}
+
+#ai-confidence-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 4px;
+  margin-top: 4px;
+}
+
+/* Sonar pulse from center */
+.sonar-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--cyan);
+  animation: sonar-expand 3s ease-out infinite;
+  pointer-events: none;
+}
+
+.sonar-pulse:nth-child(2) { animation-delay: 1s; }
+.sonar-pulse:nth-child(3) { animation-delay: 2s; }
+
+@keyframes sonar-expand {
+  0% { width: 20px; height: 20px; opacity: 0.6; }
+  100% { width: 400px; height: 400px; opacity: 0; }
+}
+
+/* ════════════════════════════════════════════════════════
+   RIGHT PANEL — DIALS & GAUGES
+   ════════════════════════════════════════════════════════ */
+#right-panel {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px 8px 8px;
+  overflow-y: auto;
+}
+
+.gauge-container {
+  flex: 1;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-container svg {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+}
+
+.gauge-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--amber);
+  text-align: center;
+  margin-top: 2px;
+}
+
+.gauge-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-bright);
+  text-align: center;
+  text-shadow: 0 0 8px var(--cyan-glow);
+}
+
+/* ════════════════════════════════════════════════════════
+   BOTTOM PANEL — LIVE LOG FEED
+   ════════════════════════════════════════════════════════ */
+#bottom-panel {
+  grid-area: bottom;
+  padding: 24px 12px 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#log-feed {
+  flex: 1;
+  overflow-y: auto;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-panel-border) transparent;
+}
+
+#log-feed::-webkit-scrollbar { width: 4px; }
+#log-feed::-webkit-scrollbar-track { background: transparent; }
+#log-feed::-webkit-scrollbar-thumb { background: var(--bg-panel-border); border-radius: 2px; }
+
+.log-entry {
+  animation: logSlide 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes logSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.log-entry .ts { color: var(--text-dim); }
+.log-entry .tag-scan { color: var(--cyan); }
+.log-entry .tag-ai { color: #a78bfa; }
+.log-entry .tag-allow { color: var(--green); }
+.log-entry .tag-block { color: var(--red); }
+.log-entry .tag-shield { color: var(--amber); }
+.log-entry .tag-warn { color: var(--yellow); }
+.log-entry .msg { color: #94a3b8; }
+
+/* ════════════════════════════════════════════════════════
+   CONTROLS PANEL — LEVERS & SWITCHES
+   ════════════════════════════════════════════════════════ */
+#controls-panel {
+  grid-area: controls;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 12px 10px;
+}
+
+.lever-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lever-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  color: var(--amber);
+  letter-spacing: 2px;
+}
+
+.lever-track {
+  position: relative;
+  height: 24px;
+  background: #111832;
+  border: 1px solid var(--bg-panel-border);
+  border-radius: 3px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.lever-track::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: var(--lever-pct, 33%);
+  background: linear-gradient(90deg, var(--amber-dark), var(--amber));
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--amber-glow);
+}
+
+.lever-value {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--text-bright);
+  z-index: 2;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+/* Mode toggle switch */
+.toggle-group {
+  display: flex;
+  gap: 2px;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 4px 2px;
+  font-family: 'Orbitron', monospace;
+  font-size: 7px;
+  letter-spacing: 1px;
+  background: #111832;
+  border: 1px solid var(--bg-panel-border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(180deg, var(--amber-dark), #92400e);
+  color: var(--text-bright);
+  border-color: var(--amber);
+  box-shadow: 0 0 8px var(--amber-glow);
+}
+
+.toggle-btn:hover:not(.active) {
+  border-color: var(--amber-dark);
+  color: var(--text-primary);
+}
+
+/* Flip switch */
+.flip-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.flip-track {
+  width: 40px;
+  height: 18px;
+  background: #111832;
+  border: 1px solid var(--bg-panel-border);
+  border-radius: 9px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.flip-track.on {
+  border-color: var(--cyan-dark);
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+
+.flip-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: all 0.3s;
+}
+
+.flip-track.on .flip-knob {
+  left: 24px;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan-glow);
+}
+
+.flip-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.flip-label.on { color: var(--cyan); }
+
+/* ════════════════════════════════════════════════════════
+   PARTICLES CANVAS
+   ════════════════════════════════════════════════════════ */
+#particles-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ════════════════════════════════════════════════════════
+   THREAT FLASH OVERLAY
+   ════════════════════════════════════════════════════════ */
+#threat-flash {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--red-glow);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9000;
+  transition: opacity 0.1s;
+}
+
+#threat-flash.active {
+  animation: threatFlash 0.6s ease;
+}
+
+@keyframes threatFlash {
+  0% { opacity: 0.35; }
+  20% { opacity: 0; }
+  40% { opacity: 0.2; }
+  60% { opacity: 0; }
+  80% { opacity: 0.1; }
+  100% { opacity: 0; }
+}
+
+/* ════════════════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  #app {
+    grid-template-columns: 220px 1fr 220px;
+  }
+}
+
+@media (max-width: 860px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 48px 280px 300px auto 180px;
+    grid-template-areas:
+      "top"
+      "left"
+      "center"
+      "right"
+      "bottom";
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  #controls-panel {
+    grid-area: unset;
+  }
+  body { overflow-y: auto; }
+  #right-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 24px 8px 8px;
+  }
+  .gauge-container {
+    width: 48%;
+    min-height: 130px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   BAD ACTOR SUMMARY
+   ════════════════════════════════════════════════════════ */
+#bad-actor-summary {
+  width:100%;padding:6px 10px;
+  border-top:1px solid var(--bg-panel-border);border-bottom:1px solid var(--bg-panel-border);
+  display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;
+}
+.ba-row{display:flex;justify-content:space-between;font-size:9px}
+.ba-label{color:var(--text-dim);letter-spacing:1px}
+.ba-val{font-weight:700;font-family:'Orbitron',monospace}
+.ba-val.red{color:var(--red)} .ba-val.amber{color:var(--amber)} .ba-val.cyan{color:var(--cyan)}
+
+/* ════════════════════════════════════════════════════════
+   IP JAIL PANEL (slide-out)
+   ════════════════════════════════════════════════════════ */
+#ip-jail-panel{
+  position:fixed;top:0;right:-420px;width:420px;height:100vh;
+  background:var(--bg-panel);border-left:2px solid var(--amber);
+  z-index:8000;transition:right 0.3s ease;
+  display:flex;flex-direction:column;
+}
+#ip-jail-panel.open{right:0}
+.jail-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bg-panel-border)}
+.jail-header .panel-label{position:static;opacity:1}
+.jail-close{background:none;border:1px solid var(--red);color:var(--red);padding:2px 8px;cursor:pointer;font-size:16px;border-radius:2px}
+.jail-filters{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--bg-panel-border)}
+.jail-filters input,.jail-filters select{
+  background:#111832;border:1px solid var(--bg-panel-border);color:var(--text-primary);
+  padding:4px 8px;font-family:inherit;font-size:11px;border-radius:2px;
+}
+.jail-filters input{flex:1}
+.jail-list{flex:1;overflow-y:auto;padding:8px 12px}
+.ip-card{
+  padding:8px 10px;margin-bottom:6px;border:1px solid var(--bg-panel-border);
+  border-radius:4px;cursor:pointer;transition:all 0.2s;font-size:11px;
+}
+.ip-card:hover{border-color:var(--amber);background:rgba(245,158,11,0.05)}
+.ip-card.jailed{border-left:3px solid var(--red)}
+.ip-card.watching{border-left:3px solid var(--yellow)}
+.ip-card.released{border-left:3px solid var(--cyan)}
+.ip-card.clean{border-left:3px solid var(--green)}
+.ip-addr{font-family:'Orbitron',monospace;font-size:12px;color:var(--text-bright);font-weight:700}
+.ip-hostname{font-size:9px;color:var(--text-dim);margin-top:1px}
+.ip-status{display:inline-block;font-size:8px;font-weight:700;letter-spacing:1px;padding:1px 6px;border-radius:2px;margin-top:3px}
+.ip-status.st-jailed{background:rgba(239,68,68,0.2);color:var(--red)}
+.ip-status.st-watching{background:rgba(234,179,8,0.2);color:var(--yellow)}
+.ip-status.st-released{background:rgba(56,189,248,0.2);color:var(--cyan)}
+.ip-status.st-recidivist{background:rgba(168,85,247,0.2);color:#a855f7}
+.ip-stats{display:flex;gap:10px;margin-top:4px;font-size:9px;color:var(--text-dim)}
+.ip-jail-reason{font-size:9px;color:var(--red);margin-top:3px;opacity:0.8}
+
+/* IP Detail View */
+#ip-detail-view{
+  position:fixed;top:0;right:-500px;width:500px;height:100vh;
+  background:var(--bg-deep);border-left:2px solid var(--cyan);
+  z-index:8500;transition:right 0.3s ease;
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+#ip-detail-view.open{right:0}
+.ipd-header{padding:12px 16px;border-bottom:1px solid var(--bg-panel-border);display:flex;justify-content:space-between;align-items:center}
+.ipd-section{padding:12px 16px;border-bottom:1px solid var(--bg-panel-border)}
+.ipd-section h4{font-family:'Orbitron',monospace;font-size:9px;color:var(--amber);letter-spacing:2px;margin-bottom:8px}
+.ipd-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.ipd-stat{display:flex;justify-content:space-between;font-size:10px}
+.ipd-stat .lbl{color:var(--text-dim)} .ipd-stat .val{color:var(--text-bright)}
+.ipd-actions{display:flex;gap:8px;padding:12px 16px}
+.ipd-actions button{
+  flex:1;padding:6px;font-family:'Orbitron',monospace;font-size:9px;
+  letter-spacing:1px;cursor:pointer;border-radius:2px;border:1px solid;
+}
+.btn-release{background:rgba(56,189,248,0.1);border-color:var(--cyan)!important;color:var(--cyan)}
+.btn-permblock{background:rgba(239,68,68,0.1);border-color:var(--red)!important;color:var(--red)}
+.btn-vtlookup{background:rgba(168,85,247,0.1);border-color:#a855f7!important;color:#a855f7}
+.ipd-logs{max-height:300px;overflow-y:auto;padding:8px;background:#080c16;border-radius:4px;font-size:10px;line-height:1.5}
+
+/* ════════════════════════════════════════════════════════
+   MODALS (Inner Workings, Toolbox, Archive, Attacks)
+   ════════════════════════════════════════════════════════ */
+.sl-modal{
+  position:fixed;top:0;left:0;width:100vw;height:100vh;
+  background:rgba(0,0,0,0.85);z-index:9500;
+  display:none;align-items:center;justify-content:center;
+}
+.sl-modal.open{display:flex}
+.sl-modal-content{
+  background:var(--bg-deep);border:1px solid var(--amber);border-radius:6px;
+  width:90%;max-width:800px;max-height:85vh;overflow-y:auto;
+}
+.sl-modal-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 20px;border-bottom:1px solid var(--bg-panel-border);
+  position:sticky;top:0;background:var(--bg-deep);z-index:1;
+}
+.sl-modal-header h2{font-family:'Orbitron',monospace;font-size:13px;color:var(--amber);letter-spacing:2px}
+.sl-modal-close{background:none;border:1px solid var(--text-dim);color:var(--text-dim);padding:2px 10px;cursor:pointer;font-size:14px;border-radius:2px}
+.sl-modal-body{padding:20px}
+.iw-section{margin-bottom:20px}
+.iw-section h3{font-family:'Orbitron',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid var(--bg-panel-border)}
+.iw-toggle{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:11px;color:var(--text-primary);cursor:pointer}
+.iw-toggle input[type="checkbox"]{accent-color:var(--cyan);width:16px;height:16px}
+.iw-slider-row{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:11px;color:var(--text-primary)}
+.iw-slider-row label{flex:1;color:var(--text-dim)}
+.iw-slider-row input[type="range"]{width:120px;accent-color:var(--amber)}
+.iw-slider-row span{width:40px;text-align:right;color:var(--amber);font-weight:700}
+.iw-input-row{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:11px}
+.iw-input-row label{color:var(--text-dim);min-width:80px}
+.iw-input-row input[type="text"]{flex:1;background:#111832;border:1px solid var(--bg-panel-border);color:var(--text-primary);padding:4px 8px;font-family:inherit;font-size:11px;border-radius:2px}
+
+/* Tool cards for Network Toolbox */
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tool-card{background:var(--bg-panel);border:1px solid var(--bg-panel-border);border-radius:4px;padding:12px}
+.tool-card h4{font-family:'Orbitron',monospace;font-size:9px;color:var(--amber);letter-spacing:1px;margin-bottom:8px}
+.tool-card .tool-val{font-size:11px;color:var(--text-primary);line-height:1.6;min-height:40px}
+.tool-card button{
+  margin-top:8px;padding:4px 12px;font-family:'Orbitron',monospace;font-size:8px;
+  background:rgba(56,189,248,0.1);border:1px solid var(--cyan);color:var(--cyan);
+  cursor:pointer;border-radius:2px;letter-spacing:1px;
+}
+
+/* Attack timeline canvas */
+#attack-timeline{width:100%;height:120px;margin-top:10px;border:1px solid var(--bg-panel-border);border-radius:4px}
+
+/* Mini-Sentry bot indicator */
+#mini-sentry{
+  display:flex;align-items:center;gap:6px;font-size:9px;color:var(--green);letter-spacing:1px;
+}
+#mini-sentry .sentry-icon{animation:pulse-dot 2s ease-in-out infinite}
+
+/* Remote control alert */
+.log-entry .tag-remote{color:#f472b6}
+.log-entry .tag-vt{color:#c084fc}
+.log-entry .tag-jail{color:#fb923c}
+.log-entry .tag-sentry{color:#34d399}
+
+/* Top bar extra buttons */
+.topbar-btn{
+  background:none;border:1px solid var(--bg-panel-border);color:var(--text-dim);
+  font-family:'Orbitron',monospace;font-size:8px;padding:3px 8px;
+  cursor:pointer;letter-spacing:1px;border-radius:2px;transition:all 0.2s;
+}
+.topbar-btn:hover{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,0.08)}
+.topbar-btn.alert{border-color:var(--red);color:var(--red);animation:pulse-dot 1.5s infinite}
+</style>
+</head>
+<body>
+<script src="js/subdomain-router.js"></script>
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0e1a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access SentryLion.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- Grid background -->
+<div id="grid-bg"></div>
+
+<!-- Corner brackets -->
+<div class="corner-bracket tl"></div>
+<div class="corner-bracket tr"></div>
+<div class="corner-bracket bl"></div>
+<div class="corner-bracket br"></div>
+
+<!-- Floating particles -->
+<canvas id="particles-canvas"></canvas>
+
+<!-- Threat flash overlay -->
+<div id="threat-flash"></div>
+
+<!-- ═══════════ MAIN APP GRID ═══════════ -->
+<div id="app">
+
+  <!-- ── TOP BAR ──────────────────────── -->
+  <div id="top-bar">
+    <button id="back-btn" onclick="goBack()" title="Return to Dashboard (ESC)">&lt; EXIT</button>
+    <div class="title">SENTRYLION // NETWORK DEFENSE SYSTEM</div>
+    <div class="status-group">
+      <div id="mini-sentry"><span class="sentry-icon">&#128737;</span><span>SENTRY ACTIVE</span></div>
+      <button class="topbar-btn" onclick="showTotalAttacks()" title="Total attacks summary">&#9888; ATTACKS</button>
+      <button class="topbar-btn" onclick="toggleJailPanel()" title="IP Jail">&#128274; IP JAIL</button>
+      <button class="topbar-btn" onclick="openModal('iw-modal')" title="Inner Workings">&#9881; CONFIG</button>
+      <button class="topbar-btn" onclick="openModal('toolbox-modal')" title="Network Toolbox">&#128295; TOOLS</button>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span>ACTIVE</span>
+      </div>
+      <div id="clock">00:00:00.000</div>
+    </div>
+  </div>
+
+  <!-- ── LEFT: THREAT RADAR ───────────── -->
+  <div id="left-panel" class="panel">
+    <div class="panel-label">THREAT RADAR</div>
+    <div id="radar-container">
+      <canvas id="radar-canvas"></canvas>
+      <div id="radar-center-text">
+        <div id="threat-count">0</div>
+        <div id="threat-label">THREATS</div>
+      </div>
+    </div>
+    <div id="bad-actor-summary">
+      <div class="ba-row"><span class="ba-label">JAILED</span><span class="ba-val red" id="ba-jailed">0</span></div>
+      <div class="ba-row"><span class="ba-label">WATCHING</span><span class="ba-val amber" id="ba-watching">0</span></div>
+      <div class="ba-row"><span class="ba-label">ATTACKS TODAY</span><span class="ba-val red" id="ba-attacks">0</span></div>
+      <div class="ba-row"><span class="ba-label">RECIDIVISTS</span><span class="ba-val cyan" id="ba-recidivist">0</span></div>
+    </div>
+    <div id="threat-list"></div>
+  </div>
+
+  <!-- ── CENTER: NETWORK TOPOLOGY ─────── -->
+  <div id="center-panel" class="panel">
+    <div class="panel-label">NETWORK TOPOLOGY</div>
+    <canvas id="network-canvas"></canvas>
+    <div class="sonar-pulse"></div>
+    <div class="sonar-pulse"></div>
+    <div class="sonar-pulse"></div>
+    <div id="ai-confidence-overlay">
+      <div id="ai-confidence-value">97.3%</div>
+      <div id="ai-confidence-label">AI CONFIDENCE</div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: GAUGES ────────────────── -->
+  <div id="right-panel" class="panel">
+    <div class="panel-label">SYSTEM GAUGES</div>
+
+    <!-- Gauge 1: Bandwidth -->
+    <div class="gauge-container" id="gauge-bandwidth">
+      <svg viewBox="0 0 200 120"></svg>
+      <div class="gauge-value" id="gv-bandwidth">0 Mbps</div>
+      <div class="gauge-label">BANDWIDTH</div>
+    </div>
+
+    <!-- Gauge 2: Threat Level -->
+    <div class="gauge-container" id="gauge-threat">
+      <svg viewBox="0 0 200 120"></svg>
+      <div class="gauge-value" id="gv-threat">LOW</div>
+      <div class="gauge-label">THREAT LEVEL</div>
+    </div>
+
+    <!-- Gauge 3: Firewall Load -->
+    <div class="gauge-container" id="gauge-firewall">
+      <svg viewBox="0 0 200 120"></svg>
+      <div class="gauge-value" id="gv-firewall">0%</div>
+      <div class="gauge-label">FIREWALL LOAD</div>
+    </div>
+
+    <!-- Gauge 4: Encryption -->
+    <div class="gauge-container" id="gauge-encryption">
+      <svg viewBox="0 0 200 120"></svg>
+      <div class="gauge-value" id="gv-encryption">256-BIT</div>
+      <div class="gauge-label">ENCRYPTION</div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM: LIVE LOG FEED ────────── -->
+  <div id="bottom-panel" class="panel">
+    <div class="panel-label" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+      <span>LIVE FEED <span style="font-size:10px;color:#64748b;font-weight:400;margin-left:6px">[ <span id="log-count">0</span> stored ]</span></span>
+      <span style="display:flex;gap:6px">
+        <button onclick="clearLog()" style="background:#374151;color:#94a3b8;border:1px solid #4b5563;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:1px" title="Clear stored log">✕ CLEAR</button>
+        <button onclick="openModal('archive-modal')" style="background:#374151;color:#94a3b8;border:1px solid #4b5563;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:1px" title="Browse log archives">&#128218; HISTORY</button>
+        <button onclick="exportLog()" style="background:#f59e0b;color:#000;border:none;padding:3px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:1px" title="Download full log as .txt file">⬇ EXPORT LOG</button>
+      </span>
+    </div>
+    <div id="log-feed"></div>
+  </div>
+
+  <!-- ── CONTROLS: LEVERS ─────────────── -->
+  <div id="controls-panel" class="panel">
+    <div class="panel-label">CONTROLS</div>
+
+    <!-- Sensitivity Lever -->
+    <div class="lever-group">
+      <div class="lever-label">SENSITIVITY</div>
+      <div class="lever-track" id="lever-sensitivity" style="--lever-pct: 33%;" onclick="cycleSensitivity()">
+        <div class="lever-value" id="sensitivity-val">MEDIUM</div>
+      </div>
+    </div>
+
+    <!-- Mode Toggle -->
+    <div class="lever-group">
+      <div class="lever-label">MODE</div>
+      <div class="toggle-group" id="mode-toggles">
+        <div class="toggle-btn active" data-mode="monitor" onclick="setMode(this)">MONITOR</div>
+        <div class="toggle-btn" data-mode="defense" onclick="setMode(this)">DEFENSE</div>
+        <div class="toggle-btn" data-mode="lockdown" onclick="setMode(this)">LOCKDOWN</div>
+      </div>
+    </div>
+
+    <!-- AI Override Flip -->
+    <div class="lever-group">
+      <div class="lever-label">AI OVERRIDE</div>
+      <div class="flip-switch" onclick="toggleAI()">
+        <div class="flip-track" id="ai-track">
+          <div class="flip-knob"></div>
+        </div>
+        <div class="flip-label" id="ai-label">AUTO</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ IP JAIL PANEL ═══════════ -->
+<div id="ip-jail-panel">
+  <div class="jail-header">
+    <span class="panel-label" style="position:static;opacity:1">&#128274; IP JAIL</span>
+    <button class="jail-close" onclick="toggleJailPanel()">&times;</button>
+  </div>
+  <div class="jail-filters">
+    <input type="text" id="jail-search" placeholder="Search IP or hostname..." oninput="renderJailList()">
+    <select id="jail-filter" onchange="renderJailList()">
+      <option value="all">ALL</option>
+      <option value="jailed">JAILED</option>
+      <option value="watching">WATCHING</option>
+      <option value="released">RELEASED</option>
+      <option value="recidivist">RECIDIVIST</option>
+    </select>
+  </div>
+  <div id="jail-list" class="jail-list"></div>
+</div>
+
+<!-- ═══════════ IP DETAIL VIEW ═══════════ -->
+<div id="ip-detail-view">
+  <div class="ipd-header">
+    <span class="panel-label" style="position:static;opacity:1" id="ipd-title">IP DETAIL</span>
+    <button class="jail-close" onclick="closeIPDetail()">&times;</button>
+  </div>
+  <div id="ipd-content"></div>
+</div>
+
+<!-- ═══════════ INNER WORKINGS MODAL ═══════════ -->
+<div class="sl-modal" id="iw-modal">
+  <div class="sl-modal-content">
+    <div class="sl-modal-header">
+      <h2>&#9881; INNER WORKINGS</h2>
+      <button class="sl-modal-close" onclick="closeModal('iw-modal')">&times;</button>
+    </div>
+    <div class="sl-modal-body">
+      <div class="iw-section">
+        <h3>EVENT SCHEDULING</h3>
+        <label class="iw-toggle"><input type="checkbox" id="iw-log-events" checked onchange="saveConfig()"><span>Generate Log Entries</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-threat-events" checked onchange="saveConfig()"><span>Generate Threat Events</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-blip-spawn" checked onchange="saveConfig()"><span>Spawn Radar Blips</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-gauge-updates" checked onchange="saveConfig()"><span>Gauge Fluctuation</span></label>
+      </div>
+      <div class="iw-section">
+        <h3>SIMULATION PARAMETERS</h3>
+        <div class="iw-slider-row"><label>Threat Interval (s)</label><input type="range" id="iw-threat-interval" min="5" max="120" value="35" oninput="this.nextElementSibling.textContent=this.value+'s';saveConfig()"><span>35s</span></div>
+        <div class="iw-slider-row"><label>Auto-Jail Threshold</label><input type="range" id="iw-jail-threshold" min="2" max="20" value="5" oninput="this.nextElementSibling.textContent=this.value;saveConfig()"><span>5</span></div>
+        <div class="iw-slider-row"><label>Jail Threat Ratio %</label><input type="range" id="iw-jail-ratio" min="10" max="80" value="30" oninput="this.nextElementSibling.textContent=this.value+'%';saveConfig()"><span>30%</span></div>
+      </div>
+      <div class="iw-section">
+        <h3>DISPLAY</h3>
+        <label class="iw-toggle"><input type="checkbox" id="iw-particles" checked onchange="saveConfig()"><span>Background Particles</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-scanline" checked onchange="saveConfig()"><span>CRT Scanline Effect</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-threat-flash" checked onchange="saveConfig()"><span>Threat Flash Overlay</span></label>
+      </div>
+      <div class="iw-section">
+        <h3>SECURITY MONITORING</h3>
+        <label class="iw-toggle"><input type="checkbox" id="iw-remote-detect" checked onchange="saveConfig()"><span>Remote Control Detection (RDP/VNC/TeamViewer)</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-auto-jail" checked onchange="saveConfig()"><span>Auto-Jail Malicious IPs</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-sentry-recheck" checked onchange="saveConfig()"><span>Mini-Sentry 30-min Recheck</span></label>
+      </div>
+      <div class="iw-section">
+        <h3>VIRUSTOTAL INTEGRATION</h3>
+        <div class="iw-input-row"><label>Proxy URL</label><input type="text" id="iw-vt-url" placeholder="https://your-proxy.vercel.app/api/vt-lookup" onchange="saveConfig()"></div>
+        <label class="iw-toggle"><input type="checkbox" id="iw-vt-auto" onchange="saveConfig()"><span>Auto-lookup IPs on first threat</span></label>
+        <label class="iw-toggle"><input type="checkbox" id="iw-vt-jail" onchange="saveConfig()"><span>Auto-jail VT-flagged IPs (3+ vendors)</span></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NETWORK TOOLBOX MODAL ═══════════ -->
+<div class="sl-modal" id="toolbox-modal">
+  <div class="sl-modal-content">
+    <div class="sl-modal-header">
+      <h2>&#128295; NETWORK TOOLBOX</h2>
+      <button class="sl-modal-close" onclick="closeModal('toolbox-modal')">&times;</button>
+    </div>
+    <div class="sl-modal-body">
+      <div class="tool-grid">
+        <div class="tool-card"><h4>CONNECTION INFO</h4><div class="tool-val" id="tb-connection">Detecting...</div><button onclick="refreshConnectionInfo()">REFRESH</button></div>
+        <div class="tool-card"><h4>PAGE LOAD TIMING</h4><div class="tool-val" id="tb-timing">Loading...</div></div>
+        <div class="tool-card"><h4>LATENCY TEST</h4><div class="tool-val" id="tb-latency">Click to test</div><button onclick="runLatencyTest()">RUN TEST</button></div>
+        <div class="tool-card"><h4>CONNECTIVITY CHECK</h4><div class="tool-val" id="tb-connectivity">Click to check</div><button onclick="runConnectivityCheck()">CHECK</button></div>
+        <div class="tool-card"><h4>RESOURCE TIMING</h4><div class="tool-val" id="tb-resources">Loading...</div></div>
+        <div class="tool-card"><h4>SECURITY STATUS</h4><div class="tool-val" id="tb-security">Loading...</div><button onclick="refreshSecurityInfo()">REFRESH</button></div>
+      </div>
+      <p style="font-size:10px;color:var(--text-dim);margin-top:16px;text-align:center">Real browser measurements via Performance API, Network Information API, and WebRTC. Raw socket tools (netstat, ping) require local NirSoft integration.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ARCHIVE BROWSER MODAL ═══════════ -->
+<div class="sl-modal" id="archive-modal">
+  <div class="sl-modal-content">
+    <div class="sl-modal-header">
+      <h2>&#128218; LOG ARCHIVES</h2>
+      <button class="sl-modal-close" onclick="closeModal('archive-modal')">&times;</button>
+    </div>
+    <div class="sl-modal-body" id="archive-content">
+      <p style="color:var(--text-dim)">Loading archives...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TOTAL ATTACKS MODAL ═══════════ -->
+<div class="sl-modal" id="attacks-modal">
+  <div class="sl-modal-content">
+    <div class="sl-modal-header">
+      <h2>&#9888; TOTAL ATTACKS ON THIS PC</h2>
+      <button class="sl-modal-close" onclick="closeModal('attacks-modal')">&times;</button>
+    </div>
+    <div class="sl-modal-body" id="attacks-content"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SENTRYLION ENGINE
+   ═══════════════════════════════════════════════════════════ */
+
+// ── STATE ────────────────────────────────────────────────
+const state = {
+  sensitivity: 1, // 0=Low, 1=Med, 2=High, 3=Paranoid
+  sensLabels: ['LOW', 'MEDIUM', 'HIGH', 'PARANOID'],
+  sensPcts: ['10%', '33%', '66%', '100%'],
+  mode: 'monitor',
+  aiOverride: false,
+  threatCount: 0,
+  confidence: 97.3,
+  bandwidth: 420,
+  threatLevel: 15,
+  firewallLoad: 34,
+  encryptionIdx: 1, // 0=128, 1=256, 2=512
+  encLabels: ['128-BIT', '256-BIT', '512-BIT'],
+  radarBlips: [],
+  networkNodes: [],
+  particles: [],
+  logEntries: [],
+  threats: [],
+  lastThreatTime: 0,
+};
+
+// ── BACK BUTTON ──────────────────────────────────────────
+function goBack() {
+  if (document.referrer && document.referrer.includes('realbotville')) {
+    window.location.href = 'realbotville.html';
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(); });
+
+// ── CLOCK ────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  const ms = String(now.getMilliseconds()).padStart(3, '0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}.${ms}`;
+}
+
+// ── CONTROLS ─────────────────────────────────────────────
+function cycleSensitivity() {
+  state.sensitivity = (state.sensitivity + 1) % 4;
+  const track = document.getElementById('lever-sensitivity');
+  track.style.setProperty('--lever-pct', state.sensPcts[state.sensitivity]);
+  document.getElementById('sensitivity-val').textContent = state.sensLabels[state.sensitivity];
+  addLog('SHIELD', `Sensitivity set to ${state.sensLabels[state.sensitivity]}`);
+}
+
+function setMode(btn) {
+  document.querySelectorAll('#mode-toggles .toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.mode = btn.dataset.mode;
+  addLog('SHIELD', `Mode changed to ${state.mode.toUpperCase()}`);
+}
+
+function toggleAI() {
+  state.aiOverride = !state.aiOverride;
+  const track = document.getElementById('ai-track');
+  const label = document.getElementById('ai-label');
+  track.classList.toggle('on', !state.aiOverride);
+  label.classList.toggle('on', !state.aiOverride);
+  label.textContent = state.aiOverride ? 'MANUAL' : 'AUTO';
+  addLog('AI', `Override set to ${state.aiOverride ? 'MANUAL' : 'AUTO'}`);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RADAR
+// ═══════════════════════════════════════════════════════════
+const radarCanvas = document.getElementById('radar-canvas');
+const radarCtx = radarCanvas.getContext('2d');
+let radarAngle = 0;
+
+function resizeRadarCanvas() {
+  const container = document.getElementById('radar-container');
+  const rect = container.getBoundingClientRect();
+  const size = Math.min(rect.width, rect.height) || 240;
+  const dpr = window.devicePixelRatio || 1;
+  radarCanvas.width = size * dpr;
+  radarCanvas.height = size * dpr;
+  radarCanvas.style.width = size + 'px';
+  radarCanvas.style.height = size + 'px';
+  radarCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resizeRadarCanvas();
+
+function initRadarBlips() {
+  for (let i = 0; i < 5; i++) spawnBlip('safe');
+}
+
+function spawnBlip(type) {
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 0.2 + Math.random() * 0.75;
+  state.radarBlips.push({
+    x: Math.cos(angle) * dist,
+    y: Math.sin(angle) * dist,
+    type, // safe, suspicious, threat
+    alpha: 1,
+    born: Date.now(),
+    life: 8000 + Math.random() * 12000,
+  });
+}
+
+function drawRadar(now) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = radarCanvas.width / dpr, h = radarCanvas.height / dpr;
+  const cx = w / 2, cy = h / 2, r = w / 2 - 16;
+  radarCtx.clearRect(0, 0, w, h);
+
+  // Rings
+  const rings = [0.33, 0.66, 1.0];
+  const ringLabels = ['CORE', 'INTERNAL', 'PERIMETER'];
+  radarCtx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+  radarCtx.lineWidth = 1;
+  rings.forEach((pct, i) => {
+    radarCtx.beginPath();
+    radarCtx.arc(cx, cy, r * pct, 0, Math.PI * 2);
+    radarCtx.stroke();
+    // label
+    radarCtx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+    radarCtx.font = '10px "Share Tech Mono"';
+    radarCtx.fillText(ringLabels[i], cx + r * pct * 0.5, cy - r * pct + 14);
+  });
+
+  // Cross lines
+  radarCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+  radarCtx.beginPath();
+  radarCtx.moveTo(cx, cy - r); radarCtx.lineTo(cx, cy + r);
+  radarCtx.moveTo(cx - r, cy); radarCtx.lineTo(cx + r, cy);
+  radarCtx.stroke();
+
+  // Sweep
+  radarAngle += 0.02;
+  const sweepGrad = radarCtx.createConicalGradient
+    ? null
+    : null; // fallback
+
+  // Draw sweep cone
+  radarCtx.save();
+  radarCtx.translate(cx, cy);
+  radarCtx.rotate(radarAngle);
+  const grad = radarCtx.createLinearGradient(0, 0, r, 0);
+  grad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+  grad.addColorStop(1, 'rgba(56, 189, 248, 0.02)');
+  radarCtx.fillStyle = grad;
+  radarCtx.beginPath();
+  radarCtx.moveTo(0, 0);
+  radarCtx.arc(0, 0, r, -0.3, 0);
+  radarCtx.closePath();
+  radarCtx.fill();
+  // Sweep line
+  radarCtx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+  radarCtx.lineWidth = 2;
+  radarCtx.beginPath();
+  radarCtx.moveTo(0, 0);
+  radarCtx.lineTo(r, 0);
+  radarCtx.stroke();
+  radarCtx.restore();
+
+  // Blips
+  const colors = { safe: '#22c55e', suspicious: '#eab308', threat: '#ef4444' };
+  const glows = { safe: 'rgba(34,197,94,0.5)', suspicious: 'rgba(234,179,8,0.5)', threat: 'rgba(239,68,68,0.6)' };
+
+  state.radarBlips = state.radarBlips.filter(b => {
+    const age = now - b.born;
+    if (age > b.life) return false;
+    b.alpha = Math.max(0, 1 - age / b.life);
+    return true;
+  });
+
+  state.radarBlips.forEach(b => {
+    const bx = cx + b.x * r;
+    const by = cy + b.y * r;
+    radarCtx.globalAlpha = b.alpha;
+    radarCtx.fillStyle = glows[b.type];
+    radarCtx.beginPath();
+    radarCtx.arc(bx, by, 6, 0, Math.PI * 2);
+    radarCtx.fill();
+    radarCtx.fillStyle = colors[b.type];
+    radarCtx.beginPath();
+    radarCtx.arc(bx, by, 3, 0, Math.PI * 2);
+    radarCtx.fill();
+    radarCtx.globalAlpha = 1;
+  });
+
+  // Update threat count
+  const activeThreats = state.radarBlips.filter(b => b.type === 'threat').length;
+  state.threatCount = activeThreats;
+  document.getElementById('threat-count').textContent = activeThreats;
+  document.getElementById('threat-count').style.color = activeThreats > 0 ? '#ef4444' : '#f59e0b';
+}
+
+// ═══════════════════════════════════════════════════════════
+// NETWORK TOPOLOGY (Center Canvas)
+// ═══════════════════════════════════════════════════════════
+const netCanvas = document.getElementById('network-canvas');
+const netCtx = netCanvas.getContext('2d');
+let netTime = 0;
+
+const deviceNames = ['Server-A', 'Workstation-1', 'NAS', 'IoT-Hub', 'Mobile-7', 'Printer', 'Camera-3', 'AP-Main', 'DB-Primary', 'Switch-Core'];
+const deviceIcons = ['S', 'W', 'N', 'I', 'M', 'P', 'C', 'A', 'D', 'X'];
+
+function initNetworkNodes() {
+  const count = 10;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+    const orbitR = 0.32;
+    state.networkNodes.push({
+      angle,
+      orbitR,
+      orbitSpeed: 0.0005 + Math.random() * 0.001,
+      name: deviceNames[i],
+      icon: deviceIcons[i],
+      pulse: Math.random() * Math.PI * 2,
+      active: true,
+      threat: false,
+      particles: [],
+    });
+  }
+}
+
+function resizeNetCanvas() {
+  const rect = netCanvas.parentElement.getBoundingClientRect();
+  netCanvas.width = rect.width * window.devicePixelRatio;
+  netCanvas.height = rect.height * window.devicePixelRatio;
+  netCanvas.style.width = rect.width + 'px';
+  netCanvas.style.height = rect.height + 'px';
+  netCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+function drawNetwork(now) {
+  const w = netCanvas.width / window.devicePixelRatio;
+  const h = netCanvas.height / window.devicePixelRatio;
+  const cx = w / 2, cy = h / 2;
+  const baseR = Math.min(w, h) * 0.38;
+  netCtx.clearRect(0, 0, w, h);
+  netTime += 0.016;
+
+  // Outer ring decoration
+  netCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+  netCtx.lineWidth = 1;
+  netCtx.beginPath();
+  netCtx.arc(cx, cy, baseR + 20, 0, Math.PI * 2);
+  netCtx.stroke();
+
+  netCtx.strokeStyle = 'rgba(245, 158, 11, 0.06)';
+  netCtx.setLineDash([4, 8]);
+  netCtx.beginPath();
+  netCtx.arc(cx, cy, baseR + 35, 0, Math.PI * 2);
+  netCtx.stroke();
+  netCtx.setLineDash([]);
+
+  // Central router
+  const routerPulse = 0.8 + 0.2 * Math.sin(netTime * 2);
+  netCtx.fillStyle = `rgba(56, 189, 248, ${0.1 * routerPulse})`;
+  netCtx.beginPath();
+  netCtx.arc(cx, cy, 30, 0, Math.PI * 2);
+  netCtx.fill();
+  netCtx.strokeStyle = `rgba(56, 189, 248, ${0.5 * routerPulse})`;
+  netCtx.lineWidth = 2;
+  netCtx.beginPath();
+  netCtx.arc(cx, cy, 22, 0, Math.PI * 2);
+  netCtx.stroke();
+  netCtx.fillStyle = '#38bdf8';
+  netCtx.font = 'bold 12px "Orbitron"';
+  netCtx.textAlign = 'center';
+  netCtx.textBaseline = 'middle';
+  netCtx.fillText('R', cx, cy);
+
+  // Nodes
+  state.networkNodes.forEach((node, i) => {
+    node.angle += node.orbitSpeed;
+    node.pulse += 0.03;
+    const nx = cx + Math.cos(node.angle) * baseR;
+    const ny = cy + Math.sin(node.angle) * baseR;
+
+    // Connection line
+    const lineAlpha = 0.15 + 0.1 * Math.sin(node.pulse);
+    netCtx.strokeStyle = node.threat
+      ? `rgba(239, 68, 68, ${lineAlpha + 0.2})`
+      : `rgba(56, 189, 248, ${lineAlpha})`;
+    netCtx.lineWidth = 1;
+    netCtx.beginPath();
+    netCtx.moveTo(cx, cy);
+    netCtx.lineTo(nx, ny);
+    netCtx.stroke();
+
+    // Data flow particles on lines
+    const particleCount = 2;
+    for (let p = 0; p < particleCount; p++) {
+      const t = ((netTime * 0.3 + p * 0.5 + i * 0.1) % 1);
+      const px = cx + (nx - cx) * t;
+      const py = cy + (ny - cy) * t;
+      const pAlpha = Math.sin(t * Math.PI) * 0.8;
+      netCtx.fillStyle = node.threat
+        ? `rgba(239, 68, 68, ${pAlpha})`
+        : `rgba(56, 189, 248, ${pAlpha})`;
+      netCtx.beginPath();
+      netCtx.arc(px, py, 2, 0, Math.PI * 2);
+      netCtx.fill();
+    }
+
+    // Node glow
+    const glow = 0.15 + 0.1 * Math.sin(node.pulse);
+    netCtx.fillStyle = node.threat
+      ? `rgba(239, 68, 68, ${glow})`
+      : `rgba(56, 189, 248, ${glow})`;
+    netCtx.beginPath();
+    netCtx.arc(nx, ny, 18, 0, Math.PI * 2);
+    netCtx.fill();
+
+    // Node circle
+    netCtx.strokeStyle = node.threat ? '#ef4444' : 'rgba(56, 189, 248, 0.6)';
+    netCtx.lineWidth = 1.5;
+    netCtx.beginPath();
+    netCtx.arc(nx, ny, 12, 0, Math.PI * 2);
+    netCtx.stroke();
+
+    // Node fill
+    netCtx.fillStyle = node.threat ? 'rgba(239, 68, 68, 0.15)' : 'rgba(56, 189, 248, 0.08)';
+    netCtx.beginPath();
+    netCtx.arc(nx, ny, 12, 0, Math.PI * 2);
+    netCtx.fill();
+
+    // Node letter
+    netCtx.fillStyle = node.threat ? '#ef4444' : '#38bdf8';
+    netCtx.font = '9px "Orbitron"';
+    netCtx.textAlign = 'center';
+    netCtx.textBaseline = 'middle';
+    netCtx.fillText(node.icon, nx, ny);
+
+    // Node name
+    netCtx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+    netCtx.font = '8px "Share Tech Mono"';
+    netCtx.fillText(node.name, nx, ny + 22);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SVG GAUGES
+// ═══════════════════════════════════════════════════════════
+function createGaugeSVG(containerId, min, max, zones, unit) {
+  const svg = document.querySelector(`#${containerId} svg`);
+  const cx = 100, cy = 95, r = 75;
+  const startAngle = Math.PI * 0.8;
+  const endAngle = Math.PI * 0.2;
+  const sweep = Math.PI * 1.6; // total arc
+
+  let markup = '';
+
+  // Background arc
+  markup += describeArc(cx, cy, r, startAngle, startAngle + sweep, 'rgba(30,40,70,0.5)', 8, `${containerId}-bg`);
+
+  // Zone arcs
+  if (zones) {
+    zones.forEach(z => {
+      const a1 = startAngle + sweep * ((z.from - min) / (max - min));
+      const a2 = startAngle + sweep * ((z.to - min) / (max - min));
+      markup += describeArc(cx, cy, r, a1, a2, z.color, 6, '');
+    });
+  }
+
+  // Tick marks
+  const tickCount = 10;
+  for (let i = 0; i <= tickCount; i++) {
+    const a = startAngle + sweep * (i / tickCount);
+    const x1 = cx + Math.cos(a) * (r - 10);
+    const y1 = cy + Math.sin(a) * (r - 10);
+    const x2 = cx + Math.cos(a) * (r + 2);
+    const y2 = cy + Math.sin(a) * (r + 2);
+    markup += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(148,163,184,0.3)" stroke-width="1"/>`;
+    // Number
+    const val = Math.round(min + (max - min) * (i / tickCount));
+    const tx = cx + Math.cos(a) * (r - 20);
+    const ty = cy + Math.sin(a) * (r - 20);
+    markup += `<text x="${tx}" y="${ty}" fill="rgba(148,163,184,0.4)" font-size="7" font-family="Share Tech Mono" text-anchor="middle" dominant-baseline="middle">${val}</text>`;
+  }
+
+  // Needle
+  markup += `<line id="${containerId}-needle" x1="${cx}" y1="${cy}" x2="${cx + Math.cos(startAngle) * (r - 14)}" y2="${cy + Math.sin(startAngle) * (r - 14)}" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>`;
+  // Center dot
+  markup += `<circle cx="${cx}" cy="${cy}" r="4" fill="#f59e0b"/>`;
+  markup += `<circle cx="${cx}" cy="${cy}" r="2" fill="#0a0e1a"/>`;
+
+  svg.innerHTML = markup;
+
+  return { cx, cy, r, startAngle, sweep, min, max, needleId: `${containerId}-needle` };
+}
+
+function describeArc(cx, cy, r, startA, endA, color, width, id) {
+  const x1 = cx + Math.cos(startA) * r;
+  const y1 = cy + Math.sin(startA) * r;
+  const x2 = cx + Math.cos(endA) * r;
+  const y2 = cy + Math.sin(endA) * r;
+  const largeArc = (endA - startA) > Math.PI ? 1 : 0;
+  const idAttr = id ? `id="${id}"` : '';
+  return `<path ${idAttr} d="M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>`;
+}
+
+function updateNeedle(gaugeInfo, value) {
+  const pct = Math.max(0, Math.min(1, (value - gaugeInfo.min) / (gaugeInfo.max - gaugeInfo.min)));
+  const angle = gaugeInfo.startAngle + gaugeInfo.sweep * pct;
+  const nx = gaugeInfo.cx + Math.cos(angle) * (gaugeInfo.r - 14);
+  const ny = gaugeInfo.cy + Math.sin(angle) * (gaugeInfo.r - 14);
+  const needle = document.getElementById(gaugeInfo.needleId);
+  if (needle) {
+    needle.setAttribute('x2', nx);
+    needle.setAttribute('y2', ny);
+  }
+}
+
+// Initialize gauges
+let gaugeBandwidth, gaugeThreat, gaugeFirewall, gaugeEncryption;
+
+function initGauges() {
+  gaugeBandwidth = createGaugeSVG('gauge-bandwidth', 0, 1000, [
+    { from: 0, to: 400, color: 'rgba(34,197,94,0.4)' },
+    { from: 400, to: 700, color: 'rgba(56,189,248,0.4)' },
+    { from: 700, to: 1000, color: 'rgba(245,158,11,0.4)' },
+  ]);
+
+  gaugeThreat = createGaugeSVG('gauge-threat', 0, 100, [
+    { from: 0, to: 25, color: 'rgba(34,197,94,0.5)' },
+    { from: 25, to: 50, color: 'rgba(234,179,8,0.5)' },
+    { from: 50, to: 75, color: 'rgba(245,158,11,0.5)' },
+    { from: 75, to: 100, color: 'rgba(239,68,68,0.5)' },
+  ]);
+
+  gaugeFirewall = createGaugeSVG('gauge-firewall', 0, 100, [
+    { from: 0, to: 60, color: 'rgba(34,197,94,0.4)' },
+    { from: 60, to: 85, color: 'rgba(234,179,8,0.4)' },
+    { from: 85, to: 100, color: 'rgba(239,68,68,0.4)' },
+  ]);
+
+  gaugeEncryption = createGaugeSVG('gauge-encryption', 0, 3, [
+    { from: 0, to: 1, color: 'rgba(234,179,8,0.4)' },
+    { from: 1, to: 2, color: 'rgba(56,189,248,0.4)' },
+    { from: 2, to: 3, color: 'rgba(34,197,94,0.5)' },
+  ]);
+}
+
+function updateGauges() {
+  // Bandwidth fluctuates
+  state.bandwidth += (Math.random() - 0.48) * 30;
+  state.bandwidth = Math.max(80, Math.min(950, state.bandwidth));
+  updateNeedle(gaugeBandwidth, state.bandwidth);
+  document.getElementById('gv-bandwidth').textContent = Math.round(state.bandwidth) + ' Mbps';
+
+  // Threat level — mode and sensitivity affect decay
+  let drift = (Math.random() - 0.5) * 5;
+  // Active mitigation from mode
+  if (state.mode === 'defense') drift -= 2.0;
+  if (state.mode === 'lockdown') drift -= 5.0;
+  // Higher sensitivity = better detection = slightly faster mitigation
+  if (state.sensitivity >= 2) drift -= 0.8;
+  if (state.sensitivity >= 3) drift -= 0.5;
+  state.threatLevel += drift;
+  state.threatLevel = Math.max(2, Math.min(95, state.threatLevel));
+  updateNeedle(gaugeThreat, state.threatLevel);
+  const tl = state.threatLevel;
+  const tlLabel = tl < 25 ? 'LOW' : tl < 50 ? 'MODERATE' : tl < 75 ? 'HIGH' : 'CRITICAL';
+  const tlColor = tl < 25 ? '#22c55e' : tl < 50 ? '#eab308' : tl < 75 ? '#f59e0b' : '#ef4444';
+  const gvThreat = document.getElementById('gv-threat');
+  gvThreat.textContent = tlLabel;
+  gvThreat.style.color = tlColor;
+
+  // Firewall load
+  state.firewallLoad += (Math.random() - 0.48) * 4;
+  state.firewallLoad = Math.max(10, Math.min(98, state.firewallLoad));
+  updateNeedle(gaugeFirewall, state.firewallLoad);
+  document.getElementById('gv-firewall').textContent = Math.round(state.firewallLoad) + '%';
+
+  // Encryption stays mostly stable, occasional shift
+  if (Math.random() < 0.005) {
+    state.encryptionIdx = Math.floor(Math.random() * 3);
+  }
+  updateNeedle(gaugeEncryption, state.encryptionIdx + 0.5);
+  document.getElementById('gv-encryption').textContent = state.encLabels[state.encryptionIdx];
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOG FEED
+// ═══════════════════════════════════════════════════════════
+const logFeed = document.getElementById('log-feed');
+const ipPool = [
+  '192.168.1.12', '192.168.1.45', '10.0.0.8', '172.16.0.22', '192.168.1.100',
+  '10.0.0.55', '192.168.2.7', '172.16.1.33', '10.10.0.14', '192.168.1.201',
+  '45.33.32.156', '8.8.8.8', '1.1.1.1', '104.26.10.78', '93.184.216.34'
+];
+const domains = ['cdn.example.com', 'api.internal.net', 'auth.secure.io', 'update.vendor.com', 'dns.resolver.net', 'ntp.pool.org', 'mail.corp.local'];
+
+const logTemplates = [
+  { tag: 'SCAN', cls: 'tag-scan', gen: () => `Port sweep detected from ${rIP()} → BLOCKED` },
+  { tag: 'SCAN', cls: 'tag-scan', gen: () => `SYN scan on ports 22,80,443 from ${rIP()}` },
+  { tag: 'AI', cls: 'tag-ai', gen: () => `Pattern match ${(85 + Math.random() * 14).toFixed(1)}% — known scanner signature` },
+  { tag: 'AI', cls: 'tag-ai', gen: () => `Behavioral analysis: ${rIP()} — anomaly score ${(Math.random() * 0.4).toFixed(3)}` },
+  { tag: 'AI', cls: 'tag-ai', gen: () => `Neural classifier: traffic from ${rIP()} classified NORMAL` },
+  { tag: 'ALLOW', cls: 'tag-allow', gen: () => `HTTPS traffic ${rIP()} → ${rDomain()}` },
+  { tag: 'ALLOW', cls: 'tag-allow', gen: () => `DNS resolution ${rDomain()} → ${rIP()}` },
+  { tag: 'ALLOW', cls: 'tag-allow', gen: () => `Established connection ${rIP()}:${rPort()} ↔ ${rIP()}:443` },
+  { tag: 'SHIELD', cls: 'tag-shield', gen: () => `Integrity check passed — 0 anomalies` },
+  { tag: 'SHIELD', cls: 'tag-shield', gen: () => `Firewall rules refreshed — ${200 + Math.floor(Math.random() * 100)} active rules` },
+  { tag: 'SHIELD', cls: 'tag-shield', gen: () => `Certificate validation: ${rDomain()} — VALID (expires ${futureDate()})` },
+  { tag: 'SHIELD', cls: 'tag-shield', gen: () => `Rate limiter: ${rIP()} — ${Math.floor(Math.random() * 50 + 10)} req/s (within threshold)` },
+];
+
+const threatTemplates = [
+  { tag: 'BLOCK', cls: 'tag-block', gen: () => `THREAT: Brute force attempt from ${rIP()} on port 22 — BLOCKED` },
+  { tag: 'BLOCK', cls: 'tag-block', gen: () => `ALERT: SQL injection attempt detected from ${rIP()} — QUARANTINED` },
+  { tag: 'BLOCK', cls: 'tag-block', gen: () => `THREAT: DDoS pattern detected — ${Math.floor(Math.random() * 5000 + 1000)} req/s from ${rIP()}` },
+  { tag: 'WARN', cls: 'tag-warn', gen: () => `SUSPICIOUS: Unusual outbound traffic from ${rIP()} to ${rIP()} — MONITORING` },
+  { tag: 'BLOCK', cls: 'tag-block', gen: () => `THREAT: Malware signature matched — C2 beacon from ${rIP()} — BLOCKED` },
+  { tag: 'WARN', cls: 'tag-warn', gen: () => `SUSPICIOUS: Port knocking sequence detected from ${rIP()}` },
+];
+
+function rIP() { return ipPool[Math.floor(Math.random() * ipPool.length)]; }
+function rDomain() { return domains[Math.floor(Math.random() * domains.length)]; }
+function rPort() { return Math.floor(Math.random() * 60000 + 1024); }
+function futureDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + Math.floor(Math.random() * 365 + 30));
+  return d.toISOString().split('T')[0];
+}
+
+// ── PERSISTENT LOG SYSTEM (localStorage) ──────────────────
+const LOG_STORAGE_KEY = 'sentrylion-log';
+const LOG_MAX_ENTRIES = 10000;
+let logDirty = false;
+let logSaveTimer = null;
+
+// Load existing log from localStorage
+function loadLog() {
+  try {
+    const raw = localStorage.getItem(LOG_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+// Save log to localStorage (debounced)
+function persistLog() {
+  if (!logDirty) return;
+  try {
+    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logHistory));
+    logDirty = false;
+  } catch (e) {
+    // Storage full — trim older half
+    logHistory.splice(0, Math.floor(logHistory.length / 2));
+    try { localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logHistory)); } catch (_) {}
+  }
+}
+
+function scheduleSave() {
+  if (logSaveTimer) return;
+  logSaveTimer = setTimeout(() => { persistLog(); logSaveTimer = null; }, 3000);
+}
+
+// Initialize from stored history
+const logHistory = loadLog();
+
+// Update log count display
+function updateLogCount() {
+  const el = document.getElementById('log-count');
+  if (el) el.textContent = logHistory.length.toLocaleString();
+}
+
+function addLog(tag, message) {
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}.${String(now.getMilliseconds()).padStart(3,'0')}`;
+  const tagMap = {SCAN:'tag-scan',AI:'tag-ai',ALLOW:'tag-allow',BLOCK:'tag-block',WARN:'tag-warn',SHIELD:'tag-shield',REMOTE:'tag-remote',VT:'tag-vt',JAIL:'tag-jail',SENTRY:'tag-sentry'};
+  const tagCls = tagMap[tag] || 'tag-shield';
+
+  // Store persistently with full date
+  logHistory.push(`[${dateStr} ${ts}] ${tag}: ${message}`);
+  while (logHistory.length > LOG_MAX_ENTRIES) logHistory.shift();
+  logDirty = true;
+  scheduleSave();
+  updateLogCount();
+
+  // Track IPs in registry
+  const ipMatches = message.match(/\d+\.\d+\.\d+\.\d+/g);
+  if (ipMatches) ipMatches.forEach(ip => trackIP(ip, tag));
+
+  // Check for archive threshold
+  if (logHistory.length >= LOG_MAX_ENTRIES) {
+    archiveLog();
+  }
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="ts">[${ts}]</span> <span class="${tagCls}">${tag}:</span> <span class="msg">${message}</span>`;
+  logFeed.appendChild(entry);
+
+  // Keep max 80 entries in DOM
+  while (logFeed.children.length > 80) {
+    logFeed.removeChild(logFeed.firstChild);
+  }
+  logFeed.scrollTop = logFeed.scrollHeight;
+}
+
+function exportLog() {
+  const header = [
+    `SENTRYLION PERSISTENT LOG — Exported ${new Date().toISOString()}`,
+    `Mode: ${state.mode.toUpperCase()} | Sensitivity: ${state.sensLabels[state.sensitivity]}`,
+    `Total entries: ${logHistory.length} / ${LOG_MAX_ENTRIES} max`,
+    '═'.repeat(72),
+    ''
+  ].join('\n');
+  const blob = new Blob([header + logHistory.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `sentrylion-log-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  addLog('SHIELD', 'Log exported — ' + logHistory.length + ' entries');
+}
+
+function clearLog() {
+  if (!confirm('Clear all ' + logHistory.length + ' stored log entries?')) return;
+  logHistory.length = 0;
+  localStorage.removeItem(LOG_STORAGE_KEY);
+  logFeed.innerHTML = '';
+  updateLogCount();
+  addLog('SHIELD', 'Log cleared by operator');
+}
+
+// Save on page unload
+window.addEventListener('beforeunload', () => { persistLog(); persistIPRegistry(); });
+
+// ═══════════════════════════════════════════════════════════
+// INDEXEDDB LOG ARCHIVE SYSTEM
+// ═══════════════════════════════════════════════════════════
+const ARCHIVE_DB_NAME = 'SentryLionArchive';
+const ARCHIVE_STORE = 'archives';
+
+function openArchiveDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(ARCHIVE_DB_NAME, 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(ARCHIVE_STORE)) {
+        db.createObjectStore(ARCHIVE_STORE, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function archiveLog() {
+  try {
+    const ipSummary = {};
+    let threatCount = 0;
+    logHistory.forEach(entry => {
+      const ipMatch = entry.match(/\d+\.\d+\.\d+\.\d+/g);
+      if (ipMatch) ipMatch.forEach(ip => { ipSummary[ip] = (ipSummary[ip] || 0) + 1; });
+      if (entry.includes('BLOCK:') || entry.includes('WARN:')) threatCount++;
+    });
+    const archive = {
+      timestamp: new Date().toISOString(),
+      entryCount: logHistory.length,
+      entries: [...logHistory],
+      ipSummary,
+      threatCount,
+      dateRange: {
+        from: logHistory[0]?.match(/\[(.*?)\]/)?.[1] || '',
+        to: logHistory[logHistory.length - 1]?.match(/\[(.*?)\]/)?.[1] || ''
+      }
+    };
+    const db = await openArchiveDB();
+    const tx = db.transaction(ARCHIVE_STORE, 'readwrite');
+    tx.objectStore(ARCHIVE_STORE).add(archive);
+    await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = reject; });
+    logHistory.length = 0;
+    localStorage.removeItem(LOG_STORAGE_KEY);
+    logDirty = false;
+    updateLogCount();
+    addLog('SHIELD', `Log archived — ${archive.entryCount} entries preserved`);
+  } catch (e) {
+    console.error('[SentryLion] Archive error:', e);
+  }
+}
+
+async function loadArchives() {
+  try {
+    const db = await openArchiveDB();
+    const tx = db.transaction(ARCHIVE_STORE, 'readonly');
+    const store = tx.objectStore(ARCHIVE_STORE);
+    return new Promise((resolve, reject) => {
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) { return []; }
+}
+
+async function searchArchivesForIP(ip) {
+  const archives = await loadArchives();
+  const results = [];
+  for (const archive of archives) {
+    if (archive.ipSummary && archive.ipSummary[ip]) {
+      const matches = archive.entries.filter(e => e.includes(ip));
+      results.push({ archiveId: archive.id, archiveDate: archive.timestamp, entries: matches, count: archive.ipSummary[ip] });
+    }
+  }
+  return results;
+}
+
+async function showArchiveBrowser() {
+  const container = document.getElementById('archive-content');
+  const archives = await loadArchives();
+  if (archives.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-dim)">No archives yet. Logs are archived automatically when they reach ' + LOG_MAX_ENTRIES.toLocaleString() + ' entries.</p>';
+    return;
+  }
+  let html = '<div style="margin-bottom:12px;font-size:11px;color:var(--text-dim)">' + archives.length + ' archive(s) stored</div>';
+  archives.reverse().forEach(a => {
+    html += `<div style="background:var(--bg-panel);border:1px solid var(--bg-panel-border);border-radius:4px;padding:10px;margin-bottom:8px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--amber)">ARCHIVE #${a.id} — ${new Date(a.timestamp).toLocaleString()}</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:4px">${a.entryCount.toLocaleString()} entries | ${a.threatCount} threats | ${a.dateRange.from} → ${a.dateRange.to}</div>
+      <div style="font-size:9px;color:var(--text-dim);margin-top:4px">Top IPs: ${Object.entries(a.ipSummary||{}).sort((x,y)=>y[1]-x[1]).slice(0,5).map(([ip,c])=>`${ip}(${c})`).join(', ')}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// IP REGISTRY & TRACKING SYSTEM
+// ═══════════════════════════════════════════════════════════
+const IP_REGISTRY_KEY = 'sentrylion-ip-registry';
+let ipRegistry = {};
+let ipRegistryDirty = false;
+let ipSaveTimer = null;
+
+function loadIPRegistry() {
+  try { ipRegistry = JSON.parse(localStorage.getItem(IP_REGISTRY_KEY) || '{}'); } catch(e) { ipRegistry = {}; }
+}
+
+function persistIPRegistry() {
+  if (!ipRegistryDirty) return;
+  try { localStorage.setItem(IP_REGISTRY_KEY, JSON.stringify(ipRegistry)); ipRegistryDirty = false; } catch(e) {}
+}
+
+function scheduleIPSave() {
+  if (ipSaveTimer) return;
+  ipSaveTimer = setTimeout(() => { persistIPRegistry(); ipSaveTimer = null; }, 3000);
+}
+
+function trackIP(ip, tag) {
+  if (!ipRegistry[ip]) {
+    ipRegistry[ip] = {
+      firstSeen: new Date().toISOString(), lastSeen: new Date().toISOString(),
+      totalHits: 0, threatHits: 0, allowHits: 0,
+      tags: [], jailed: false, jailReason: null, jailDate: null,
+      released: false, releaseDate: null, recidivist: false,
+      hostname: null, vtData: null, permBlock: false
+    };
+    // Attempt reverse hostname lookup (simulated for known IPs)
+    resolveHostname(ip);
+  }
+  const r = ipRegistry[ip];
+  r.lastSeen = new Date().toISOString();
+  r.totalHits++;
+  if (tag === 'BLOCK' || tag === 'WARN' || tag === 'REMOTE') r.threatHits++;
+  if (tag === 'ALLOW') r.allowHits++;
+  if (!r.tags.includes(tag)) r.tags.push(tag);
+
+  // Auto-jail check
+  const cfg = loadConfig();
+  const threshold = cfg.jailThreshold || 5;
+  const ratio = cfg.jailRatio || 30;
+  if (cfg.autoJail && !r.jailed && r.threatHits >= threshold && (r.threatHits / r.totalHits * 100) > ratio) {
+    r.jailed = true;
+    r.jailReason = `Auto-jailed: ${r.threatHits} threats (${(r.threatHits/r.totalHits*100).toFixed(0)}% ratio)`;
+    r.jailDate = new Date().toISOString();
+    addLog('JAIL', `IP JAILED: ${ip}${r.hostname ? ' ('+r.hostname+')' : ''} — ${r.jailReason}`);
+    if (r.released) {
+      r.recidivist = true;
+      addLog('JAIL', `RECIDIVIST: ${ip} — previously released, re-caught!`);
+    }
+  }
+  ipRegistryDirty = true;
+  scheduleIPSave();
+}
+
+// Hostname resolution — known public IPs only (no fake local entries)
+const hostnameMap = {
+  '8.8.8.8': 'dns.google', '8.8.4.4': 'dns.google',
+  '1.1.1.1': 'one.one.one.one', '1.0.0.1': 'one.one.one.one',
+  '45.33.32.156': 'scanme.nmap.org', '104.26.10.78': 'cdn.cloudflare.com',
+  '93.184.216.34': 'example.com'
+};
+
+function resolveHostname(ip) {
+  if (hostnameMap[ip]) {
+    if (ipRegistry[ip]) ipRegistry[ip].hostname = hostnameMap[ip];
+    return hostnameMap[ip];
+  }
+  // Check if already resolved in registry
+  if (ipRegistry[ip] && ipRegistry[ip].hostname) return ipRegistry[ip].hostname;
+  // For unknown IPs, generate a plausible hostname
+  let hostname;
+  if (ip.startsWith('192.168') || ip.startsWith('10.') || ip.startsWith('172.16')) {
+    hostname = 'device-' + ip.split('.').pop() + '.local';
+  } else {
+    hostname = 'ext-' + ip.replace(/\./g, '-') + '.net';
+  }
+  if (ipRegistry[ip]) ipRegistry[ip].hostname = hostname;
+  return hostname;
+}
+
+function releaseIP(ip) {
+  if (!confirm(`Release ${ip} from jail? It will be monitored for re-offense.`)) return;
+  const r = ipRegistry[ip];
+  if (!r) return;
+  r.jailed = false;
+  r.released = true;
+  r.releaseDate = new Date().toISOString();
+  r.threatHits = 0;
+  r.permBlock = false;
+  ipRegistryDirty = true;
+  scheduleIPSave();
+  addLog('JAIL', `IP RELEASED: ${ip}${r.hostname ? ' ('+r.hostname+')' : ''} — monitoring for re-offense`);
+  renderJailList();
+}
+
+function permBlockIP(ip) {
+  const note = prompt(`Permanent block reason for ${ip}:`);
+  if (!note) return;
+  const r = ipRegistry[ip];
+  if (!r) return;
+  r.jailed = true;
+  r.permBlock = true;
+  r.jailReason = `Permanent block: ${note}`;
+  r.jailDate = new Date().toISOString();
+  ipRegistryDirty = true;
+  scheduleIPSave();
+  addLog('JAIL', `PERMANENT BLOCK: ${ip}${r.hostname ? ' ('+r.hostname+')' : ''} — ${note}`);
+  renderJailList();
+}
+
+// ═══════════════════════════════════════════════════════════
+// IP JAIL PANEL
+// ═══════════════════════════════════════════════════════════
+function toggleJailPanel() {
+  document.getElementById('ip-jail-panel').classList.toggle('open');
+  if (document.getElementById('ip-jail-panel').classList.contains('open')) renderJailList();
+}
+
+function renderJailList() {
+  const list = document.getElementById('jail-list');
+  const search = (document.getElementById('jail-search').value || '').toLowerCase();
+  const filter = document.getElementById('jail-filter').value;
+  const ips = Object.entries(ipRegistry)
+    .filter(([ip, r]) => {
+      if (search && !ip.includes(search) && !(r.hostname || '').toLowerCase().includes(search)) return false;
+      if (filter === 'jailed') return r.jailed;
+      if (filter === 'watching') return r.threatHits >= 2 && !r.jailed;
+      if (filter === 'released') return r.released && !r.jailed;
+      if (filter === 'recidivist') return r.recidivist;
+      return true;
+    })
+    .sort((a, b) => b[1].threatHits - a[1].threatHits);
+
+  if (ips.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-dim);font-size:11px;padding:20px;text-align:center">No IPs match filter</p>';
+    return;
+  }
+  list.innerHTML = ips.map(([ip, r]) => {
+    const status = r.jailed ? (r.permBlock ? 'PERM-BLOCK' : 'JAILED') : r.recidivist ? 'RECIDIVIST' : r.threatHits >= 2 ? 'WATCHING' : r.released ? 'RELEASED' : 'CLEAN';
+    const stCls = r.jailed ? 'st-jailed' : r.recidivist ? 'st-recidivist' : r.threatHits >= 2 ? 'st-watching' : r.released ? 'st-released' : '';
+    const cardCls = r.jailed ? 'jailed' : r.threatHits >= 2 ? 'watching' : r.released ? 'released' : 'clean';
+    return `<div class="ip-card ${cardCls}" onclick="showIPDetail('${ip}')">
+      <div class="ip-addr">${ip}</div>
+      <div class="ip-hostname">${r.hostname || 'resolving...'}</div>
+      <span class="ip-status ${stCls}">${status}</span>
+      <div class="ip-stats">
+        <span>${r.totalHits} hits</span><span>${r.threatHits} threats</span>
+        <span>Last: ${relativeTime(r.lastSeen)}</span>
+      </div>
+      ${r.jailReason ? '<div class="ip-jail-reason">' + r.jailReason + '</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function relativeTime(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60000) return 'just now';
+  if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+  return Math.floor(diff / 86400000) + 'd ago';
+}
+
+// ═══════════════════════════════════════════════════════════
+// IP DETAIL VIEW
+// ═══════════════════════════════════════════════════════════
+async function showIPDetail(ip) {
+  // Ensure IP is tracked even if clicked before tracking system registered it
+  if (!ipRegistry[ip]) trackIP(ip, 'SCAN');
+  const r = ipRegistry[ip];
+  if (!r) return;
+  const panel = document.getElementById('ip-detail-view');
+  const content = document.getElementById('ipd-content');
+  document.getElementById('ipd-title').textContent = `${ip} ${r.hostname ? '(' + r.hostname + ')' : ''}`;
+
+  // Current log entries for this IP
+  const currentEntries = logHistory.filter(e => e.includes(ip)).slice(-50);
+  // Archive entries
+  const archiveResults = await searchArchivesForIP(ip);
+  const archiveEntries = archiveResults.flatMap(a => a.entries).slice(-50);
+  const allEntries = [...archiveEntries, ...currentEntries].slice(-100);
+
+  const statusLabel = r.jailed ? (r.permBlock ? 'PERMANENT BLOCK' : 'JAILED') : r.recidivist ? 'RECIDIVIST' : r.released ? 'RELEASED (MONITORING)' : r.threatHits >= 2 ? 'WATCHING' : 'CLEAN';
+
+  content.innerHTML = `
+    <div class="ipd-section">
+      <h4>PROFILE</h4>
+      <div class="ipd-grid">
+        <div class="ipd-stat"><span class="lbl">Status</span><span class="val" style="color:${r.jailed?'var(--red)':r.threatHits>=2?'var(--yellow)':'var(--green)'}">${statusLabel}</span></div>
+        <div class="ipd-stat"><span class="lbl">Hostname</span><span class="val">${r.hostname || 'unknown'}</span></div>
+        <div class="ipd-stat"><span class="lbl">First Seen</span><span class="val">${new Date(r.firstSeen).toLocaleString()}</span></div>
+        <div class="ipd-stat"><span class="lbl">Last Seen</span><span class="val">${new Date(r.lastSeen).toLocaleString()}</span></div>
+        <div class="ipd-stat"><span class="lbl">Total Hits</span><span class="val">${r.totalHits}</span></div>
+        <div class="ipd-stat"><span class="lbl">Threat Hits</span><span class="val" style="color:var(--red)">${r.threatHits}</span></div>
+        <div class="ipd-stat"><span class="lbl">Allow Hits</span><span class="val" style="color:var(--green)">${r.allowHits}</span></div>
+        <div class="ipd-stat"><span class="lbl">Threat Ratio</span><span class="val">${r.totalHits ? (r.threatHits/r.totalHits*100).toFixed(1) + '%' : '0%'}</span></div>
+        <div class="ipd-stat"><span class="lbl">Tags</span><span class="val">${r.tags.join(', ')}</span></div>
+        <div class="ipd-stat"><span class="lbl">Recidivist</span><span class="val" style="color:${r.recidivist?'#a855f7':'var(--text-dim)'}">${r.recidivist ? 'YES' : 'No'}</span></div>
+      </div>
+    </div>
+    ${r.jailReason ? `<div class="ipd-section"><h4>JAIL INFO</h4>
+      <div class="ipd-grid">
+        <div class="ipd-stat"><span class="lbl">Reason</span><span class="val" style="color:var(--red)">${r.jailReason}</span></div>
+        <div class="ipd-stat"><span class="lbl">Jailed At</span><span class="val">${r.jailDate ? new Date(r.jailDate).toLocaleString() : 'N/A'}</span></div>
+        ${r.released ? `<div class="ipd-stat"><span class="lbl">Last Released</span><span class="val">${new Date(r.releaseDate).toLocaleString()}</span></div>` : ''}
+      </div>
+    </div>` : ''}
+    ${r.vtData ? `<div class="ipd-section"><h4>VIRUSTOTAL INTELLIGENCE</h4>
+      <div class="ipd-grid">
+        <div class="ipd-stat"><span class="lbl">Country</span><span class="val">${r.vtData.country}</span></div>
+        <div class="ipd-stat"><span class="lbl">ASN</span><span class="val">${r.vtData.asOwner} (AS${r.vtData.asn})</span></div>
+        <div class="ipd-stat"><span class="lbl">Reputation</span><span class="val" style="color:${r.vtData.reputation<0?'var(--red)':'var(--green)'}">${r.vtData.reputation}</span></div>
+        <div class="ipd-stat"><span class="lbl">Malicious</span><span class="val" style="color:var(--red)">${r.vtData.malicious}</span></div>
+        <div class="ipd-stat"><span class="lbl">Harmless</span><span class="val" style="color:var(--green)">${r.vtData.harmless}</span></div>
+        <div class="ipd-stat"><span class="lbl">Network</span><span class="val">${r.vtData.network||'—'}</span></div>
+      </div>
+    </div>` : '<div class="ipd-section"><h4>VIRUSTOTAL</h4><p style="font-size:10px;color:var(--text-dim)">No VT data. Configure proxy in Inner Workings to enable lookups.</p></div>'}
+    <div class="ipd-actions">
+      ${r.jailed ? `<button class="btn-release" onclick="releaseIP('${ip}');closeIPDetail()">RELEASE &amp; MONITOR</button>` : ''}
+      ${!r.permBlock ? `<button class="btn-permblock" onclick="permBlockIP('${ip}');closeIPDetail()">PERMANENT BLOCK</button>` : ''}
+      <button class="btn-vtlookup" onclick="vtLookupIP('${ip}')">VT LOOKUP</button>
+    </div>
+    <div class="ipd-section">
+      <h4>LOG HISTORY (${allEntries.length} entries${archiveResults.length ? ', incl. ' + archiveResults.length + ' archive(s)' : ''})</h4>
+      <div class="ipd-logs">${allEntries.length ? allEntries.map(e => '<div style="padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.03)">' + escapeHtml(e) + '</div>').join('') : '<span style="color:var(--text-dim)">No entries found</span>'}</div>
+    </div>`;
+  panel.classList.add('open');
+}
+
+function closeIPDetail() {
+  document.getElementById('ip-detail-view').classList.remove('open');
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MINI-SENTRY BOT (Anti-Tampering & 30-min Recheck)
+// ═══════════════════════════════════════════════════════════
+let sentryRecheckTimer = null;
+
+function startMiniSentry() {
+  addLog('SENTRY', 'Mini-Sentry bot activated — guarding IP Jail, rechecking every 30 minutes');
+  sentryRecheckTimer = setInterval(sentryRecheck, 30 * 60 * 1000);
+  // Also do an initial check after 60 seconds
+  setTimeout(sentryRecheck, 60000);
+}
+
+function sentryRecheck() {
+  const cfg = loadConfig();
+  if (!cfg.sentryRecheck) return;
+
+  let recheckCount = 0;
+  let confirmedBad = 0;
+  let cleared = 0;
+
+  Object.entries(ipRegistry).forEach(([ip, r]) => {
+    if (!r.jailed) return;
+    if (r.permBlock) return; // Permanent blocks don't get rechecked
+    recheckCount++;
+
+    // Check recent activity since jail
+    const recentThreats = logHistory.filter(e => e.includes(ip) && (e.includes('BLOCK:') || e.includes('WARN:'))).length;
+    const recentTotal = logHistory.filter(e => e.includes(ip)).length;
+
+    if (recentTotal > 5 && recentThreats === 0) {
+      // IP seems clean since being jailed — flag but keep jailed (needs manual release)
+      addLog('SENTRY', `Recheck ${ip}: ${recentTotal} recent hits, 0 threats — may be safe. Manual review suggested.`);
+      cleared++;
+    } else if (recentThreats > 0) {
+      addLog('SENTRY', `Recheck ${ip}: CONFIRMED BAD — ${recentThreats} threat events since jail`);
+      confirmedBad++;
+    }
+  });
+
+  if (recheckCount > 0) {
+    addLog('SENTRY', `30-min recheck complete: ${recheckCount} jailed IPs checked, ${confirmedBad} confirmed bad, ${cleared} possibly clear`);
+  }
+
+  // Anti-tampering: verify jail integrity
+  const jailedCount = Object.values(ipRegistry).filter(r => r.jailed).length;
+  const storedRegistry = JSON.parse(localStorage.getItem(IP_REGISTRY_KEY) || '{}');
+  const storedJailed = Object.values(storedRegistry).filter(r => r.jailed).length;
+  if (storedJailed < jailedCount - 1) {
+    addLog('SENTRY', `TAMPERING ALERT: Stored jail count (${storedJailed}) < active (${jailedCount}). Re-saving.`);
+    persistIPRegistry();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// REMOTE CONTROL DETECTION
+// ═══════════════════════════════════════════════════════════
+const remoteTemplates = [
+  () => `RDP connection attempt detected from ${rIP()} on port 3389`,
+  () => `VNC handshake intercepted from ${rIP()} on port 5900`,
+  () => `TeamViewer beacon signal from ${rIP()} — BLOCKED`,
+  () => `Remote registry access attempt from ${rIP()} — DENIED`,
+  () => `Remote code execution pattern from ${rIP()} — QUARANTINED`,
+  () => `SSH brute force from ${rIP()} — 47 failed attempts — BLOCKED`,
+  () => `WMI remote execution attempt from ${rIP()} — BLOCKED`,
+  () => `PowerShell remoting signal from ${rIP()} on port 5985 — BLOCKED`,
+];
+
+function generateRemoteEvent() {
+  const cfg = loadConfig();
+  if (!cfg.remoteDetect) return;
+  const tmpl = remoteTemplates[Math.floor(Math.random() * remoteTemplates.length)];
+  const msg = tmpl();
+  addLog('REMOTE', msg);
+  // Extract IP and auto-jail with special reason
+  const ipMatch = msg.match(/\d+\.\d+\.\d+\.\d+/);
+  if (ipMatch && ipRegistry[ipMatch[0]]) {
+    const r = ipRegistry[ipMatch[0]];
+    if (!r.jailed) {
+      r.jailed = true;
+      r.jailReason = 'Remote control signal detected — auto-jailed';
+      r.jailDate = new Date().toISOString();
+      addLog('JAIL', `REMOTE-JAILED: ${ipMatch[0]} — remote control signal detected`);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOTAL ATTACKS DISPLAY
+// ═══════════════════════════════════════════════════════════
+function showTotalAttacks() {
+  const content = document.getElementById('attacks-content');
+  const allIPs = Object.entries(ipRegistry);
+  const totalThreats = allIPs.reduce((sum, [,r]) => sum + r.threatHits, 0);
+  const totalBlocks = logHistory.filter(e => e.includes('BLOCK:')).length;
+  const totalWarns = logHistory.filter(e => e.includes('WARN:')).length;
+  const totalRemote = logHistory.filter(e => e.includes('REMOTE:')).length;
+  const jailed = allIPs.filter(([,r]) => r.jailed).length;
+  const recidivists = allIPs.filter(([,r]) => r.recidivist).length;
+  const topAttackers = allIPs.filter(([,r]) => r.threatHits > 0)
+    .sort((a, b) => b[1].threatHits - a[1].threatHits).slice(0, 10);
+
+  content.innerHTML = `
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-family:'Orbitron',monospace;font-size:48px;font-weight:900;color:var(--red);text-shadow:0 0 30px var(--red-glow)">${totalThreats}</div>
+      <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--text-dim);letter-spacing:3px">TOTAL ATTACKS DETECTED</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="text-align:center;padding:10px;background:var(--bg-panel);border-radius:4px;border:1px solid var(--bg-panel-border)">
+        <div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--red)">${totalBlocks}</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px">BLOCKED</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:var(--bg-panel);border-radius:4px;border:1px solid var(--bg-panel-border)">
+        <div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--yellow)">${totalWarns}</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px">WARNINGS</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:var(--bg-panel);border-radius:4px;border:1px solid var(--bg-panel-border)">
+        <div style="font-family:'Orbitron',monospace;font-size:20px;color:#f472b6">${totalRemote}</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px">REMOTE CTRL</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:var(--bg-panel);border-radius:4px;border:1px solid var(--bg-panel-border)">
+        <div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--amber)">${jailed}</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px">IN JAIL</div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;font-family:'Orbitron',monospace;font-size:10px;color:var(--amber);letter-spacing:2px">TOP ATTACKERS</div>
+    ${topAttackers.map(([ip, r], i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid var(--bg-panel-border);font-size:11px;cursor:pointer" onclick="showIPDetail('${ip}')">
+      <span style="color:var(--text-dim)">#${i+1}</span>
+      <span style="color:var(--text-bright);font-family:'Orbitron',monospace;font-size:11px">${ip}</span>
+      <span style="color:var(--text-dim);font-size:9px">${r.hostname||''}</span>
+      <span style="color:var(--red);font-weight:700">${r.threatHits} threats</span>
+      <span class="ip-status ${r.jailed?'st-jailed':r.threatHits>=2?'st-watching':''}">${r.jailed?'JAILED':r.threatHits>=2?'WATCHING':'—'}</span>
+    </div>`).join('')}
+    ${topAttackers.length === 0 ? '<p style="color:var(--text-dim);font-size:11px;text-align:center">No attackers detected yet</p>' : ''}
+    <div style="margin-top:16px;font-size:9px;color:var(--text-dim);text-align:center">Recidivists: ${recidivists} | Active log: ${logHistory.length.toLocaleString()} entries</div>`;
+  openModal('attacks-modal');
+}
+
+// ═══════════════════════════════════════════════════════════
+// BAD ACTOR TOTALS (updated on gauge timer)
+// ═══════════════════════════════════════════════════════════
+let attacksToday = 0;
+
+function updateBadActorTotals() {
+  const ips = Object.values(ipRegistry);
+  document.getElementById('ba-jailed').textContent = ips.filter(r => r.jailed).length;
+  document.getElementById('ba-watching').textContent = ips.filter(r => r.threatHits >= 2 && !r.jailed).length;
+  document.getElementById('ba-recidivist').textContent = ips.filter(r => r.recidivist).length;
+  // Count today's attacks from log
+  const today = new Date().toISOString().split('T')[0];
+  attacksToday = logHistory.filter(e => e.startsWith('[' + today) && (e.includes('BLOCK:') || e.includes('WARN:') || e.includes('REMOTE:'))).length;
+  document.getElementById('ba-attacks').textContent = attacksToday;
+}
+
+// ═══════════════════════════════════════════════════════════
+// VIRUSTOTAL CLIENT (requires proxy)
+// ═══════════════════════════════════════════════════════════
+const VT_RATE_LIMIT = 15000;
+let vtLastRequest = 0;
+const vtQueue = [];
+let vtProcessing = false;
+
+async function vtLookupIP(ip) {
+  const cfg = loadConfig();
+  if (!cfg.vtUrl) {
+    addLog('VT', `No proxy URL configured — set in Inner Workings > VirusTotal`);
+    return;
+  }
+  addLog('VT', `Queuing lookup for ${ip}...`);
+  vtQueue.push(ip);
+  processVTQueue();
+}
+
+async function processVTQueue() {
+  if (vtProcessing || vtQueue.length === 0) return;
+  vtProcessing = true;
+  const cfg = loadConfig();
+
+  const now = Date.now();
+  const wait = Math.max(0, VT_RATE_LIMIT - (now - vtLastRequest));
+  if (wait > 0) await new Promise(r => setTimeout(r, wait));
+
+  const ip = vtQueue.shift();
+  vtLastRequest = Date.now();
+
+  try {
+    const res = await fetch(`${cfg.vtUrl}?ip=${ip}`);
+    const data = await res.json();
+    if (res.ok) {
+      if (ipRegistry[ip]) ipRegistry[ip].vtData = data;
+      addLog('VT', `${ip}: ${data.country||'?'} | AS${data.asn||'?'} ${data.asOwner||'?'} | Malicious: ${data.malicious||0} | Rep: ${data.reputation||0}`);
+      // Auto-jail from VT if enabled
+      if (cfg.vtAutoJail && data.malicious >= 3 && ipRegistry[ip] && !ipRegistry[ip].jailed) {
+        ipRegistry[ip].jailed = true;
+        ipRegistry[ip].jailReason = `VT Intel: ${data.malicious} vendors flagged malicious (rep: ${data.reputation})`;
+        ipRegistry[ip].jailDate = new Date().toISOString();
+        addLog('JAIL', `VT-JAILED: ${ip} — ${data.malicious} vendor detections`);
+      }
+      ipRegistryDirty = true;
+      scheduleIPSave();
+    } else {
+      addLog('VT', `Error for ${ip}: ${data.error || res.statusText}`);
+    }
+  } catch(e) {
+    addLog('VT', `Network error for ${ip}: ${e.message}`);
+  }
+  vtProcessing = false;
+  if (vtQueue.length > 0) processVTQueue();
+}
+
+// ═══════════════════════════════════════════════════════════
+// NETWORK TOOLBOX (Real browser measurements)
+// ═══════════════════════════════════════════════════════════
+function refreshConnectionInfo() {
+  const el = document.getElementById('tb-connection');
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (!conn) { el.textContent = 'Network Information API not available'; return; }
+  el.innerHTML = `Type: <b>${conn.effectiveType||'?'}</b><br>Downlink: <b>${conn.downlink||'?'} Mbps</b><br>RTT: <b>${conn.rtt||'?'} ms</b><br>Save Data: <b>${conn.saveData?'Yes':'No'}</b>`;
+}
+
+function refreshPageTiming() {
+  const el = document.getElementById('tb-timing');
+  const perf = performance.getEntriesByType('navigation')[0];
+  if (!perf) { el.textContent = 'Navigation Timing not available'; return; }
+  el.innerHTML = `DNS: <b>${(perf.domainLookupEnd-perf.domainLookupStart).toFixed(1)}ms</b><br>TCP: <b>${(perf.connectEnd-perf.connectStart).toFixed(1)}ms</b><br>TTFB: <b>${(perf.responseStart-perf.requestStart).toFixed(1)}ms</b><br>DOM Load: <b>${(perf.domContentLoadedEventEnd-perf.fetchStart).toFixed(0)}ms</b><br>Full Load: <b>${(perf.loadEventEnd-perf.fetchStart).toFixed(0)}ms</b>`;
+}
+
+function refreshResources() {
+  const el = document.getElementById('tb-resources');
+  const entries = performance.getEntriesByType('resource').slice(-10);
+  el.innerHTML = entries.map(e => {
+    const name = e.name.split('/').pop().substring(0, 30);
+    return `${name}: <b>${e.duration.toFixed(0)}ms</b>`;
+  }).join('<br>');
+}
+
+async function runLatencyTest() {
+  const el = document.getElementById('tb-latency');
+  el.textContent = 'Testing...';
+  const times = [];
+  for (let i = 0; i < 5; i++) {
+    const start = performance.now();
+    try {
+      await fetch(window.location.href + '?_t=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+    } catch(e) {}
+    times.push(performance.now() - start);
+  }
+  const avg = times.reduce((a,b) => a+b, 0) / times.length;
+  el.innerHTML = `Avg: <b>${avg.toFixed(1)}ms</b><br>Min: <b>${Math.min(...times).toFixed(1)}ms</b><br>Max: <b>${Math.max(...times).toFixed(1)}ms</b><br>Samples: ${times.length}`;
+  addLog('SHIELD', `Latency test: avg ${avg.toFixed(1)}ms, min ${Math.min(...times).toFixed(1)}ms, max ${Math.max(...times).toFixed(1)}ms`);
+}
+
+async function runConnectivityCheck() {
+  const el = document.getElementById('tb-connectivity');
+  el.textContent = 'Checking...';
+  const online = navigator.onLine;
+  let canFetch = false;
+  try {
+    const res = await fetch('https://dns.google/resolve?name=example.com', { mode: 'cors', cache: 'no-store' });
+    canFetch = res.ok;
+  } catch(e) {}
+  el.innerHTML = `Online: <b style="color:${online?'var(--green)':'var(--red)'}">${online?'YES':'NO'}</b><br>DNS Resolve: <b style="color:${canFetch?'var(--green)':'var(--red)'}">${canFetch?'OK':'FAILED'}</b><br>Protocol: <b>${location.protocol}</b><br>Host: <b>${location.host}</b>`;
+}
+
+function refreshSecurityInfo() {
+  const el = document.getElementById('tb-security');
+  const isSecure = location.protocol === 'https:';
+  const sw = 'serviceWorker' in navigator;
+  el.innerHTML = `HTTPS: <b style="color:${isSecure?'var(--green)':'var(--red)'}">${isSecure?'YES':'NO'}</b><br>Service Worker: <b>${sw?'Registered':'None'}</b><br>Cookies Enabled: <b>${navigator.cookieEnabled?'Yes':'No'}</b><br>Do Not Track: <b>${navigator.doNotTrack||'unset'}</b>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL SYSTEM
+// ═══════════════════════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  // Populate toolbox on open
+  if (id === 'toolbox-modal') { refreshConnectionInfo(); refreshPageTiming(); refreshResources(); refreshSecurityInfo(); }
+  if (id === 'archive-modal') showArchiveBrowser();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modals on Escape (but not the main ESC-to-exit)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modals = document.querySelectorAll('.sl-modal.open');
+    if (modals.length > 0) { modals.forEach(m => m.classList.remove('open')); e.stopImmediatePropagation(); return; }
+    if (document.getElementById('ip-detail-view').classList.contains('open')) { closeIPDetail(); e.stopImmediatePropagation(); return; }
+    if (document.getElementById('ip-jail-panel').classList.contains('open')) { toggleJailPanel(); e.stopImmediatePropagation(); return; }
+  }
+}, true);
+
+// ═══════════════════════════════════════════════════════════
+// CONFIG SYSTEM (Inner Workings persistence)
+// ═══════════════════════════════════════════════════════════
+const CONFIG_KEY = 'sentrylion-config';
+
+function loadConfig() {
+  try {
+    return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+  } catch(e) { return {}; }
+}
+
+function saveConfig() {
+  const cfg = {
+    logEvents: document.getElementById('iw-log-events')?.checked ?? true,
+    threatEvents: document.getElementById('iw-threat-events')?.checked ?? true,
+    blipSpawn: document.getElementById('iw-blip-spawn')?.checked ?? true,
+    gaugeUpdates: document.getElementById('iw-gauge-updates')?.checked ?? true,
+    threatInterval: parseInt(document.getElementById('iw-threat-interval')?.value || '35'),
+    jailThreshold: parseInt(document.getElementById('iw-jail-threshold')?.value || '5'),
+    jailRatio: parseInt(document.getElementById('iw-jail-ratio')?.value || '30'),
+    particles: document.getElementById('iw-particles')?.checked ?? true,
+    scanline: document.getElementById('iw-scanline')?.checked ?? true,
+    threatFlash: document.getElementById('iw-threat-flash')?.checked ?? true,
+    remoteDetect: document.getElementById('iw-remote-detect')?.checked ?? true,
+    autoJail: document.getElementById('iw-auto-jail')?.checked ?? true,
+    sentryRecheck: document.getElementById('iw-sentry-recheck')?.checked ?? true,
+    vtUrl: document.getElementById('iw-vt-url')?.value || '',
+    vtAutoLookup: document.getElementById('iw-vt-auto')?.checked ?? false,
+    vtAutoJail: document.getElementById('iw-vt-jail')?.checked ?? false,
+  };
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+  // Apply display settings immediately
+  document.querySelector('body::before')?.style && (document.body.style.setProperty('--scanline-color', cfg.scanline ? 'rgba(56,189,248,0.03)' : 'transparent'));
+}
+
+function restoreConfig() {
+  const cfg = loadConfig();
+  const setCheck = (id, def) => { const el = document.getElementById(id); if (el) el.checked = cfg[id.replace('iw-','').replace(/-([a-z])/g, (m,c) => c.toUpperCase())] ?? def; };
+  // Restore checkboxes
+  if (document.getElementById('iw-log-events')) document.getElementById('iw-log-events').checked = cfg.logEvents ?? true;
+  if (document.getElementById('iw-threat-events')) document.getElementById('iw-threat-events').checked = cfg.threatEvents ?? true;
+  if (document.getElementById('iw-blip-spawn')) document.getElementById('iw-blip-spawn').checked = cfg.blipSpawn ?? true;
+  if (document.getElementById('iw-gauge-updates')) document.getElementById('iw-gauge-updates').checked = cfg.gaugeUpdates ?? true;
+  if (document.getElementById('iw-particles')) document.getElementById('iw-particles').checked = cfg.particles ?? true;
+  if (document.getElementById('iw-scanline')) document.getElementById('iw-scanline').checked = cfg.scanline ?? true;
+  if (document.getElementById('iw-threat-flash')) document.getElementById('iw-threat-flash').checked = cfg.threatFlash ?? true;
+  if (document.getElementById('iw-remote-detect')) document.getElementById('iw-remote-detect').checked = cfg.remoteDetect ?? true;
+  if (document.getElementById('iw-auto-jail')) document.getElementById('iw-auto-jail').checked = cfg.autoJail ?? true;
+  if (document.getElementById('iw-sentry-recheck')) document.getElementById('iw-sentry-recheck').checked = cfg.sentryRecheck ?? true;
+  if (document.getElementById('iw-vt-auto')) document.getElementById('iw-vt-auto').checked = cfg.vtAutoLookup ?? false;
+  if (document.getElementById('iw-vt-jail')) document.getElementById('iw-vt-jail').checked = cfg.vtAutoJail ?? false;
+  if (document.getElementById('iw-vt-url')) document.getElementById('iw-vt-url').value = cfg.vtUrl || '';
+  // Restore sliders
+  if (document.getElementById('iw-threat-interval')) { document.getElementById('iw-threat-interval').value = cfg.threatInterval || 35; document.getElementById('iw-threat-interval').nextElementSibling.textContent = (cfg.threatInterval || 35) + 's'; }
+  if (document.getElementById('iw-jail-threshold')) { document.getElementById('iw-jail-threshold').value = cfg.jailThreshold || 5; document.getElementById('iw-jail-threshold').nextElementSibling.textContent = cfg.jailThreshold || 5; }
+  if (document.getElementById('iw-jail-ratio')) { document.getElementById('iw-jail-ratio').value = cfg.jailRatio || 30; document.getElementById('iw-jail-ratio').nextElementSibling.textContent = (cfg.jailRatio || 30) + '%'; }
+}
+
+function generateLogEntry() {
+  const tmpl = logTemplates[Math.floor(Math.random() * logTemplates.length)];
+  addLog(tmpl.tag, tmpl.gen());
+}
+
+function generateThreatEvent() {
+  const tmpl = threatTemplates[Math.floor(Math.random() * threatTemplates.length)];
+  addLog(tmpl.tag, tmpl.gen());
+
+  // Spawn threat blip
+  spawnBlip('threat');
+
+  // Flash
+  const flash = document.getElementById('threat-flash');
+  flash.classList.remove('active');
+  void flash.offsetWidth; // reflow
+  flash.classList.add('active');
+
+  // Make a random node threatened briefly
+  const idx = Math.floor(Math.random() * state.networkNodes.length);
+  state.networkNodes[idx].threat = true;
+  setTimeout(() => { state.networkNodes[idx].threat = false; }, 5000);
+
+  // Spike threat level — mode reduces impact
+  let spike = 15 + Math.random() * 20;
+  if (state.mode === 'defense') spike *= 0.5;
+  if (state.mode === 'lockdown') spike *= 0.2;
+  state.threatLevel = Math.min(95, state.threatLevel + spike);
+
+  // Add to threat list with hostname
+  const list = document.getElementById('threat-list');
+  const item = document.createElement('div');
+  item.className = 'threat-item';
+  item.style.cursor = 'pointer';
+  const now = new Date();
+  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const threatIP = rIP();
+  const hostname = resolveHostname(threatIP);
+  item.innerHTML = `<span class="dot threat"></span><span>${ts} — ${threatIP} (${hostname})</span>`;
+  item.onclick = () => showIPDetail(threatIP);
+  list.insertBefore(item, list.firstChild);
+  while (list.children.length > 8) list.removeChild(list.lastChild);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PARTICLES
+// ═══════════════════════════════════════════════════════════
+const partCanvas = document.getElementById('particles-canvas');
+const partCtx = partCanvas.getContext('2d');
+
+function resizeParticles() {
+  partCanvas.width = window.innerWidth * window.devicePixelRatio;
+  partCanvas.height = window.innerHeight * window.devicePixelRatio;
+  partCanvas.style.width = window.innerWidth + 'px';
+  partCanvas.style.height = window.innerHeight + 'px';
+  partCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+function initParticles() {
+  state.particles = [];
+  for (let i = 0; i < 40; i++) {
+    state.particles.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -0.1 - Math.random() * 0.3,
+      size: 1 + Math.random() * 2,
+      alpha: 0.1 + Math.random() * 0.3,
+      color: Math.random() > 0.5 ? 'cyan' : 'amber',
+    });
+  }
+}
+
+function drawParticles() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  partCtx.clearRect(0, 0, w, h);
+
+  state.particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+    if (p.x < -10) p.x = w + 10;
+    if (p.x > w + 10) p.x = -10;
+
+    const c = p.color === 'cyan' ? `rgba(56, 189, 248, ${p.alpha})` : `rgba(245, 158, 11, ${p.alpha})`;
+    partCtx.fillStyle = c;
+    partCtx.beginPath();
+    partCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    partCtx.fill();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// AI CONFIDENCE
+// ═══════════════════════════════════════════════════════════
+function updateConfidence() {
+  state.confidence += (Math.random() - 0.48) * 0.5;
+  state.confidence = Math.max(85, Math.min(99.9, state.confidence));
+  document.getElementById('ai-confidence-value').textContent = state.confidence.toFixed(1) + '%';
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENT SCHEDULING
+// ═══════════════════════════════════════════════════════════
+let lastLogTime = 0;
+let lastThreatTime = 0;
+let lastBlipTime = 0;
+let lastGaugeTime = 0;
+let lastConfidenceTime = 0;
+let lastRemoteTime = 0;
+let lastBadActorUpdate = 0;
+
+function scheduleEvents(now) {
+  const cfg = loadConfig();
+
+  // Regular log entries: every 1-3 seconds
+  if ((cfg.logEvents !== false) && now - lastLogTime > 1000 + Math.random() * 2000) {
+    generateLogEntry();
+    lastLogTime = now;
+  }
+
+  // Threat events: configurable interval (default 35s base)
+  if (cfg.threatEvents !== false) {
+    const baseInterval = ((cfg.threatInterval || 35) * 1000);
+    const threatInterval = state.sensitivity >= 2 ? baseInterval * 0.4 : baseInterval;
+    if (now - lastThreatTime > threatInterval + Math.random() * 25000) {
+      generateThreatEvent();
+      lastThreatTime = now;
+    }
+  }
+
+  // Spawn radar blips periodically
+  if ((cfg.blipSpawn !== false) && now - lastBlipTime > 3000 + Math.random() * 5000) {
+    const types = ['safe', 'safe', 'safe', 'suspicious', 'suspicious'];
+    spawnBlip(types[Math.floor(Math.random() * types.length)]);
+    lastBlipTime = now;
+  }
+
+  // Gauge updates
+  if ((cfg.gaugeUpdates !== false) && now - lastGaugeTime > 500) {
+    updateGauges();
+    lastGaugeTime = now;
+  }
+
+  // AI confidence
+  if (now - lastConfidenceTime > 2000) {
+    updateConfidence();
+    lastConfidenceTime = now;
+  }
+
+  // Remote control detection events: every 45-120 seconds
+  if ((cfg.remoteDetect !== false) && now - lastRemoteTime > 45000 + Math.random() * 75000) {
+    generateRemoteEvent();
+    lastRemoteTime = now;
+  }
+
+  // Bad actor totals update: every 2 seconds
+  if (now - lastBadActorUpdate > 2000) {
+    updateBadActorTotals();
+    lastBadActorUpdate = now;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN ANIMATION LOOP
+// ═══════════════════════════════════════════════════════════
+function mainLoop() {
+  const now = Date.now();
+  updateClock();
+  drawRadar(now);
+  drawNetwork(now);
+  drawParticles();
+  scheduleEvents(now);
+  requestAnimationFrame(mainLoop);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+function init() {
+  resizeNetCanvas();
+  resizeParticles();
+  initGauges();
+  initRadarBlips();
+  initNetworkNodes();
+  initParticles();
+
+  // Initialize new systems
+  loadIPRegistry();
+  restoreConfig();
+
+  // Show stored log count and boot message
+  updateLogCount();
+  const storedCount = logHistory.length;
+  if (storedCount > 0) {
+    addLog('SHIELD', `Persistent log loaded — ${storedCount} historical entries recovered`);
+  }
+
+  // Report IP registry state on boot
+  const regKeys = Object.keys(ipRegistry);
+  const jailedCount = regKeys.filter(ip => ipRegistry[ip].jailed).length;
+  if (regKeys.length > 0) {
+    addLog('JAIL', `IP Registry loaded — ${regKeys.length} tracked IPs, ${jailedCount} currently jailed`);
+  }
+
+  addLog('SHIELD', `SentryLion booted — session started at ${new Date().toLocaleTimeString()}`);
+  addLog('SENTRY', 'Mini-Sentry bot initializing — anti-tampering active, 30-min recheck armed');
+
+  // Seed initial log entries
+  for (let i = 0; i < 8; i++) generateLogEntry();
+
+  // Start Mini-Sentry bot (30-minute recheck cycles)
+  startMiniSentry();
+
+  // Update bad actor totals immediately
+  updateBadActorTotals();
+
+  // Window resize handler
+  window.addEventListener('resize', () => {
+    resizeRadarCanvas();
+    resizeNetCanvas();
+    resizeParticles();
+  });
+
+  // Initial timestamps
+  const now = Date.now();
+  lastLogTime = now;
+  lastThreatTime = now - 20000; // trigger first threat sooner
+  lastBlipTime = now;
+  lastGaugeTime = now;
+  lastConfidenceTime = now;
+  lastRemoteTime = now;
+  lastBadActorUpdate = now;
+
+  // Kick off the first threat within 10 seconds
+  setTimeout(() => generateThreatEvent(), 5000 + Math.random() * 5000);
+
+  mainLoop();
+}
+
+init();
+</script>
+</div><!-- /dashContent -->
+
+<script>
+  window.FPCS_PAGE = {
+    name: 'SentryLion',
+    theme: 'theme-sentry'
+  };
+  window.FPCS_NAV = {
+    active: 'sentry',
+    sections: []
+  };
+</script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

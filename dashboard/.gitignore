@@ -1,0 +1,16 @@
+deploy.zip
+response.json
+*.zip
+node_modules/
+.DS_Store
+
+# Firebase secrets — NEVER commit these
+service-account-key.json
+**/service-account-key.json
+*.key.json
+
+# Environment secrets — NEVER commit
+.env
+.env.local
+.env.production
+!.env.example

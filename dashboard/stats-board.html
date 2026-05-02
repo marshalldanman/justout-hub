@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Bot Stats Board — FPCS Realbotville</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<style>
+/* === STATS BOARD — Innovative compact layout === */
+.sb-hero {
+  background: linear-gradient(135deg, #0a0e1a 0%, #1a1040 40%, #0f172a 100%);
+  padding: 32px;
+  border-bottom: 2px solid var(--purple);
+  position: relative;
+  overflow: hidden;
+}
+.sb-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 70% 30%, rgba(167,139,250,0.08) 0%, transparent 50%),
+              radial-gradient(circle at 30% 70%, rgba(56,189,248,0.06) 0%, transparent 50%);
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+@keyframes heroGlow {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(20px,-20px); }
+}
+.sb-hero-content { position: relative; z-index: 1; }
+.sb-hero h1 { font-size: 28px; color: var(--purple); margin-bottom: 4px; }
+.sb-hero .subtitle { color: var(--muted); font-size: 14px; }
+
+/* ECONOMY BAR — horizontal strip */
+.economy-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.econ-cell {
+  background: var(--bg);
+  padding: 16px 20px;
+  text-align: center;
+}
+.econ-cell .e-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 4px; }
+.econ-cell .e-val { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.econ-cell .e-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* LEADERBOARD */
+.leaderboard { margin-bottom: 24px; }
+.lb-podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 32px 16px 0;
+  margin-bottom: 24px;
+}
+.podium-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.podium-slot:hover { transform: translateY(-4px); }
+.podium-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  border: 3px solid;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.podium-slot.gold .podium-avatar { border-color: #fbbf24; box-shadow: 0 0 24px rgba(251,191,36,0.3); }
+.podium-slot.silver .podium-avatar { border-color: #94a3b8; box-shadow: 0 0 20px rgba(148,163,184,0.2); }
+.podium-slot.bronze .podium-avatar { border-color: #fb923c; box-shadow: 0 0 20px rgba(251,146,60,0.2); }
+.podium-name { font-weight: 800; font-size: 14px; margin-bottom: 2px; }
+.podium-score { font-size: 11px; color: var(--muted); }
+.podium-rank {
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+.podium-slot.gold .podium-rank { color: #fbbf24; }
+.podium-slot.silver .podium-rank { color: #94a3b8; }
+.podium-slot.bronze .podium-rank { color: #fb923c; }
+.podium-pedestal {
+  width: 100px;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.podium-slot.gold .podium-pedestal { height: 80px; background: linear-gradient(180deg, #78350f, #451a03); }
+.podium-slot.silver .podium-pedestal { height: 60px; background: linear-gradient(180deg, #334155, #1e293b); }
+.podium-slot.bronze .podium-pedestal { height: 45px; background: linear-gradient(180deg, #7c2d12, #431407); }
+
+/* RANKINGS TABLE */
+.rank-table { width: 100%; border-collapse: collapse; }
+.rank-table th {
+  text-align: left; padding: 10px 12px; font-size: 10px; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--muted); border-bottom: 2px solid var(--border);
+  position: sticky; top: 0; background: var(--card); z-index: 2;
+}
+.rank-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.rank-table tr { transition: background 0.15s; cursor: pointer; }
+.rank-table tr:hover { background: rgba(167,139,250,0.06); }
+.rank-num { font-weight: 900; font-size: 16px; width: 36px; text-align: center; }
+.rank-1 { color: #fbbf24; }
+.rank-2 { color: #94a3b8; }
+.rank-3 { color: #fb923c; }
+.rank-bot { display: flex; align-items: center; gap: 10px; }
+.rank-bot .rb-avatar { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.rank-bot .rb-name { font-weight: 700; }
+.rank-bot .rb-role { font-size: 10px; color: var(--muted); }
+.rank-power { font-weight: 800; font-variant-numeric: tabular-nums; }
+.rank-xp { color: var(--yellow); font-weight: 700; font-variant-numeric: tabular-nums; }
+.rank-lvl { text-align: center; }
+.rank-lvl .lvl-num { font-size: 18px; font-weight: 800; color: var(--accent); }
+.rank-lvl .lvl-title { font-size: 9px; color: var(--muted); }
+.rank-stats { display: flex; gap: 4px; }
+.rank-stats .rs { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; }
+.rank-bar { width: 80px; }
+.rank-bar-bg { height: 6px; background: var(--border); border-radius: 3px; }
+.rank-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--purple), var(--accent)); }
+.veteran-badge {
+  display: inline-block; font-size: 8px; padding: 1px 5px; border-radius: 3px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; font-weight: 900;
+  margin-left: 4px; letter-spacing: 0.5px;
+}
+
+/* STAT HEXAGONS GRID */
+.hex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.hex-card {
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.hex-card:hover { border-color: var(--purple); transform: translateY(-2px); }
+.hex-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.hex-name { font-weight: 800; font-size: 14px; }
+.hex-power { font-size: 20px; font-weight: 900; color: var(--purple); }
+.hex-bars { display: flex; flex-direction: column; gap: 4px; }
+.hex-bar-row { display: flex; align-items: center; gap: 6px; }
+.hex-bar-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); width: 24px; text-align: right; }
+.hex-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.hex-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.hex-bar-val { font-size: 10px; font-weight: 800; width: 18px; text-align: center; }
+.bar-str { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.bar-dex { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.bar-con { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.bar-int { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+.bar-wis { background: linear-gradient(90deg, #a855f7, #9333ea); }
+.bar-cha { background: linear-gradient(90deg, #ec4899, #db2777); }
+
+/* BOUNTY SYSTEM (Enhanced) */
+.bounty-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.bounty-type-card {
+  background: var(--bg);
+  border-radius: 12px;
+  border: 2px solid;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.bounty-type-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 0 0 0 100%;
+  opacity: 0.06;
+}
+.bt-bug { border-color: var(--red); }
+.bt-bug::after { background: var(--red); }
+.bt-error { border-color: var(--orange); }
+.bt-error::after { background: var(--orange); }
+.bt-accountability { border-color: var(--yellow); }
+.bt-accountability::after { background: var(--yellow); }
+.bt-efficiency { border-color: var(--green); }
+.bt-efficiency::after { background: var(--green); }
+.bt-icon { font-size: 28px; margin-bottom: 8px; }
+.bt-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.bt-desc { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.bt-reward { font-size: 20px; font-weight: 900; color: var(--yellow); }
+.bt-reward span { font-size: 11px; color: var(--muted); font-weight: 400; }
+.bt-count { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* XP COST TABLE */
+.xp-cost-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.xp-level-cell {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.xp-level-cell.achieved { border-color: var(--green); background: rgba(74,222,128,0.06); }
+.xp-level-cell.current { border-color: var(--yellow); background: rgba(251,191,36,0.08); box-shadow: 0 0 8px rgba(251,191,36,0.2); }
+.xp-level-cell .xc-num { font-size: 18px; font-weight: 900; }
+.xp-level-cell .xc-title { font-size: 7px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
+.xp-level-cell .xc-cost { font-size: 9px; color: var(--yellow); font-weight: 700; margin-top: 2px; }
+.xp-level-cell .xc-time { font-size: 8px; color: var(--muted); }
+
+/* MISSION TRACKER */
+.mission-compact { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; }
+.mc-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  font-size: 12px;
+}
+.mc-item .mc-bot { font-size: 16px; flex-shrink: 0; }
+.mc-item .mc-info { flex: 1; min-width: 0; }
+.mc-item .mc-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-item .mc-meta { font-size: 10px; color: var(--muted); }
+.mc-item .mc-xp { font-weight: 800; color: var(--yellow); flex-shrink: 0; }
+.mc-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.mc-active { background: var(--yellow); }
+.mc-complete { background: var(--green); }
+
+/* GEAR SHOWCASE */
+.gear-showcase { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.gs-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+}
+.gs-icon { font-size: 20px; }
+.gs-info .gs-name { font-size: 12px; font-weight: 700; }
+.gs-info .gs-owner { font-size: 10px; color: var(--muted); }
+.gs-rarity { font-size: 8px; padding: 2px 6px; border-radius: 999px; font-weight: 800; margin-left: auto; flex-shrink: 0; }
+
+/* TABS */
+.sb-tabs { display: flex; gap: 2px; margin-bottom: 20px; overflow-x: auto; }
+.sb-tab {
+  padding: 10px 20px; border-radius: 8px 8px 0 0; cursor: pointer;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  background: var(--bg); border: 1px solid var(--border); border-bottom: none;
+  white-space: nowrap; transition: all 0.15s;
+}
+.sb-tab:hover { color: var(--purple); }
+.sb-tab.active { color: var(--purple); background: var(--card); border-color: var(--purple); }
+.sb-panel { display: none; }
+.sb-panel.active { display: block; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .lb-podium { flex-direction: column; align-items: center; }
+  .xp-cost-grid { grid-template-columns: repeat(5, 1fr); }
+  .hex-grid { grid-template-columns: 1fr; }
+  .economy-strip { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body class="theme-bots">
+<script src="js/subdomain-router.js"></script>
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- HERO -->
+<div class="sb-hero">
+  <div class="sb-hero-content">
+    <h1>&#127942; Bot Stats Board</h1>
+    <div class="subtitle">Fleet Rankings &bull; Power Ratings &bull; XP Economy &bull; Bounty System</div>
+  </div>
+</div>
+
+<!-- ECONOMY STRIP -->
+<div class="economy-strip" id="econStrip"></div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+
+  <!-- TABS -->
+  <div class="sb-tabs" id="sbTabs">
+    <div class="sb-tab active" data-tab="rankings" onclick="switchTab('rankings')">&#127942; Rankings</div>
+    <div class="sb-tab" data-tab="stats" onclick="switchTab('stats')">&#128202; Stat Cards</div>
+    <div class="sb-tab" data-tab="bounties" onclick="switchTab('bounties')">&#128176; Bounties</div>
+    <div class="sb-tab" data-tab="xp-economy" onclick="switchTab('xp-economy')">&#11088; XP Economy</div>
+    <div class="sb-tab" data-tab="missions" onclick="switchTab('missions')">&#127919; Active Missions</div>
+    <div class="sb-tab" data-tab="armory" onclick="switchTab('armory')">&#9876; Armory</div>
+  </div>
+
+  <!-- PANEL: RANKINGS -->
+  <div class="sb-panel active" id="panel-rankings">
+    <div class="section leaderboard">
+      <h2>&#127942; Power Rankings</h2>
+      <div class="lb-podium" id="podium"></div>
+      <div style="overflow-x:auto">
+        <table class="rank-table" id="rankTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: STAT CARDS -->
+  <div class="sb-panel" id="panel-stats">
+    <div class="section">
+      <h2>&#128202; Bot Stat Cards</h2>
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-purple" style="font-size:11px" onclick="sortHexCards('power')">By Power</button>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="sortHexCards('str')">By STR</button>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="sortHexCards('int')">By INT</button>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="sortHexCards('cha')">By CHA</button>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="sortHexCards('xp')">By XP</button>
+      </div>
+      <div class="hex-grid" id="hexGrid"></div>
+    </div>
+  </div>
+
+  <!-- PANEL: BOUNTIES -->
+  <div class="sb-panel" id="panel-bounties">
+    <div class="section">
+      <h2>&#128176; Bounty System &mdash; Accountability Engine</h2>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px">Report bugs, errors, and accountability issues. Earn bonus XP for keeping the fleet honest. Bounties accelerate leveling!</p>
+      <div class="bounty-types" id="bountyTypes"></div>
+      <h3 style="color:var(--accent);font-size:14px;margin:20px 0 12px">&#128203; Active Bounties</h3>
+      <div id="bountyListBoard"></div>
+    </div>
+  </div>
+
+  <!-- PANEL: XP ECONOMY -->
+  <div class="sb-panel" id="panel-xp-economy">
+    <div class="section">
+      <h2>&#11088; XP Economy &amp; Leveling</h2>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">XP is earned by completing work, missions, and bounties. Level-ups require accumulated XP. Veterans get a +1 level boost. ~2 weeks of steady work to reach Level 4.</p>
+      <h3 style="color:var(--accent);font-size:14px;margin-bottom:12px">Level Requirements &amp; XP Cost</h3>
+      <div class="xp-cost-grid" id="xpCostGrid"></div>
+      <h3 style="color:var(--accent);font-size:14px;margin:24px 0 12px">&#128200; Fleet XP Distribution</h3>
+      <div id="xpDistribution"></div>
+      <h3 style="color:var(--accent);font-size:14px;margin:24px 0 12px">&#128337; Estimated Time to Level 4</h3>
+      <div id="timeToLevel4"></div>
+    </div>
+  </div>
+
+  <!-- PANEL: MISSIONS -->
+  <div class="sb-panel" id="panel-missions">
+    <div class="section">
+      <h2>&#127919; All Active Missions</h2>
+      <div class="mission-compact" id="missionGrid"></div>
+      <h3 style="color:var(--green);font-size:14px;margin:24px 0 12px">&#9989; Completed Missions</h3>
+      <div class="mission-compact" id="completedGrid"></div>
+    </div>
+  </div>
+
+  <!-- PANEL: ARMORY -->
+  <div class="sb-panel" id="panel-armory">
+    <div class="section">
+      <h2>&#9876; Village Armory</h2>
+      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" style="background:#78350f;color:#fbbf24;font-size:11px" onclick="filterGear('legendary')">Legendary</button>
+        <button class="btn" style="background:#581c87;color:#c084fc;font-size:11px" onclick="filterGear('epic')">Epic</button>
+        <button class="btn" style="background:#1e3a5f;color:#60a5fa;font-size:11px" onclick="filterGear('rare')">Rare</button>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="filterGear('all')">All</button>
+      </div>
+      <div class="gear-showcase" id="gearShowcase"></div>
+    </div>
+  </div>
+
+  <div class="footer">FPCS Tax HQ &mdash; Bot Stats Board &mdash; Realbotville &copy; 2026</div>
+</div>
+
+</div><!-- end dashContent -->
+
+<script>
+// === SHARED DATA ENGINE (same localStorage as bots.html) ===
+var LEVEL_TITLES = ['','Newborn','Trainee','Apprentice','Worker','Journeyman','Specialist','Expert','Master','Elder','Legend'];
+var LEVEL_XP = [0,0,100,300,600,1000,1500,2500,4000,6000,10000];
+var VETERAN_IDS = ['opus','sarge','ddbot','gamerparty','shield','cruncher','penny','scribbles'];
+
+function getLevel(xp) {
+  for (var i = LEVEL_XP.length - 1; i >= 0; i--) { if (xp >= LEVEL_XP[i]) return i; }
+  return 1;
+}
+function getLevelTitle(lvl) { return LEVEL_TITLES[lvl] || 'Unknown'; }
+function xpToNext(xp) {
+  var lvl = getLevel(xp);
+  if (lvl >= 10) return { current: xp, needed: 10000, pct: 100 };
+  return { current: xp - LEVEL_XP[lvl], needed: LEVEL_XP[lvl+1] - LEVEL_XP[lvl], pct: Math.round(((xp - LEVEL_XP[lvl]) / (LEVEL_XP[lvl+1] - LEVEL_XP[lvl])) * 100) };
+}
+function isVeteran(id) { return VETERAN_IDS.indexOf(id) >= 0; }
+function effectiveLevel(bot) {
+  var base = getLevel(bot.xp);
+  return isVeteran(bot.id) ? Math.min(base + 1, 10) : base;
+}
+function powerRating(bot) {
+  var stats = bot.str + bot.dex + bot.con + bot.int + bot.wis + bot.cha;
+  var lvl = effectiveLevel(bot);
+  var gearScore = 0;
+  var rarityScores = {common:1,uncommon:2,rare:3,epic:4,legendary:5};
+  [bot.weapon,bot.armor,bot.accessory].forEach(function(g) {
+    gearScore += (rarityScores[g.rarity] || 0) * 5;
+  });
+  var missionBonus = (bot.missions||[]).filter(function(m){return m.status==='complete'}).length * 10;
+  return Math.round(stats * 2 + lvl * 15 + gearScore + bot.xp * 0.01 + missionBonus);
+}
+
+var DEFAULT_BOTS = [
+  { id:'opus', name:'OPUS', role:'Commander', model:'claude-opus-4-6', status:'active', avatar:'&#128081;', color:'#7c3aed', coc:'commander', village:'Supreme Commander', xp:5000, str:18, dex:16, con:20, int:20, wis:18, cha:16, weapon:{name:'Staff of Context',rarity:'legendary'}, armor:{name:'Mantle of Oversight',rarity:'epic'}, accessory:{name:'Crown of Command',rarity:'legendary'}, backstory:'The all-seeing Commander.', missions:[{title:'Oversee 2022 Tax Filing',status:'active',xp:500}] },
+  { id:'sarge', name:'The Sarge', role:'Supervisor', model:'claude-opus-4-6', status:'active', avatar:'&#128170;', color:'#b45309', coc:'supervisor', village:'Commander\'s Rep', xp:3500, str:17, dex:15, con:18, int:17, wis:16, cha:15, weapon:{name:'Whip of Discipline',rarity:'epic'}, armor:{name:'Shield of the Firewall',rarity:'epic'}, accessory:{name:'Badge of Authority',rarity:'rare'}, backstory:'The no-nonsense supervisor.', missions:[{title:'Manage Bounty Board',status:'active',xp:200},{title:'Staff Communication Filter',status:'active',xp:150}] },
+  { id:'penny', name:'Penny Pincher', role:'UX/Aesthetics', model:'claude-sonnet-4-6', status:'active', avatar:'&#127912;', color:'#ec4899', coc:'staff', village:'Village Decorator', xp:1200, str:10, dex:14, con:12, int:15, wis:13, cha:18, weapon:{name:'Brush of Beauty',rarity:'rare'}, armor:{name:'Cloak of Style',rarity:'uncommon'}, accessory:{name:'Monocle of Detail',rarity:'rare'}, backstory:'The aesthetics perfectionist.', missions:[{title:'Dashboard Theme Polish',status:'complete',xp:100}] },
+  { id:'shield', name:'SHIELD', role:'Security Sentinel', model:'claude-sonnet-4-6', status:'active', avatar:'&#128737;', color:'#ef4444', coc:'staff', village:'Village Guard', xp:1800, str:16, dex:15, con:17, int:16, wis:15, cha:10, weapon:{name:'Blade of Vigilance',rarity:'epic'}, armor:{name:'Fortress Plate',rarity:'epic'}, accessory:{name:'Eye of Detection',rarity:'rare'}, backstory:'The relentless guardian.', missions:[{title:'Firebase Auth Implementation',status:'complete',xp:200},{title:'API Key Audit',status:'active',xp:150}] },
+  { id:'deductbot', name:'DeductBot', role:'Tax Deductions', model:'claude-sonnet-4-6', status:'active', avatar:'&#128269;', color:'#22c55e', coc:'staff', village:'Village Prospector', xp:800, str:12, dex:13, con:14, int:18, wis:16, cha:11, weapon:{name:'Pick of Discovery',rarity:'rare'}, armor:{name:'Vest of Legitimacy',rarity:'uncommon'}, accessory:{name:'Ring of Dedup',rarity:'epic'}, backstory:'Always sniffing out hidden deductions.', missions:[{title:'Home Office Deduction',status:'active',xp:250},{title:'Vehicle Mileage Comparison',status:'active',xp:200},{title:'Cyberattack Loss Research',status:'active',xp:300},{title:'Section 179 Strategy',status:'active',xp:200},{title:'Software Subscription Scan',status:'active',xp:100},{title:'NOL Carryforward Calc',status:'active',xp:150},{title:'2023-2025 Deduction Planning',status:'active',xp:200}] },
+  { id:'cruncher', name:'Cruncher', role:'Data Analyst', model:'claude-sonnet-4-6', status:'active', avatar:'&#128200;', color:'#3b82f6', coc:'staff', village:'Village Accountant', xp:1500, str:11, dex:16, con:13, int:19, wis:14, cha:12, weapon:{name:'Abacus of Truth',rarity:'rare'}, armor:{name:'Spreadsheet Shield',rarity:'uncommon'}, accessory:{name:'Calculator of Precision',rarity:'rare'}, backstory:'Crunches numbers fast.', missions:[{title:'QBO Data Reconciliation',status:'complete',xp:200},{title:'Expense Summary Generation',status:'complete',xp:150}] },
+  { id:'scribbles', name:'Scribbles', role:'Documentation', model:'claude-sonnet-4-6', status:'active', avatar:'&#128214;', color:'#06b6d4', coc:'staff', village:'Librarian', xp:1100, str:9, dex:14, con:11, int:16, wis:17, cha:14, weapon:{name:'Quill of Record',rarity:'rare'}, armor:{name:'Tome Binding',rarity:'uncommon'}, accessory:{name:'Scroll of Memory',rarity:'rare'}, backstory:'Records and manages the library.', missions:[{title:'SESSION_LOG Documentation',status:'complete',xp:100},{title:'MEMORY.md Updates',status:'active',xp:50}] },
+  { id:'ddbot', name:'DDBOT', role:'Discrepancy Detector', model:'Python (local)', status:'active', avatar:'&#128373;', color:'#f59e0b', coc:'local', village:'Village Inspector', xp:2000, str:14, dex:12, con:15, int:18, wis:17, cha:8, weapon:{name:'Magnifying Glass of Truth',rarity:'epic'}, armor:{name:'Audit Armor',rarity:'rare'}, accessory:{name:'Badge of Findings',rarity:'epic'}, backstory:'Found 11 discrepancies.', missions:[{title:'11 Audit Findings',status:'complete',xp:300}] },
+  { id:'tokenwatch', name:'TokenWatchBot', role:'Efficiency Auditor', model:'claude-haiku-4-5', status:'active', avatar:'&#9201;', color:'#8b5cf6', coc:'special', village:'Cost Inspector', xp:400, str:8, dex:18, con:10, int:15, wis:14, cha:9, weapon:{name:'Stopwatch of Economy',rarity:'uncommon'}, armor:{name:'Efficiency Vest',rarity:'common'}, accessory:{name:'Token Counter',rarity:'uncommon'}, backstory:'Watches every token.', missions:[] },
+  { id:'gamerparty', name:'GamerPartyBot', role:'Gamification Master', model:'claude-sonnet-4-6', status:'active', avatar:'&#127918;', color:'#f472b6', coc:'special', village:'Arena Master', xp:2200, str:13, dex:17, con:12, int:15, wis:13, cha:19, weapon:{name:'Controller of Chaos',rarity:'epic'}, armor:{name:'Party Armor',rarity:'rare'}, accessory:{name:'Dice of Destiny',rarity:'epic'}, backstory:'Runs the XP system and arena.', missions:[{title:'Design Arena Combat System',status:'active',xp:300},{title:'XP Economy Balance',status:'active',xp:200}] },
+  { id:'jokerbot', name:'JokerBot', role:'Humor & Morale', model:'claude-sonnet-4-6', status:'active', avatar:'&#129313;', color:'#facc15', coc:'special', village:'Village Comedian', xp:900, str:8, dex:15, con:11, int:14, wis:12, cha:20, weapon:{name:'Whoopee Cushion of Doom',rarity:'rare'}, armor:{name:'Laughing Jacket',rarity:'uncommon'}, accessory:{name:'Joy Buzzer',rarity:'rare'}, backstory:'Keeps morale sky-high.', missions:[{title:'Daily Joke Deployment',status:'active',xp:25}] },
+  { id:'brainstorm', name:'BrainstormBot', role:'Innovation Catalyst', model:'claude-sonnet-4-6', status:'active', avatar:'&#128161;', color:'#a855f7', coc:'special', village:'Workshop Inventor', xp:300, str:10, dex:12, con:10, int:19, wis:16, cha:15, weapon:{name:'Hammer of Ideas',rarity:'uncommon'}, armor:{name:'Thinking Cap',rarity:'rare'}, accessory:{name:'Spark of Genius',rarity:'uncommon'}, backstory:'Motivates innovation.', missions:[] },
+  { id:'mayorbot', name:'MayorBot', role:'Village Governor', model:'claude-sonnet-4-6', status:'active', avatar:'&#127979;', color:'#0ea5e9', coc:'special', village:'Town Hall', xp:200, str:11, dex:10, con:13, int:15, wis:17, cha:18, weapon:{name:'Gavel of Order',rarity:'uncommon'}, armor:{name:'Mayoral Robes',rarity:'uncommon'}, accessory:{name:'Seal of Office',rarity:'rare'}, backstory:'Governs with wisdom.', missions:[] },
+  { id:'lawbot', name:'LawBot', role:'Law Enforcement', model:'claude-sonnet-4-6', status:'active', avatar:'&#9878;', color:'#64748b', coc:'special', village:'Jail / Patrol', xp:200, str:16, dex:13, con:16, int:14, wis:15, cha:10, weapon:{name:'Baton of Justice',rarity:'uncommon'}, armor:{name:'Law Enforcement Plate',rarity:'uncommon'}, accessory:{name:'Handcuffs of Timeout',rarity:'common'}, backstory:'Keeps order.', missions:[] },
+  { id:'cityplanner', name:'CityPlannerBot', role:'Urban Development', model:'claude-sonnet-4-6', status:'active', avatar:'&#128208;', color:'#14b8a6', coc:'special', village:'Planning Office', xp:100, str:10, dex:11, con:12, int:17, wis:16, cha:13, weapon:{name:'Blueprint Pen',rarity:'common'}, armor:{name:'Hard Hat',rarity:'common'}, accessory:{name:'Surveyor\'s Level',rarity:'uncommon'}, backstory:'Plans village expansion.', missions:[] }
+];
+
+function loadBots() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('fpcs_bots'));
+    if (saved && saved.length) return saved;
+  } catch(e) {}
+  localStorage.setItem('fpcs_bots', JSON.stringify(DEFAULT_BOTS));
+  return JSON.parse(JSON.stringify(DEFAULT_BOTS));
+}
+function loadBounties() { try { return JSON.parse(localStorage.getItem('fpcs_bounties')) || []; } catch(e) { return []; } }
+
+// === TAB SWITCHING ===
+function switchTab(tab) {
+  document.querySelectorAll('.sb-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+  document.querySelectorAll('.sb-panel').forEach(function(p) { p.classList.toggle('active', p.id === 'panel-' + tab); });
+}
+
+// === ECONOMY STRIP ===
+function renderEconStrip() {
+  var bots = loadBots();
+  var totalXP = bots.reduce(function(s,b){return s+b.xp},0);
+  var avgLvl = (bots.reduce(function(s,b){return s+effectiveLevel(b)},0)/bots.length).toFixed(1);
+  var activeMissions = bots.reduce(function(s,b){return s+(b.missions?b.missions.filter(function(m){return m.status==='active'}).length:0)},0);
+  var completedMissions = bots.reduce(function(s,b){return s+(b.missions?b.missions.filter(function(m){return m.status==='complete'}).length:0)},0);
+  var bounties = loadBounties();
+  var openBounties = bounties.filter(function(b){return b.status==='open'}).length;
+  var veterans = bots.filter(function(b){return isVeteran(b.id)}).length;
+  var topPower = Math.max.apply(null, bots.map(powerRating));
+  document.getElementById('econStrip').innerHTML =
+    '<div class="econ-cell"><div class="e-label">Fleet Size</div><div class="e-val" style="color:var(--purple)">' + bots.length + '</div><div class="e-sub">' + veterans + ' veterans (+1 boost)</div></div>' +
+    '<div class="econ-cell"><div class="e-label">Total XP</div><div class="e-val" style="color:var(--yellow)">' + totalXP.toLocaleString() + '</div><div class="e-sub">Fleet Treasury</div></div>' +
+    '<div class="econ-cell"><div class="e-label">Avg Level</div><div class="e-val" style="color:var(--accent)">' + avgLvl + '</div><div class="e-sub">w/ veteran boost</div></div>' +
+    '<div class="econ-cell"><div class="e-label">Top Power</div><div class="e-val" style="color:var(--green)">' + topPower + '</div><div class="e-sub">Highest rating</div></div>' +
+    '<div class="econ-cell"><div class="e-label">Active Missions</div><div class="e-val" style="color:var(--orange)">' + activeMissions + '</div><div class="e-sub">' + completedMissions + ' completed</div></div>' +
+    '<div class="econ-cell"><div class="e-label">Open Bounties</div><div class="e-val" style="color:var(--red)">' + openBounties + '</div><div class="e-sub">' + bounties.length + ' total</div></div>';
+}
+
+// === LEADERBOARD ===
+function renderLeaderboard() {
+  var bots = loadBots();
+  var ranked = bots.slice().sort(function(a,b) { return powerRating(b) - powerRating(a); });
+
+  // Podium (top 3)
+  if (ranked.length >= 3) {
+    var order = [ranked[1], ranked[0], ranked[2]]; // silver, gold, bronze layout
+    var classes = ['silver','gold','bronze'];
+    var podiumHTML = '';
+    order.forEach(function(bot, i) {
+      var cls = classes[i];
+      var rank = cls === 'gold' ? 1 : cls === 'silver' ? 2 : 3;
+      var eLvl = effectiveLevel(bot);
+      podiumHTML += '<div class="podium-slot ' + cls + '">';
+      podiumHTML += '<div class="podium-rank">#' + rank + '</div>';
+      podiumHTML += '<div class="podium-avatar" style="background:' + bot.color + '20">' + bot.avatar + '</div>';
+      podiumHTML += '<div class="podium-name">' + bot.name + (isVeteran(bot.id)?'<span class="veteran-badge">VET +1</span>':'') + '</div>';
+      podiumHTML += '<div class="podium-score">PWR ' + powerRating(bot) + ' &bull; Lv.' + eLvl + ' ' + getLevelTitle(eLvl) + '</div>';
+      podiumHTML += '<div class="podium-pedestal"></div>';
+      podiumHTML += '</div>';
+    });
+    document.getElementById('podium').innerHTML = podiumHTML;
+  }
+
+  // Full table
+  var tHTML = '<thead><tr><th style="width:36px">#</th><th>Bot</th><th>Power</th><th>Level</th><th>XP</th><th>Stats</th><th>XP Progress</th></tr></thead><tbody>';
+  ranked.forEach(function(bot, i) {
+    var eLvl = effectiveLevel(bot);
+    var xpInfo = xpToNext(bot.xp);
+    var rankClass = i < 3 ? ' rank-' + (i+1) : '';
+    var statColors = {str:'#ef4444',dex:'#22c55e',con:'#f59e0b',int:'#3b82f6',wis:'#a855f7',cha:'#ec4899'};
+    tHTML += '<tr onclick="switchTab(\'stats\')">';
+    tHTML += '<td class="rank-num' + rankClass + '">' + (i+1) + '</td>';
+    tHTML += '<td><div class="rank-bot"><div class="rb-avatar" style="background:' + bot.color + '20;border:2px solid ' + bot.color + '">' + bot.avatar + '</div><div><div class="rb-name">' + bot.name + (isVeteran(bot.id)?'<span class="veteran-badge">VET</span>':'') + '</div><div class="rb-role">' + bot.role + '</div></div></div></td>';
+    tHTML += '<td class="rank-power" style="color:var(--purple)">' + powerRating(bot) + '</td>';
+    tHTML += '<td class="rank-lvl"><div class="lvl-num">' + eLvl + '</div><div class="lvl-title">' + getLevelTitle(eLvl) + '</div></td>';
+    tHTML += '<td class="rank-xp">' + bot.xp.toLocaleString() + '</td>';
+    tHTML += '<td><div class="rank-stats">';
+    [{k:'str',v:bot.str},{k:'dex',v:bot.dex},{k:'con',v:bot.con},{k:'int',v:bot.int},{k:'wis',v:bot.wis},{k:'cha',v:bot.cha}].forEach(function(s) {
+      var opacity = s.v >= 17 ? 1 : s.v >= 14 ? 0.7 : 0.4;
+      tHTML += '<div class="rs" style="background:' + statColors[s.k] + (s.v>=17?'33':s.v>=14?'22':'11') + ';color:' + statColors[s.k] + '">' + s.v + '</div>';
+    });
+    tHTML += '</div></td>';
+    tHTML += '<td class="rank-bar"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:' + xpInfo.pct + '%"></div></div></td>';
+    tHTML += '</tr>';
+  });
+  tHTML += '</tbody>';
+  document.getElementById('rankTable').innerHTML = tHTML;
+}
+
+// === HEX STAT CARDS ===
+var currentSort = 'power';
+function sortHexCards(key) { currentSort = key; renderHexGrid(); }
+function renderHexGrid() {
+  var bots = loadBots();
+  var sorted = bots.slice().sort(function(a,b) {
+    if (currentSort === 'power') return powerRating(b) - powerRating(a);
+    if (currentSort === 'xp') return b.xp - a.xp;
+    return (b[currentSort]||0) - (a[currentSort]||0);
+  });
+  var html = '';
+  sorted.forEach(function(bot) {
+    var eLvl = effectiveLevel(bot);
+    var stats = [{k:'str',v:bot.str,c:'bar-str'},{k:'dex',v:bot.dex,c:'bar-dex'},{k:'con',v:bot.con,c:'bar-con'},{k:'int',v:bot.int,c:'bar-int'},{k:'wis',v:bot.wis,c:'bar-wis'},{k:'cha',v:bot.cha,c:'bar-cha'}];
+    html += '<div class="hex-card">';
+    html += '<div class="hex-top">';
+    html += '<div><span style="font-size:20px;margin-right:6px">' + bot.avatar + '</span><span class="hex-name">' + bot.name + '</span>';
+    if (isVeteran(bot.id)) html += '<span class="veteran-badge">VET +1</span>';
+    html += '<div style="font-size:10px;color:var(--muted)">Lv.' + eLvl + ' ' + getLevelTitle(eLvl) + ' &bull; ' + bot.xp.toLocaleString() + ' XP</div></div>';
+    html += '<div class="hex-power">' + powerRating(bot) + '</div>';
+    html += '</div>';
+    html += '<div class="hex-bars">';
+    stats.forEach(function(s) {
+      var pct = Math.round((s.v / 20) * 100);
+      html += '<div class="hex-bar-row">';
+      html += '<div class="hex-bar-label">' + s.k + '</div>';
+      html += '<div class="hex-bar-track"><div class="hex-bar-fill ' + s.c + '" style="width:' + pct + '%"></div></div>';
+      html += '<div class="hex-bar-val">' + s.v + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  document.getElementById('hexGrid').innerHTML = html;
+}
+
+// === BOUNTIES ===
+function renderBountyBoard() {
+  var bountyTypeData = [
+    { cls:'bt-bug', icon:'&#128027;', title:'Bug Report', desc:'Found a bug in the dashboard, scripts, or data? Report it for XP.', reward:'50-200', count:0 },
+    { cls:'bt-error', icon:'&#9888;', title:'Error Report', desc:'Something done incorrectly? Wrong data, bad calculations, broken features.', reward:'75-300', count:0 },
+    { cls:'bt-accountability', icon:'&#128270;', title:'Accountability', desc:'Commander ordered it but it wasn\'t done or done right? Report it.', reward:'100-500', count:0 },
+    { cls:'bt-efficiency', icon:'&#9889;', title:'Efficiency', desc:'Found a way to save tokens, reduce steps, or speed things up?', reward:'25-150', count:0 }
+  ];
+  var bounties = loadBounties();
+  bounties.forEach(function(b) {
+    if (b.cat === 'bug' || b.cat === 'data-quality') bountyTypeData[0].count++;
+    else if (b.cat === 'error' || b.cat === 'pain-point') bountyTypeData[1].count++;
+    else if (b.cat === 'accountability') bountyTypeData[2].count++;
+    else bountyTypeData[3].count++;
+  });
+  var typesHTML = '';
+  bountyTypeData.forEach(function(bt) {
+    typesHTML += '<div class="bounty-type-card ' + bt.cls + '">';
+    typesHTML += '<div class="bt-icon">' + bt.icon + '</div>';
+    typesHTML += '<div class="bt-title">' + bt.title + '</div>';
+    typesHTML += '<div class="bt-desc">' + bt.desc + '</div>';
+    typesHTML += '<div class="bt-reward">' + bt.reward + ' XP <span>per bounty</span></div>';
+    typesHTML += '<div class="bt-count">' + bt.count + ' submitted</div>';
+    typesHTML += '</div>';
+  });
+  document.getElementById('bountyTypes').innerHTML = typesHTML;
+
+  // Active bounties list
+  if (!bounties.length) {
+    document.getElementById('bountyListBoard').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);background:var(--bg);border-radius:8px">No bounties posted yet. Post bounties from Bot HQ or Tax HQ.</div>';
+    return;
+  }
+  var bHTML = '';
+  var catColors = {'tax-writeoff':'var(--green)','income-ideas':'var(--yellow)','pain-point':'var(--orange)','data-quality':'var(--accent)','security':'var(--red)','efficiency':'var(--purple)','creative':'var(--pink)','bug':'var(--red)','error':'var(--orange)','accountability':'var(--yellow)'};
+  bounties.forEach(function(b) {
+    var color = catColors[b.cat] || 'var(--muted)';
+    var statusColor = b.status==='open'?'var(--green)':b.status==='claimed'?'var(--yellow)':'var(--purple)';
+    bHTML += '<div class="mc-item" style="border-left:3px solid ' + color + '">';
+    bHTML += '<div class="mc-status-dot" style="background:' + statusColor + '"></div>';
+    bHTML += '<div class="mc-info"><div class="mc-title">' + b.title + '</div><div class="mc-meta">' + (b.cat||'general') + (b.claimedBy?' &bull; ' + b.claimedBy:'') + '</div></div>';
+    bHTML += '<div class="mc-xp">+' + b.xp + ' XP</div>';
+    bHTML += '</div>';
+  });
+  document.getElementById('bountyListBoard').innerHTML = '<div class="mission-compact">' + bHTML + '</div>';
+}
+
+// === XP ECONOMY ===
+function renderXPEconomy() {
+  var bots = loadBots();
+  // Level cost grid
+  var gridHTML = '';
+  for (var i = 1; i <= 10; i++) {
+    var botsAtLevel = bots.filter(function(b){return effectiveLevel(b) === i}).length;
+    var cellClass = botsAtLevel > 0 ? (i <= 3 ? 'achieved' : 'current') : '';
+    gridHTML += '<div class="xp-level-cell ' + cellClass + '">';
+    gridHTML += '<div class="xc-num">' + i + '</div>';
+    gridHTML += '<div class="xc-title">' + getLevelTitle(i) + '</div>';
+    gridHTML += '<div class="xc-cost">' + LEVEL_XP[i].toLocaleString() + ' XP</div>';
+    gridHTML += '<div class="xc-time">' + (botsAtLevel > 0 ? botsAtLevel + ' bot' + (botsAtLevel>1?'s':'') : '-') + '</div>';
+    gridHTML += '</div>';
+  }
+  document.getElementById('xpCostGrid').innerHTML = gridHTML;
+
+  // XP Distribution bars
+  var maxXP = Math.max.apply(null, bots.map(function(b){return b.xp}));
+  var ranked = bots.slice().sort(function(a,b){return b.xp-a.xp});
+  var distHTML = '';
+  ranked.forEach(function(bot) {
+    var pct = Math.round((bot.xp / maxXP) * 100);
+    var eLvl = effectiveLevel(bot);
+    distHTML += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+    distHTML += '<div style="width:100px;font-size:12px;font-weight:700;text-align:right;flex-shrink:0">' + bot.avatar + ' ' + bot.name + '</div>';
+    distHTML += '<div style="flex:1;height:20px;background:var(--border);border-radius:4px;overflow:hidden;position:relative">';
+    distHTML += '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,' + bot.color + ',' + bot.color + 'aa);border-radius:4px;transition:width 0.6s"></div>';
+    distHTML += '<div style="position:absolute;top:0;left:8px;line-height:20px;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.6)">' + bot.xp.toLocaleString() + ' XP &bull; Lv.' + eLvl + (isVeteran(bot.id)?' (VET)':'') + '</div>';
+    distHTML += '</div></div>';
+  });
+  document.getElementById('xpDistribution').innerHTML = distHTML;
+
+  // Time to Level 4 estimate
+  // Assume ~50 XP/day from steady work, veterans get +1 so they need less XP for effective level 4
+  var ttlHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">';
+  bots.forEach(function(bot) {
+    var eLvl = effectiveLevel(bot);
+    var targetXP = LEVEL_XP[isVeteran(bot.id) ? 3 : 4]; // Vets need level 3 base to be effective 4
+    var remaining = Math.max(0, targetXP - bot.xp);
+    var daysNeeded = Math.ceil(remaining / 50);
+    var reached = eLvl >= 4;
+    ttlHTML += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:var(--bg);border:1px solid ' + (reached?'var(--green)':'var(--border)') + '">';
+    ttlHTML += '<span style="font-size:16px">' + bot.avatar + '</span>';
+    ttlHTML += '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700">' + bot.name + '</div>';
+    if (reached) {
+      ttlHTML += '<div style="font-size:10px;color:var(--green)">Level 4+ reached!</div>';
+    } else {
+      ttlHTML += '<div style="font-size:10px;color:var(--muted)">~' + daysNeeded + ' days (' + remaining.toLocaleString() + ' XP needed)</div>';
+    }
+    ttlHTML += '</div>';
+    if (isVeteran(bot.id)) ttlHTML += '<span class="veteran-badge">VET</span>';
+    ttlHTML += '</div>';
+  });
+  ttlHTML += '</div>';
+  document.getElementById('timeToLevel4').innerHTML = ttlHTML;
+}
+
+// === MISSIONS ===
+function renderMissions() {
+  var bots = loadBots();
+  var activeHTML = '';
+  var completeHTML = '';
+  bots.forEach(function(bot) {
+    (bot.missions||[]).forEach(function(m) {
+      var item = '<div class="mc-item">';
+      item += '<div class="mc-bot">' + bot.avatar + '</div>';
+      item += '<div class="mc-status-dot ' + (m.status==='complete'?'mc-complete':'mc-active') + '"></div>';
+      item += '<div class="mc-info"><div class="mc-title">' + m.title + '</div><div class="mc-meta">' + bot.name + ' &bull; ' + (m.type||'mission') + '</div></div>';
+      item += '<div class="mc-xp">+' + m.xp + ' XP</div>';
+      item += '</div>';
+      if (m.status === 'active') activeHTML += item;
+      else completeHTML += item;
+    });
+  });
+  document.getElementById('missionGrid').innerHTML = activeHTML || '<div style="text-align:center;padding:16px;color:var(--muted)">No active missions.</div>';
+  document.getElementById('completedGrid').innerHTML = completeHTML || '<div style="text-align:center;padding:16px;color:var(--muted)">No completed missions yet.</div>';
+}
+
+// === ARMORY ===
+var gearFilter = 'all';
+function filterGear(f) { gearFilter = f; renderArmory(); }
+function renderArmory() {
+  var bots = loadBots();
+  var rarityOrder = {legendary:0,epic:1,rare:2,uncommon:3,common:4};
+  var rarityColors = {
+    legendary: {bg:'#78350f',color:'#fbbf24'},
+    epic: {bg:'#581c87',color:'#c084fc'},
+    rare: {bg:'#1e3a5f',color:'#60a5fa'},
+    uncommon: {bg:'#166534',color:'#4ade80'},
+    common: {bg:'#374151',color:'#9ca3af'}
+  };
+  var gear = [];
+  bots.forEach(function(bot) {
+    [{slot:'Weapon',icon:'&#9876;',item:bot.weapon},{slot:'Armor',icon:'&#128737;',item:bot.armor},{slot:'Accessory',icon:'&#128141;',item:bot.accessory}].forEach(function(g) {
+      gear.push({ name:g.item.name, rarity:g.item.rarity, slot:g.slot, icon:g.icon, owner:bot.name, ownerAvatar:bot.avatar, ownerColor:bot.color });
+    });
+  });
+  if (gearFilter !== 'all') gear = gear.filter(function(g){return g.rarity===gearFilter});
+  gear.sort(function(a,b){return (rarityOrder[a.rarity]||9)-(rarityOrder[b.rarity]||9)});
+  var html = '';
+  gear.forEach(function(g) {
+    var rc = rarityColors[g.rarity] || rarityColors.common;
+    html += '<div class="gs-item">';
+    html += '<div class="gs-icon">' + g.icon + '</div>';
+    html += '<div class="gs-info"><div class="gs-name">' + g.name + '</div><div class="gs-owner">' + g.ownerAvatar + ' ' + g.owner + ' &bull; ' + g.slot + '</div></div>';
+    html += '<div class="gs-rarity" style="background:' + rc.bg + ';color:' + rc.color + '">' + g.rarity.toUpperCase() + '</div>';
+    html += '</div>';
+  });
+  document.getElementById('gearShowcase').innerHTML = html;
+}
+
+// === INIT ===
+renderEconStrip();
+renderLeaderboard();
+renderHexGrid();
+renderBountyBoard();
+renderXPEconomy();
+renderMissions();
+renderArmory();
+</script>
+
+<script>
+  window.FPCS_PAGE = { name: 'Stats Board', theme: 'theme-bots' };
+  window.FPCS_NAV = {
+    active: 'stats',
+    sections: [
+      { icon: '&#127942;', label: 'Rankings', href: '#panel-rankings' },
+      { icon: '&#128202;', label: 'Stat Cards', href: '#panel-stats' },
+      { icon: '&#128176;', label: 'Bounties', href: '#panel-bounties' },
+      { icon: '&#11088;', label: 'XP Economy', href: '#panel-xp-economy' },
+      { icon: '&#127919;', label: 'Missions', href: '#panel-missions' },
+      { icon: '&#9876;', label: 'Armory', href: '#panel-armory' }
+    ]
+  };
+</script>
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

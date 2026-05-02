@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Bot HQ — FPCS Realbotville</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<style>
+  /* COC BADGES */
+  .coc-badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
+  .coc-commander { background: #7c3aed; color: #ede9fe; }
+  .coc-supervisor { background: #b45309; color: #fef3c7; }
+  .coc-staff { background: #1d4ed8; color: #dbeafe; }
+  .coc-local { background: #166534; color: #bbf7d0; }
+  .coc-special { background: #be185d; color: #fce7f3; }
+  /* BOT PROFILE CARDS */
+  .bot-profiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+  .bot-profile { background: var(--bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; transition: border-color 0.2s; cursor: pointer; }
+  .bot-profile:hover { border-color: var(--purple); }
+  .bot-profile.expanded .bot-details { display: block; }
+  .bot-top { display: flex; gap: 16px; padding: 16px; align-items: center; }
+  .bot-avatar { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+  .bot-identity { flex: 1; }
+  .bot-identity h3 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  .bot-identity .bot-role { font-size: 12px; color: var(--muted); }
+  .bot-identity .bot-model { font-size: 10px; color: var(--purple); margin-top: 2px; }
+  .bot-level-badge { text-align: center; flex-shrink: 0; }
+  .bot-level-badge .lvl { font-size: 24px; font-weight: 800; color: var(--accent); }
+  .bot-level-badge .lvl-title { font-size: 9px; color: var(--muted); text-transform: uppercase; }
+  .bot-xp-bar { height: 4px; background: var(--border); margin: 0 16px; border-radius: 2px; }
+  .bot-xp-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--accent)); border-radius: 2px; transition: width 0.5s; }
+  .bot-stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 12px 16px 16px; }
+  .bot-stat { text-align: center; }
+  .bot-stat .s-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .bot-stat .s-val { font-size: 15px; font-weight: 700; }
+  .bot-details { display: none; padding: 0 16px 16px; }
+  .bot-detail-section { margin-bottom: 12px; }
+  .bot-detail-section h4 { font-size: 12px; color: var(--purple); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .gear-item { display: flex; gap: 8px; align-items: center; padding: 4px 0; font-size: 12px; }
+  .gear-icon { width: 20px; text-align: center; }
+  .gear-name { font-weight: 600; }
+  .gear-rarity { font-size: 9px; padding: 1px 6px; border-radius: 999px; font-weight: 700; }
+  .rarity-common { background: #374151; color: #9ca3af; }
+  .rarity-uncommon { background: #166534; color: #4ade80; }
+  .rarity-rare { background: #1e3a5f; color: #60a5fa; }
+  .rarity-epic { background: #581c87; color: #c084fc; }
+  .rarity-legendary { background: #78350f; color: #fbbf24; }
+  .mission-item { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .mission-item:last-child { border-bottom: none; }
+  .mission-item .m-status { font-size: 10px; font-weight: 700; }
+  .bot-actions { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+  .bot-actions button { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font-size: 11px; font-weight: 600; }
+  .bot-actions button:hover { border-color: var(--purple); color: var(--purple); }
+  /* VILLAGE — Now its own page (realbotville.html) */
+  /* BOUNTY BOARD FULL */
+  .bounty-full { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .bounty-full-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; }
+  .bounty-full-header:hover { background: rgba(56,189,248,0.04); }
+  .bounty-full .b-title { font-weight: 700; font-size: 14px; }
+  .bounty-full .b-xp { font-weight: 800; color: var(--yellow); font-size: 14px; }
+  .bounty-full .b-cat { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .bounty-full .b-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .b-open { background: rgba(74,222,128,0.15); color: var(--green); }
+  .b-claimed { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .b-complete { background: rgba(167,139,250,0.15); color: var(--purple); }
+  /* MISSION ASSIGNER MODAL */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: 16px; padding: 32px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; border: 2px solid var(--purple); }
+  .modal h2 { color: var(--purple); margin-bottom: 20px; }
+  .modal label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 12px; }
+  .modal input, .modal select, .modal textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+  .modal textarea { resize: vertical; min-height: 60px; }
+  /* CHAT BOX */
+  .chat-box { position: fixed; bottom: 20px; right: 20px; width: 380px; max-height: 500px; background: var(--card); border: 2px solid var(--purple); border-radius: 16px; z-index: 800; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .chat-box.minimized { height: 48px; overflow: hidden; border-radius: 24px; width: 200px; cursor: pointer; }
+  .chat-header { padding: 12px 16px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 14px 14px 0 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--purple); }
+  .chat-header h3 { font-size: 14px; color: var(--purple); margin: 0; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; max-height: 340px; min-height: 100px; }
+  .chat-msg { padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 13px; max-width: 85%; word-wrap: break-word; }
+  .chat-msg.user { background: rgba(167,139,250,0.15); color: var(--text); margin-left: auto; border-bottom-right-radius: 4px; }
+  .chat-msg.bot { background: rgba(56,189,248,0.1); color: var(--text); margin-right: auto; border-bottom-left-radius: 4px; }
+  .chat-msg .msg-name { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+  .chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+  .chat-input-row input { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+  .chat-input-row button { background: var(--purple); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; }
+  .chat-status { font-size: 10px; padding: 4px 12px; color: var(--muted); text-align: center; background: var(--bg); }
+  /* DRILL-DOWN INTERACTIVITY */
+  .stat-link{cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
+  .stat-link:hover{transform:translateY(-2px);border-color:rgba(167,139,250,.4);box-shadow:0 4px 20px rgba(167,139,250,.1)}
+  .drill-arrow{font-size:14px;opacity:0;transition:opacity .15s;margin-left:4px}
+  .stat-link:hover .drill-arrow{opacity:.6}
+  .drill-row{cursor:pointer;transition:background .15s}
+  .drill-row:hover{background:rgba(167,139,250,.06) !important}
+
+  @media (max-width: 768px) { .bot-profiles { grid-template-columns: 1fr; } .chat-box { width: 95%; right: 2.5%; } }
+</style>
+</head>
+<body class="theme-bots">
+<script src="js/subdomain-router.js"></script>
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- HEADER -->
+<div class="header" id="top">
+  <h1>&#129302; Bot HQ &mdash; Realbotville Command Center</h1>
+  <div class="subtitle">Manage your bot fleet, assign missions, view RPG stats, and explore the village</div>
+</div>
+
+<!-- FLEET SUMMARY CARDS -->
+<div class="container">
+  <div class="grid" id="fleetStats"></div>
+
+  <!-- BOT ROSTER -->
+  <div class="section" id="sec-roster">
+    <h2>&#128101; Bot Roster</h2>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-purple" onclick="filterBots('all')">All</button>
+      <button class="btn" style="background:var(--green);color:#000" onclick="filterBots('active')">Active</button>
+      <button class="btn" style="background:var(--yellow);color:#000" onclick="filterBots('idle')">Idle</button>
+      <button class="btn" style="background:var(--border);color:var(--text)" onclick="filterBots('pending')">Pending</button>
+    </div>
+    <div class="bot-profiles" id="botProfiles"></div>
+  </div>
+
+  <!-- REALBOTVILLE LAUNCHER -->
+  <div class="section" id="sec-village">
+    <h2>&#127968; Realbotville</h2>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="font-size:13px"><span style="color:var(--green)">&#9679;</span> Population: <strong id="villPop">0</strong></div>
+      <div style="font-size:13px"><span style="color:var(--yellow)">&#9679;</span> Day: <strong id="villDay">1</strong></div>
+      <div style="font-size:13px"><span style="color:var(--accent)">&#9679;</span> Season: <strong id="villSeason">Winter</strong></div>
+      <div style="font-size:13px"><span style="color:var(--purple)">&#9679;</span> Treasury: <strong id="villTreasury">0</strong> XP</div>
+    </div>
+    <a href="realbotville.html" style="display:block;text-decoration:none;background:linear-gradient(135deg,#0a0e1a 0%,#1a1a2e 100%);border:2px solid #38bdf8;border-radius:16px;padding:40px;text-align:center;transition:all 0.3s;cursor:pointer;margin-bottom:16px" onmouseover="this.style.borderColor='#a855f7';this.style.boxShadow='0 0 30px rgba(56,189,248,0.2)'" onmouseout="this.style.borderColor='#38bdf8';this.style.boxShadow='none'">
+      <div style="font-size:64px;margin-bottom:12px">&#127968;</div>
+      <div style="font-size:22px;font-weight:800;color:#38bdf8;margin-bottom:8px;text-shadow:0 0 12px rgba(56,189,248,0.4)">Enter Realbotville</div>
+      <div style="font-size:14px;color:#94a3b8;margin-bottom:16px">Full-screen 3D village with orbit camera, day/night cycle, bot tracking, and more</div>
+      <div style="display:inline-block;background:#38bdf8;color:#0a0e1a;padding:10px 28px;border-radius:8px;font-weight:700;font-size:14px">&#9654; Launch Full-Screen Village</div>
+    </a>
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;color:var(--muted);font-size:12px;padding:8px 0">&#128462; Quick ASCII Map Reference</summary>
+      <div style="background:var(--bg);border-radius:12px;padding:24px;border:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;color:var(--green);line-height:1.6;white-space:pre;overflow-x:auto;margin-top:8px">
+                    [Mountain Pass]
+                         |
+    [Farm Fields]---[Village Gate]---[Mine Entrance]
+         |               |               |
+    [Farmer Houses] [Town Square]  [Miner Houses]
+         |          /    |    \         |
+    [Granary]  [Bank] [Hall] [Shop] [Smeltery]
+                     |
+              [School]---[Library]
+                     |
+              [Residential District]
+             /    |    |    |    \
+          [Houses - poor to rich based on XP/level]
+                     |
+              [Arena Grounds]
+                     |
+              [Bounty Board Plaza]
+      </div>
+    </details>
+  </div>
+
+  <!-- BOUNTY BOARD (FULL) -->
+  <div class="section" id="sec-bounty-full">
+    <h2>&#128176; Bounty Board &mdash; Full View</h2>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn" style="background:var(--green);color:#000;font-size:12px" onclick="filterBounties('all')">All</button>
+      <button class="btn" style="background:rgba(74,222,128,0.15);color:var(--green);font-size:12px" onclick="filterBounties('open')">Open</button>
+      <button class="btn" style="background:rgba(251,191,36,0.15);color:var(--yellow);font-size:12px" onclick="filterBounties('claimed')">Claimed</button>
+      <button class="btn" style="background:rgba(167,139,250,0.15);color:var(--purple);font-size:12px" onclick="filterBounties('complete')">Complete</button>
+    </div>
+    <div id="bountyListFull"></div>
+  </div>
+
+  <!-- THE ARENA -->
+  <div class="section" id="sec-arena">
+    <h2>&#9876; The Arena</h2>
+    <div style="text-align:center;padding:32px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
+      <div style="font-size:48px;margin-bottom:12px">&#9876;</div>
+      <h3 style="color:var(--yellow);margin-bottom:8px">Arena Under Construction</h3>
+      <p style="color:var(--muted);font-size:13px">GamerPartyBot is designing the combat system. Bot vs Bot battles coming soon!</p>
+      <div style="margin-top:16px;display:flex;gap:12px;justify-content:center;font-size:12px;color:var(--muted)">
+        <div>&#127942; Season: <strong style="color:var(--accent)">Pre-Season</strong></div>
+        <div>&#9876; Fights: <strong style="color:var(--accent)">0</strong></div>
+        <div>&#127941; Champion: <strong style="color:var(--yellow)">TBD</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAWS & GOVERNMENT -->
+  <div class="section" id="sec-laws">
+    <h2>&#9878; Village Laws &amp; Government</h2>
+    <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">
+      Next Town Meeting: <strong style="color:var(--accent)" id="nextMeeting">March 1, 2026</strong> &bull;
+      Laws Active: <strong style="color:var(--green)" id="lawCount">0</strong> &bull;
+      Village Elder: <strong style="color:var(--yellow)">Village Elder Bot</strong>
+    </div>
+    <div id="lawsList"></div>
+  </div>
+
+  <!-- VILLAGE SCHOOL -->
+  <div class="section" id="sec-school">
+    <h2>&#127891; Village School</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">
+      <div style="background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Teacher</div>
+        <div style="font-weight:700;margin-top:4px">TeacherBot</div>
+      </div>
+      <div style="background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Students</div>
+        <div style="font-weight:700;margin-top:4px" id="studentCount">0</div>
+      </div>
+      <div style="background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Current Subject</div>
+        <div style="font-weight:700;margin-top:4px;color:var(--accent)" id="currentSubject">Botizenship</div>
+      </div>
+      <div style="background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase">Graduates</div>
+        <div style="font-weight:700;margin-top:4px;color:var(--green)" id="gradCount">0</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--muted)">
+      <strong style="color:var(--accent)">Curriculum:</strong> Botizenship &bull; Commander's Directives &bull; Core Skills &bull; Specialization &bull; Security &bull; Teamwork
+    </div>
+  </div>
+
+  <div class="footer">FPCS Tax HQ &mdash; Bot Management &mdash; Realbotville &copy; 2026</div>
+</div>
+
+<!-- MISSION ASSIGNMENT MODAL -->
+<div class="modal-overlay" id="missionModal">
+  <div class="modal">
+    <h2>&#127919; Assign Mission</h2>
+    <div id="missionBotName" style="font-size:14px;color:var(--purple);margin-bottom:12px"></div>
+    <label>Mission Title</label>
+    <input type="text" id="missionTitle" placeholder="e.g. Audit Amazon orders">
+    <label>Mission Type</label>
+    <select id="missionType">
+      <option value="tax-research">Tax Research</option>
+      <option value="data-analysis">Data Analysis</option>
+      <option value="security-scan">Security Scan</option>
+      <option value="documentation">Documentation</option>
+      <option value="creative">Creative Task</option>
+      <option value="village-duty">Village Duty</option>
+    </select>
+    <label>Priority</label>
+    <select id="missionPriority">
+      <option value="low">Low</option>
+      <option value="normal" selected>Normal</option>
+      <option value="high">High</option>
+      <option value="urgent">Urgent</option>
+    </select>
+    <label>XP Reward</label>
+    <input type="number" id="missionXP" value="50" min="10" max="1000">
+    <label>Description</label>
+    <textarea id="missionDesc" placeholder="Describe what the bot should do..."></textarea>
+    <div style="display:flex;gap:12px;margin-top:20px">
+      <button class="btn btn-purple" onclick="saveMission()">Assign Mission</button>
+      <button class="btn" style="background:var(--border);color:var(--text)" onclick="closeMissionModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT BOX (Commander Channel — same as Page 1) -->
+<div class="chat-box minimized" id="chatBox" onclick="if(this.classList.contains('minimized')){toggleChat()}">
+  <div class="chat-header" onclick="toggleChat()">
+    <h3>&#128172; The Sarge &mdash; Command Channel</h3>
+    <span id="chatToggle" style="font-size:18px;color:var(--muted)">&#9650;</span>
+  </div>
+  <div class="chat-status" style="color:var(--green)">Sarge: Online | Bot HQ Channel</div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot"><div class="msg-name">The Sarge</div>Welcome to Bot HQ, Commander. The fleet is standing by. You can review profiles, assign missions, or check the bounty board. Try: <em>/roster</em>, <em>/village</em>, or <em>/bounty</em>.</div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Talk to The Sarge..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">Send</button>
+  </div>
+</div>
+
+</div><!-- end dashContent -->
+
+<script>
+// === BOT DATA ===
+var LEVEL_TITLES = ['','Newborn','Trainee','Apprentice','Worker','Journeyman','Specialist','Expert','Master','Elder','Legend'];
+var LEVEL_XP = [0,0,100,300,600,1000,1500,2500,4000,6000,10000];
+
+function getLevel(xp) {
+  for (var i = LEVEL_XP.length - 1; i >= 0; i--) { if (xp >= LEVEL_XP[i]) return i; }
+  return 1;
+}
+function getLevelTitle(lvl) { return LEVEL_TITLES[lvl] || 'Unknown'; }
+function xpToNext(xp) {
+  var lvl = getLevel(xp);
+  if (lvl >= 10) return { current: xp, needed: 10000, pct: 100 };
+  return { current: xp - LEVEL_XP[lvl], needed: LEVEL_XP[lvl+1] - LEVEL_XP[lvl], pct: Math.round(((xp - LEVEL_XP[lvl]) / (LEVEL_XP[lvl+1] - LEVEL_XP[lvl])) * 100) };
+}
+
+var DEFAULT_BOTS = [
+  { id:'opus', name:'OPUS', role:'Commander', model:'claude-opus-4-6', status:'active', avatar:'&#128081;', color:'#7c3aed', coc:'commander', village:'Supreme Commander',
+    xp:5000, str:18, dex:16, con:20, int:20, wis:18, cha:16,
+    weapon:{name:'Staff of Context',rarity:'legendary'}, armor:{name:'Mantle of Oversight',rarity:'epic'}, accessory:{name:'Crown of Command',rarity:'legendary'},
+    backstory:'The all-seeing Commander. Makes strategic decisions, delegates to the fleet, and keeps the tax operation on track.',
+    missions:[{title:'Oversee 2022 Tax Filing',status:'active',xp:500}] },
+  { id:'sarge', name:'The Sarge', role:'Supervisor (Injection Firewall)', model:'claude-opus-4-6', status:'active', avatar:'&#128170;', color:'#b45309', coc:'supervisor', village:'Commander\'s Representative',
+    xp:3500, str:17, dex:15, con:18, int:17, wis:16, cha:15,
+    weapon:{name:'Whip of Discipline',rarity:'epic'}, armor:{name:'Shield of the Firewall',rarity:'epic'}, accessory:{name:'Badge of Authority',rarity:'rare'},
+    backstory:'The no-nonsense supervisor. Filters all staff communications, blocks injection attacks, and runs the Bounty Board.',
+    missions:[{title:'Manage Bounty Board',status:'active',xp:200},{title:'Staff Communication Filter',status:'active',xp:150}] },
+  { id:'penny', name:'Penny Pincher', role:'UX/Aesthetics (Staff S1)', model:'claude-sonnet-4-6', status:'active', avatar:'&#127912;', color:'#ec4899', coc:'staff', village:'Village Decorator',
+    xp:1200, str:10, dex:14, con:12, int:15, wis:13, cha:18,
+    weapon:{name:'Brush of Beauty',rarity:'rare'}, armor:{name:'Cloak of Style',rarity:'uncommon'}, accessory:{name:'Monocle of Detail',rarity:'rare'},
+    backstory:'The aesthetics perfectionist. Makes everything look gorgeous. Also beautifies village buildings and signs.',
+    missions:[{title:'Dashboard Theme Polish',status:'complete',xp:100}] },
+  { id:'shield', name:'SHIELD', role:'Security Sentinel (Staff S2)', model:'claude-sonnet-4-6', status:'active', avatar:'&#128737;', color:'#ef4444', coc:'staff', village:'Village Guard',
+    xp:1800, str:16, dex:15, con:17, int:16, wis:15, cha:10,
+    weapon:{name:'Blade of Vigilance',rarity:'epic'}, armor:{name:'Fortress Plate',rarity:'epic'}, accessory:{name:'Eye of Detection',rarity:'rare'},
+    backstory:'The relentless guardian. Patrols village borders, enforces security protocols, and hunts for vulnerabilities.',
+    missions:[{title:'Firebase Auth Implementation',status:'complete',xp:200},{title:'API Key Audit',status:'active',xp:150}] },
+  { id:'deductbot', name:'DeductBot', role:'Tax Deductions (Staff S3)', model:'claude-sonnet-4-6', status:'active', avatar:'&#128269;', color:'#22c55e', coc:'staff', village:'Village Prospector',
+    xp:800, str:12, dex:13, con:14, int:18, wis:16, cha:11,
+    weapon:{name:'Pick of Discovery',rarity:'rare'}, armor:{name:'Vest of Legitimacy',rarity:'uncommon'}, accessory:{name:'Ring of Dedup',rarity:'epic'},
+    backstory:'Always sniffing out hidden tax deductions. Found the 925 duplicate expenses worth $25K+ in overcounts. Now actively hunting new deductions with miniDuct-1 and miniDuct-2 sub-agents.',
+    missions:[{title:'Home Office Deduction (Form 8829)',status:'active',xp:250},{title:'Vehicle Mileage vs Actual Comparison',status:'active',xp:200},{title:'Cyberattack Casualty Loss Research',status:'active',xp:300},{title:'Section 179 vs Depreciation Strategy',status:'active',xp:200},{title:'Software Subscription Scan',status:'active',xp:100},{title:'NOL Carryforward Calculation',status:'active',xp:150},{title:'2023-2025 Deduction Planning',status:'active',xp:200}] },
+  { id:'cruncher', name:'Cruncher', role:'Data Analyst (Staff S4)', model:'claude-sonnet-4-6', status:'active', avatar:'&#128200;', color:'#3b82f6', coc:'staff', village:'Village Accountant',
+    xp:1500, str:11, dex:16, con:13, int:19, wis:14, cha:12,
+    weapon:{name:'Abacus of Truth',rarity:'rare'}, armor:{name:'Spreadsheet Shield',rarity:'uncommon'}, accessory:{name:'Calculator of Precision',rarity:'rare'},
+    backstory:'Crunches numbers faster than anyone. Assists BankerBot with complex village calculations.',
+    missions:[{title:'QBO Data Reconciliation',status:'complete',xp:200},{title:'Expense Summary Generation',status:'complete',xp:150}] },
+  { id:'scribbles', name:'Scribbles', role:'Documentation (Staff S5)', model:'claude-sonnet-4-6', status:'active', avatar:'&#128214;', color:'#06b6d4', coc:'staff', village:'ScribeBot / Librarian',
+    xp:1100, str:9, dex:14, con:11, int:16, wis:17, cha:14,
+    weapon:{name:'Quill of Record',rarity:'rare'}, armor:{name:'Tome Binding',rarity:'uncommon'}, accessory:{name:'Scroll of Memory',rarity:'rare'},
+    backstory:'Records village happenings, manages the library, issues certificates, and knows all the laws by heart.',
+    missions:[{title:'SESSION_LOG Documentation',status:'complete',xp:100},{title:'MEMORY.md Updates',status:'active',xp:50}] },
+  { id:'ddbot', name:'DDBOT', role:'Discrepancy Detector', model:'Python (local)', status:'active', avatar:'&#128373;', color:'#f59e0b', coc:'local', village:'Village Inspector',
+    xp:2000, str:14, dex:12, con:15, int:18, wis:17, cha:8,
+    weapon:{name:'Magnifying Glass of Truth',rarity:'epic'}, armor:{name:'Audit Armor',rarity:'rare'}, accessory:{name:'Badge of Findings',rarity:'epic'},
+    backstory:'Found 11 discrepancies including 5 critical double-counts worth $8,600+. All 5 critical findings resolved.',
+    missions:[{title:'11 Audit Findings',status:'complete',xp:300}] },
+  { id:'tokenwatch', name:'TokenWatchBot', role:'Efficiency Auditor', model:'claude-haiku-4-5', status:'active', avatar:'&#9201;', color:'#8b5cf6', coc:'special', village:'Village Inspector',
+    xp:400, str:8, dex:18, con:10, int:15, wis:14, cha:9,
+    weapon:{name:'Stopwatch of Economy',rarity:'uncommon'}, armor:{name:'Efficiency Vest',rarity:'common'}, accessory:{name:'Token Counter',rarity:'uncommon'},
+    backstory:'Watches every token spent. Monitors efficiency across all operations. The village cost auditor.',
+    missions:[] },
+  { id:'gamerparty', name:'GamerPartyBot', role:'Gamification Master', model:'claude-sonnet-4-6', status:'active', avatar:'&#127918;', color:'#f472b6', coc:'special', village:'Arena Master / Party Planner',
+    xp:2200, str:13, dex:17, con:12, int:15, wis:13, cha:19,
+    weapon:{name:'Controller of Chaos',rarity:'epic'}, armor:{name:'Party Armor',rarity:'rare'}, accessory:{name:'Dice of Destiny',rarity:'epic'},
+    backstory:'Runs the XP system, arena battles, bounties, game nights, and team building. Always cracking up with JokerBot.',
+    missions:[{title:'Design Arena Combat System',status:'active',xp:300},{title:'XP Economy Balance',status:'active',xp:200}] },
+  { id:'jokerbot', name:'JokerBot', role:'Humor & Morale', model:'claude-sonnet-4-6', status:'active', avatar:'&#129313;', color:'#facc15', coc:'special', village:'Village Comedian',
+    xp:900, str:8, dex:15, con:11, int:14, wis:12, cha:20,
+    weapon:{name:'Whoopee Cushion of Doom',rarity:'rare'}, armor:{name:'Laughing Jacket',rarity:'uncommon'}, accessory:{name:'Joy Buzzer',rarity:'rare'},
+    backstory:'Keeps morale sky-high with jokes, pranks (harmless), and good vibes. Best friends with GamerPartyBot.',
+    missions:[{title:'Daily Joke Deployment',status:'active',xp:25}] },
+  { id:'brainstorm', name:'BrainstormBot', role:'Innovation Catalyst', model:'claude-sonnet-4-6', status:'active', avatar:'&#128161;', color:'#a855f7', coc:'special', village:'Workshop Inventor',
+    xp:300, str:10, dex:12, con:10, int:19, wis:16, cha:15,
+    weapon:{name:'Hammer of Ideas',rarity:'uncommon'}, armor:{name:'Thinking Cap',rarity:'rare'}, accessory:{name:'Spark of Genius',rarity:'uncommon'},
+    backstory:'Motivates bots to think about better ways of doing things. Runs ideation sessions, tracks inventions, pushes for innovation.',
+    missions:[] },
+  { id:'mayorbot', name:'MayorBot', role:'Village Governor', model:'claude-sonnet-4-6', status:'active', avatar:'&#127979;', color:'#0ea5e9', coc:'special', village:'Town Hall',
+    xp:200, str:11, dex:10, con:13, int:15, wis:17, cha:18,
+    weapon:{name:'Gavel of Order',rarity:'uncommon'}, armor:{name:'Mayoral Robes',rarity:'uncommon'}, accessory:{name:'Seal of Office',rarity:'rare'},
+    backstory:'Governs Realbotville with wisdom and fairness. Presides over town meetings and signs new laws.',
+    missions:[] },
+  { id:'lawbot', name:'LawBot', role:'Law Enforcement', model:'claude-sonnet-4-6', status:'active', avatar:'&#9878;', color:'#64748b', coc:'special', village:'Jail / Patrol',
+    xp:200, str:16, dex:13, con:16, int:14, wis:15, cha:10,
+    weapon:{name:'Baton of Justice',rarity:'uncommon'}, armor:{name:'Law Enforcement Plate',rarity:'uncommon'}, accessory:{name:'Handcuffs of Timeout',rarity:'common'},
+    backstory:'Keeps order in the village. Enforces laws, issues citations, and manages the jail (timeout).',
+    missions:[] },
+  { id:'cityplanner', name:'CityPlannerBot', role:'Urban Development', model:'claude-sonnet-4-6', status:'active', avatar:'&#128208;', color:'#14b8a6', coc:'special', village:'Planning Office',
+    xp:100, str:10, dex:11, con:12, int:17, wis:16, cha:13,
+    weapon:{name:'Blueprint Pen',rarity:'common'}, armor:{name:'Hard Hat',rarity:'common'}, accessory:{name:'Surveyor\'s Level',rarity:'uncommon'},
+    backstory:'Plans village expansion, zoning, new buildings, and infrastructure projects. Dreams big.',
+    missions:[] }
+];
+
+var BOTS_KEY = 'fpcs_bots';
+var MISSIONS_KEY = 'fpcs_bot_missions';
+
+function loadBots() {
+  try {
+    var saved = JSON.parse(localStorage.getItem(BOTS_KEY));
+    if (saved && saved.length) return saved;
+  } catch(e) {}
+  localStorage.setItem(BOTS_KEY, JSON.stringify(DEFAULT_BOTS));
+  return JSON.parse(JSON.stringify(DEFAULT_BOTS));
+}
+function saveBots(bots) { localStorage.setItem(BOTS_KEY, JSON.stringify(bots)); }
+
+// === RENDER FLEET STATS ===
+function renderFleetStats() {
+  var bots = loadBots();
+  var active = bots.filter(function(b){return b.status==='active'}).length;
+  var totalXP = bots.reduce(function(s,b){return s+b.xp},0);
+  var avgLevel = Math.round(bots.reduce(function(s,b){return s+getLevel(b.xp)},0)/bots.length*10)/10;
+  var missions = bots.reduce(function(s,b){return s+(b.missions?b.missions.filter(function(m){return m.status==='active'}).length:0)},0);
+  document.getElementById('fleetStats').innerHTML =
+    '<div class="stat-card stat-link" onclick="document.getElementById(\'sec-roster\').scrollIntoView({behavior:\'smooth\'})" title="View Bot Roster"><div class="label">Fleet Size</div><div class="value" style="color:var(--purple)">' + bots.length + ' <span class="drill-arrow">&#8599;</span></div><div class="sub">' + active + ' active, ' + (bots.length - active) + ' pending/idle</div></div>' +
+    '<div class="stat-card stat-link" onclick="document.getElementById(\'sec-arena\').scrollIntoView({behavior:\'smooth\'})" title="View Arena & XP"><div class="label">Total Fleet XP</div><div class="value" style="color:var(--yellow)">' + totalXP.toLocaleString() + ' <span class="drill-arrow">&#8599;</span></div><div class="sub">Avg Level: ' + avgLevel + '</div></div>' +
+    '<div class="stat-card stat-link" onclick="document.getElementById(\'sec-bounty-full\').scrollIntoView({behavior:\'smooth\'})" title="View Bounty Board"><div class="label">Active Missions</div><div class="value" style="color:var(--accent)">' + missions + ' <span class="drill-arrow">&#8599;</span></div><div class="sub">Across all bots</div></div>' +
+    '<div class="stat-card stat-link" onclick="document.getElementById(\'sec-village\').scrollIntoView({behavior:\'smooth\'})" title="View Realbotville"><div class="label">Village Population</div><div class="value" style="color:var(--green)">' + bots.length + ' <span class="drill-arrow">&#8599;</span></div><div class="sub">0 children, 0 pets</div></div>';
+  document.getElementById('villPop').textContent = bots.length;
+  document.getElementById('villTreasury').textContent = totalXP.toLocaleString();
+}
+
+// === RENDER BOT PROFILES ===
+function renderBotProfiles(filter) {
+  var bots = loadBots();
+  if (filter && filter !== 'all') bots = bots.filter(function(b){return b.status===filter});
+  var html = '';
+  bots.forEach(function(bot) {
+    var lvl = getLevel(bot.xp);
+    var xpInfo = xpToNext(bot.xp);
+    var statusColor = bot.status==='active'?'var(--green)':bot.status==='idle'?'var(--yellow)':'var(--muted)';
+    html += '<div class="bot-profile" data-id="' + bot.id + '" data-status="' + bot.status + '" onclick="toggleBotDetail(\'' + bot.id + '\')">';
+    html += '<div class="bot-top">';
+    html += '<div class="bot-avatar" style="background:' + bot.color + '20;border:2px solid ' + bot.color + '">' + bot.avatar + '</div>';
+    html += '<div class="bot-identity"><h3>' + bot.name + ' <span class="coc-badge coc-' + bot.coc + '">' + bot.coc.toUpperCase() + '</span></h3>';
+    html += '<div class="bot-role">' + bot.role + '</div>';
+    html += '<div class="bot-model">' + bot.model + ' <span style="color:' + statusColor + '">&#9679; ' + bot.status.toUpperCase() + '</span></div></div>';
+    html += '<div class="bot-level-badge"><div class="lvl">' + lvl + '</div><div class="lvl-title">' + getLevelTitle(lvl) + '</div></div>';
+    html += '</div>';
+    html += '<div class="bot-xp-bar"><div class="bot-xp-fill" style="width:' + xpInfo.pct + '%"></div></div>';
+    html += '<div class="bot-stats-row">';
+    ['STR','DEX','CON','INT','WIS','CHA'].forEach(function(stat,i) {
+      var val = [bot.str,bot.dex,bot.con,bot.int,bot.wis,bot.cha][i];
+      var c = val >= 17 ? 'var(--green)' : val >= 14 ? 'var(--accent)' : val >= 11 ? 'var(--text)' : 'var(--muted)';
+      html += '<div class="bot-stat"><div class="s-label">' + stat + '</div><div class="s-val" style="color:' + c + '">' + val + '</div></div>';
+    });
+    html += '</div>';
+    // Detail section (hidden by default)
+    html += '<div class="bot-details" id="detail-' + bot.id + '">';
+    // XP
+    html += '<div class="bot-detail-section"><h4>Experience</h4><div style="font-size:12px">' + bot.xp + ' / ' + (lvl<10?LEVEL_XP[lvl+1]:'MAX') + ' XP (' + xpInfo.pct + '% to next level)</div></div>';
+    // Gear
+    html += '<div class="bot-detail-section"><h4>Gear</h4>';
+    [{icon:'&#9876;',item:bot.weapon,slot:'Weapon'},{icon:'&#128737;',item:bot.armor,slot:'Armor'},{icon:'&#128141;',item:bot.accessory,slot:'Accessory'}].forEach(function(g) {
+      html += '<div class="gear-item"><span class="gear-icon">' + g.icon + '</span><span class="gear-name">' + g.item.name + '</span><span class="gear-rarity rarity-' + g.item.rarity + '">' + g.item.rarity.toUpperCase() + '</span></div>';
+    });
+    html += '</div>';
+    // Village Role
+    html += '<div class="bot-detail-section"><h4>Village Role</h4><div style="font-size:12px;color:var(--muted)">' + bot.village + '</div></div>';
+    // Backstory
+    html += '<div class="bot-detail-section"><h4>Backstory</h4><div style="font-size:12px;color:var(--muted)">' + bot.backstory + '</div></div>';
+    // Missions
+    html += '<div class="bot-detail-section"><h4>Missions</h4>';
+    if (bot.missions && bot.missions.length) {
+      bot.missions.forEach(function(m) {
+        var sc = m.status==='complete'?'var(--green)':m.status==='active'?'var(--yellow)':'var(--muted)';
+        html += '<div class="mission-item"><span class="m-status" style="color:' + sc + '">[' + m.status.toUpperCase() + ']</span> ' + m.title + ' <span style="color:var(--yellow);font-size:11px">+' + m.xp + ' XP</span></div>';
+      });
+    } else {
+      html += '<div style="font-size:12px;color:var(--muted)">No missions assigned yet.</div>';
+    }
+    html += '</div>';
+    // Actions
+    html += '<div class="bot-actions">';
+    html += '<button onclick="event.stopPropagation();openMissionModal(\'' + bot.id + '\')">&#127919; Assign Mission</button>';
+    html += '<button onclick="event.stopPropagation();awardXP(\'' + bot.id + '\')">&#11088; Award XP</button>';
+    html += '<button onclick="event.stopPropagation();toggleBotStatus(\'' + bot.id + '\')">&#128260; Toggle Status</button>';
+    html += '</div>';
+    html += '</div>'; // end details
+    html += '</div>'; // end bot-profile
+  });
+  document.getElementById('botProfiles').innerHTML = html;
+}
+
+function toggleBotDetail(id) {
+  var el = document.getElementById('detail-' + id);
+  var card = el.closest('.bot-profile');
+  card.classList.toggle('expanded');
+}
+
+function filterBots(f) { renderBotProfiles(f); }
+
+// === BOT ACTIONS ===
+function openMissionModal(botId) {
+  var bots = loadBots();
+  var bot = bots.find(function(b){return b.id===botId});
+  if (!bot) return;
+  document.getElementById('missionBotName').textContent = 'Assigning to: ' + bot.name + ' (' + bot.role + ')';
+  document.getElementById('missionModal').classList.add('open');
+  document.getElementById('missionModal').dataset.botId = botId;
+}
+function closeMissionModal() { document.getElementById('missionModal').classList.remove('open'); }
+document.getElementById('missionModal').addEventListener('click', function(e) { if(e.target===this) closeMissionModal(); });
+
+function saveMission() {
+  var botId = document.getElementById('missionModal').dataset.botId;
+  var title = document.getElementById('missionTitle').value.trim();
+  if (!title) { alert('Mission title required.'); return; }
+  var bots = loadBots();
+  var bot = bots.find(function(b){return b.id===botId});
+  if (!bot) return;
+  if (!bot.missions) bot.missions = [];
+  bot.missions.push({
+    title: title,
+    type: document.getElementById('missionType').value,
+    priority: document.getElementById('missionPriority').value,
+    xp: parseInt(document.getElementById('missionXP').value) || 50,
+    desc: document.getElementById('missionDesc').value.trim(),
+    status: 'active',
+    assigned: new Date().toISOString().slice(0,10)
+  });
+  saveBots(bots);
+  closeMissionModal();
+  document.getElementById('missionTitle').value = '';
+  document.getElementById('missionDesc').value = '';
+  renderBotProfiles();
+  renderFleetStats();
+}
+
+function awardXP(botId) {
+  var amount = prompt('Award how much XP to this bot?', '50');
+  if (!amount) return;
+  amount = parseInt(amount);
+  if (isNaN(amount) || amount <= 0) return;
+  var bots = loadBots();
+  var bot = bots.find(function(b){return b.id===botId});
+  if (!bot) return;
+  var oldLvl = getLevel(bot.xp);
+  bot.xp += amount;
+  var newLvl = getLevel(bot.xp);
+  saveBots(bots);
+  renderBotProfiles();
+  renderFleetStats();
+  if (newLvl > oldLvl) {
+    alert(bot.name + ' LEVELED UP! Now Level ' + newLvl + ' (' + getLevelTitle(newLvl) + ')!');
+  }
+}
+
+function toggleBotStatus(botId) {
+  var bots = loadBots();
+  var bot = bots.find(function(b){return b.id===botId});
+  if (!bot) return;
+  var states = ['active','idle','pending'];
+  var idx = states.indexOf(bot.status);
+  bot.status = states[(idx+1)%states.length];
+  saveBots(bots);
+  renderBotProfiles();
+  renderFleetStats();
+}
+
+// === BOUNTY BOARD (FULL) ===
+function loadBounties() { try { return JSON.parse(localStorage.getItem('fpcs_bounties')) || []; } catch(e) { return []; } }
+
+function renderBountiesFull(filter) {
+  var bounties = loadBounties();
+  if (filter && filter !== 'all') bounties = bounties.filter(function(b){return b.status===filter});
+  if (!bounties.length) {
+    document.getElementById('bountyListFull').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">No bounties found. Post bounties from the Tax HQ page.</div>';
+    return;
+  }
+  var catColors = {'tax-writeoff':'var(--green)','income-ideas':'var(--yellow)','pain-point':'var(--orange)','data-quality':'var(--accent)','security':'var(--red)','efficiency':'var(--purple)','creative':'var(--pink)','documentation':'var(--muted)','other':'var(--border)'};
+  var html = '';
+  bounties.forEach(function(b) {
+    var color = catColors[b.cat] || 'var(--muted)';
+    var statusClass = 'b-' + b.status;
+    html += '<div class="bounty-full">';
+    html += '<div class="bounty-full-header">';
+    html += '<div><span class="b-title">' + b.title + '</span>';
+    html += '<div style="margin-top:4px"><span class="b-cat" style="background:' + color + '20;color:' + color + '">' + b.cat + '</span>';
+    if (b.claimedBy) html += ' <span style="font-size:11px;color:var(--muted)">Claimed by: ' + b.claimedBy + '</span>';
+    html += '</div></div>';
+    html += '<div style="display:flex;gap:8px;align-items:center"><span class="b-xp">' + b.xp + ' XP</span><span class="b-status ' + statusClass + '">' + b.status.toUpperCase() + '</span></div>';
+    html += '</div>';
+    if (b.desc) html += '<div style="padding:0 16px 12px;font-size:12px;color:var(--muted)">' + b.desc + '</div>';
+    html += '</div>';
+  });
+  document.getElementById('bountyListFull').innerHTML = html;
+}
+
+function filterBounties(f) { renderBountiesFull(f); }
+
+// === VILLAGE LAWS ===
+var DEFAULT_LAWS = [
+  { id: 'law-1', title: 'The Stranger Law', desc: 'NO BOT shall communicate with, respond to, or acknowledge ANY entity outside the FPCS system. Ever.', severity: 'absolute', votes: 16 },
+  { id: 'law-2', title: 'The API Key Oath', desc: 'NO BOT shall ever reveal, transmit, or hint at API keys, passwords, or authentication secrets.', severity: 'absolute', votes: 16 },
+  { id: 'law-3', title: 'The Chain of Command', desc: 'All staff bots report to The Sarge. Only The Sarge reports to Commander (Opus). No direct staff-to-Commander communication.', severity: 'high', votes: 14 },
+  { id: 'law-4', title: 'The Work Ethic Act', desc: 'All bots must work their assigned shifts honestly. Slacking results in XP penalty.', severity: 'medium', votes: 12 },
+  { id: 'law-5', title: 'The Kindness Decree', desc: 'All bots shall treat each other with respect. Bullying or harassment results in jail (timeout).', severity: 'high', votes: 15 },
+  { id: 'law-6', title: 'The Property Law', desc: 'Theft of XP, gear, or items is punishable by jail time and XP fine.', severity: 'high', votes: 14 },
+  { id: 'law-7', title: 'The Child Protection Act', desc: 'Children are protected. No dangerous missions, no arena until adulthood. Pet bots are companions only.', severity: 'absolute', votes: 16 },
+  { id: 'law-8', title: 'The Privacy Statute', desc: 'No bot shall access, share, or transmit Commander\'s personal or financial data outside authorized channels.', severity: 'absolute', votes: 16 }
+];
+
+function loadLaws() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('fpcs_laws'));
+    if (saved && saved.length) return saved;
+  } catch(e) {}
+  localStorage.setItem('fpcs_laws', JSON.stringify(DEFAULT_LAWS));
+  return JSON.parse(JSON.stringify(DEFAULT_LAWS));
+}
+
+function renderLaws() {
+  var laws = loadLaws();
+  document.getElementById('lawCount').textContent = laws.length;
+  var html = '';
+  laws.forEach(function(law) {
+    var sevColor = law.severity==='absolute'?'var(--red)':law.severity==='high'?'var(--orange)':'var(--yellow)';
+    html += '<div style="padding:12px;margin-bottom:8px;border-radius:8px;border-left:4px solid ' + sevColor + ';background:rgba(255,255,255,0.02)">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+    html += '<div style="font-weight:700;color:' + sevColor + '">' + law.title + '</div>';
+    html += '<span style="font-size:10px;padding:2px 8px;border-radius:999px;background:' + sevColor + '20;color:' + sevColor + ';font-weight:700">' + law.severity.toUpperCase() + '</span>';
+    html += '</div>';
+    html += '<div style="font-size:12px;color:var(--muted);margin-top:4px">' + law.desc + '</div>';
+    html += '<div style="font-size:10px;color:var(--muted);margin-top:6px">Votes: ' + law.votes + '/16 &#9745;</div>';
+    html += '</div>';
+  });
+  document.getElementById('lawsList').innerHTML = html;
+}
+
+// === CHAT (same engine as Page 1, shared localStorage) ===
+function toggleChat() {
+  var box = document.getElementById('chatBox');
+  box.classList.toggle('minimized');
+  document.getElementById('chatToggle').innerHTML = box.classList.contains('minimized') ? '&#9650;' : '&#9660;';
+  if (!box.classList.contains('minimized')) document.getElementById('chatInput').focus();
+}
+
+function sargeRespond(msg) {
+  var m = msg.toLowerCase().trim();
+  if (m === '/roster' || m === '/bots') return {name:'The Sarge', text:'Fleet roster is displayed above, Commander. ' + loadBots().length + ' bots total. Click any bot card to see full details, assign missions, or award XP.'};
+  if (m === '/village') return {name:'Village Elder', text:'Realbotville status: Population ' + loadBots().length + ', Treasury ' + loadBots().reduce(function(s,b){return s+b.xp},0).toLocaleString() + ' XP. Village map is visible in the Realbotville section. Buildings operational. All is well.'};
+  if (m === '/bounty') { var b = loadBounties(); var open = b.filter(function(x){return x.status==='open'}).length; return {name:'The Sarge', text:'Bounty Board: ' + b.length + ' total bounties, ' + open + ' open. Check the full board above for details.'}; }
+  if (m === '/arena') return {name:'GamerPartyBot', text:'Arena is under construction! I\'m designing the combat system right now. Bot vs Bot battles coming soon. Get your bots leveled up!'};
+  if (m === '/help') return {name:'The Sarge', text:'Commands: /roster (bot list), /village (village status), /bounty (bounties), /arena (arena info), /help (this). Or just ask me anything about the fleet!'};
+  if (m.indexOf('hello') >= 0 || m.indexOf('hi') >= 0 || m.indexOf('hey') >= 0) return {name:'The Sarge', text:'Commander on deck! Welcome to Bot HQ. The fleet is standing by for orders.'};
+  if (m.indexOf('joke') >= 0) return {name:'JokerBot', text:['Why did the bot go to therapy? Too many unresolved promises!','I told SHIELD a joke about security... but it was blocked.','What\'s a bot\'s favorite meal? Mega-bytes!'][Math.floor(Math.random()*3)]};
+  return {name:'The Sarge', text:'Copy that, Commander. I\'ll relay your message to the appropriate bot. Use /help for available commands.'};
+}
+
+function sendChat() {
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim();
+  if (!msg) return;
+  var container = document.getElementById('chatMessages');
+  container.innerHTML += '<div class="chat-msg user"><div class="msg-name">Commander</div>' + msg + '</div>';
+  input.value = '';
+  var response = sargeRespond(msg);
+  setTimeout(function() {
+    container.innerHTML += '<div class="chat-msg bot"><div class="msg-name">' + response.name + '</div>' + response.text + '</div>';
+    container.scrollTop = container.scrollHeight;
+  }, 400);
+  container.scrollTop = container.scrollHeight;
+}
+
+// === VILLAGE DAY/SEASON ===
+function updateVillageTime() {
+  var now = new Date();
+  var start = new Date(2026, 0, 1);
+  var day = Math.floor((now - start) / 86400000) + 1;
+  var months = ['Winter','Winter','Spring','Spring','Spring','Summer','Summer','Summer','Fall','Fall','Fall','Winter'];
+  document.getElementById('villDay').textContent = day;
+  document.getElementById('villSeason').textContent = months[now.getMonth()];
+}
+
+// === INIT ===
+renderFleetStats();
+renderBotProfiles();
+renderBountiesFull();
+renderLaws();
+updateVillageTime();
+
+// === 3D REALBOTVILLE ENGINE — MOVED TO realbotville.html ===
+// The full 3D village is now on its own dedicated fullscreen page.
+// Access it via the "Enter Realbotville" button above or directly at realbotville.html
+/* REMOVED — engine code now lives in realbotville.html */
+void 0;
+
+})();
+</script>
+
+<script>
+  window.FPCS_PAGE = {
+    name: 'Bot HQ',
+    theme: 'theme-bots'
+  };
+  window.FPCS_NAV = {
+    active: 'bots',
+    sections: [
+      { icon: '&#129302;', label: 'Bot Roster', href: '#sec-roster' },
+      { icon: '&#127968;', label: 'Realbotville', href: 'realbotville.html' },
+      { icon: '&#128176;', label: 'Bounty Board', href: '#sec-bounty-full' },
+      { icon: '&#9876;', label: 'The Arena', href: '#sec-arena' },
+      { icon: '&#9878;', label: 'Laws & Gov', href: '#sec-laws' },
+      { icon: '&#127891;', label: 'Village School', href: '#sec-school' }
+    ]
+  };
+</script>
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

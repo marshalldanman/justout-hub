@@ -1,0 +1,211 @@
+/* ============================================================
+   FPCS Core Styles — Shared across all dashboard pages
+   Part of TRAILS: Technology · Robotics · AI · Language · Skills
+   ============================================================ */
+
+/* --- Design Tokens --- */
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --accent: #38bdf8;
+  --green: #4ade80;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #334155;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --page-accent: var(--accent);  /* Override per page via body class */
+  --page-gradient-start: #1e3a5f;
+}
+
+/* --- Reset --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* --- Base --- */
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-top: 60px; /* Room for top nav bar */
+}
+
+/* Pages without nav bar remove this */
+body.no-nav { padding-top: 0; }
+
+/* --- Per-Page Theme Accents --- */
+body.theme-village { --page-accent: var(--accent); --page-gradient-start: #1e3a5f; }
+body.theme-bots   { --page-accent: var(--purple); --page-gradient-start: #1e3a5f; }
+body.theme-income { --page-accent: var(--green); --page-gradient-start: #1e3a5f; }
+body.theme-memory { --page-accent: var(--accent); --page-gradient-start: #1e3a5f; }
+body.theme-japster { --page-accent: #22d3ee; --page-gradient-start: #1e3a5f; }
+body.theme-helpdesk { --page-accent: var(--orange); --page-gradient-start: #1e3a5f; }
+
+/* --- Header --- */
+.header {
+  background: linear-gradient(135deg, var(--page-gradient-start) 0%, var(--bg) 100%);
+  padding: 24px 32px;
+  border-bottom: 2px solid var(--page-accent);
+}
+.header h1 {
+  font-size: 28px;
+  color: var(--page-accent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header .subtitle {
+  color: var(--muted);
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+/* --- Container --- */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* --- Grid --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* --- Sections --- */
+.section {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+.section h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- Stat Cards --- */
+.stat-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border);
+}
+.stat-card .label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.stat-card .value {
+  font-size: 28px;
+  font-weight: 700;
+}
+.stat-card .sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* --- Badges --- */
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.badge-done { background: #166534; color: #bbf7d0; }
+.badge-progress { background: #854d0e; color: #fef08a; }
+.badge-pending { background: #1e3a5f; color: #93c5fd; }
+
+/* --- COC (Chain of Command) Badges --- */
+.coc-badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
+.coc-commander { background: #7c3aed; color: #ede9fe; }
+.coc-supervisor { background: #b45309; color: #fef3c7; }
+.coc-staff { background: #1d4ed8; color: #dbeafe; }
+.coc-local { background: #166534; color: #bbf7d0; }
+.coc-special { background: #be185d; color: #fce7f3; }
+
+/* --- Agent Status Indicators --- */
+.agent-status { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.agent-status.active { background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,.5); }
+.agent-status.sleeping { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,.4); }
+.agent-status.idle { background: #64748b; }
+.agent-status.offline { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,.4); }
+
+/* --- Buttons --- */
+.btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-purple { background: var(--purple); color: #fff; }
+.btn-green { background: var(--green); color: #000; }
+.btn-accent { background: var(--accent); color: #000; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+/* --- Tables (shared base) --- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table th {
+  text-align: left;
+  padding: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border);
+}
+.data-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.data-table .amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* --- Milestones (Tax HQ) --- */
+.milestone { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.milestone:last-child { border-bottom: none; }
+.milestone input[type=checkbox] { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+.milestone .info { flex: 1; }
+.milestone .title { font-size: 15px; font-weight: 600; }
+.milestone .desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.milestone.done .title { text-decoration: line-through; color: var(--green); }
+
+/* --- Footer --- */
+.footer {
+  text-align: center;
+  padding: 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  body { padding-top: 60px; }
+  .grid { grid-template-columns: 1fr; }
+  .container { padding: 16px; }
+}

@@ -1,0 +1,548 @@
+/* ============================================================
+   ChiliGBot — Flying Goat Construction Mascot
+   Part of TRAILS: Technology · Robotics · AI · Language · Skills
+
+   A strange but effective magical flying goat who lives in a cave
+   near Realbotville. Holds a sparkling wand, flaps wings during
+   loading, and manages under-construction overlays.
+
+   STATES:
+   - Idle:       Wings still, wand dim, floating gently
+   - Loading:    Wings flap (no sparkle), assessing work
+   - Building:   Wand sparkles + lights up, constructing components
+   - Complete:   Flash + fade out, component revealed
+
+   USAGE:
+   ChiliGBot.loading('#target')    → show loading overlay
+   ChiliGBot.building('#target')   → show construction overlay
+   ChiliGBot.done('#target')       → remove overlay with flash
+   ChiliGBot.shutdown('#target')   → under-construction notice
+   ============================================================ */
+
+/* --- ChiliGBot Design Tokens --- */
+:root {
+  --chili-fur: #8B6914;
+  --chili-fur-light: #C4A34A;
+  --chili-horn: #D4A853;
+  --chili-eye: #1a1a2e;
+  --chili-wand: #6B3FA0;
+  --chili-sparkle: #FFD700;
+  --chili-sparkle-alt: #FF6B9D;
+  --chili-sparkle-blue: #38bdf8;
+  --chili-wing: #5B4A28;
+  --chili-wing-membrane: rgba(139, 105, 20, 0.4);
+  --chili-hoof: #3D2B1F;
+  --chili-construction-stripe: repeating-linear-gradient(
+    -45deg,
+    #fbbf24 0px, #fbbf24 10px,
+    #1e293b 10px, #1e293b 20px
+  );
+}
+
+/* ============================================================
+   OVERLAY CONTAINER
+   ============================================================ */
+.chili-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0;
+  animation: chili-fade-in 0.4s ease-out forwards;
+}
+
+.chili-overlay--construction {
+  border: 2px solid var(--yellow);
+}
+
+.chili-overlay--loading {
+  border: 2px solid var(--accent);
+}
+
+.chili-overlay--shutdown {
+  border: 2px solid var(--red);
+}
+
+/* Ensure parent is positioned */
+.chili-target {
+  position: relative !important;
+}
+
+/* ============================================================
+   THE GOAT — Pure CSS Art
+   ============================================================ */
+.chili-goat {
+  position: relative;
+  width: 120px;
+  height: 100px;
+  margin-bottom: 16px;
+  animation: chili-float 3s ease-in-out infinite;
+}
+
+/* --- Body --- */
+.chili-body {
+  position: absolute;
+  width: 60px;
+  height: 40px;
+  background: var(--chili-fur);
+  border-radius: 50% 50% 45% 45%;
+  top: 35px;
+  left: 30px;
+  box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3),
+              inset 2px 2px 6px var(--chili-fur-light);
+}
+
+/* Belly highlight */
+.chili-body::after {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 20px;
+  background: var(--chili-fur-light);
+  border-radius: 50%;
+  bottom: 2px;
+  left: 15px;
+  opacity: 0.4;
+}
+
+/* --- Head --- */
+.chili-head {
+  position: absolute;
+  width: 30px;
+  height: 28px;
+  background: var(--chili-fur);
+  border-radius: 50% 50% 40% 40%;
+  top: 22px;
+  left: 70px;
+  box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3);
+}
+
+/* Eye */
+.chili-head::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 7px;
+  background: var(--chili-eye);
+  border-radius: 50%;
+  top: 8px;
+  right: 6px;
+  box-shadow: 1px 0 0 1px rgba(255,255,255,0.3);
+}
+
+/* Mouth / smile */
+.chili-head::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 4px;
+  border-bottom: 2px solid rgba(0,0,0,0.4);
+  border-radius: 0 0 50% 50%;
+  bottom: 5px;
+  right: 4px;
+}
+
+/* --- Horns --- */
+.chili-horn-l,
+.chili-horn-r {
+  position: absolute;
+  width: 4px;
+  height: 14px;
+  background: var(--chili-horn);
+  border-radius: 2px 2px 0 0;
+  top: 12px;
+}
+.chili-horn-l {
+  left: 74px;
+  transform: rotate(-15deg);
+}
+.chili-horn-r {
+  left: 82px;
+  transform: rotate(15deg);
+}
+
+/* --- Beard --- */
+.chili-beard {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  background: var(--chili-fur-light);
+  border-radius: 0 0 50% 50%;
+  top: 44px;
+  left: 84px;
+}
+
+/* --- Wings --- */
+.chili-wing {
+  position: absolute;
+  top: 24px;
+  width: 28px;
+  height: 18px;
+  border-radius: 50% 50% 20% 20%;
+  transform-origin: bottom center;
+}
+
+.chili-wing--left {
+  left: 20px;
+  background: linear-gradient(135deg, var(--chili-wing) 30%, var(--chili-wing-membrane));
+  transform: rotate(15deg);
+}
+
+.chili-wing--right {
+  left: 42px;
+  background: linear-gradient(-135deg, var(--chili-wing) 30%, var(--chili-wing-membrane));
+  transform: rotate(-15deg);
+}
+
+/* Wing flap animation — active during loading */
+.chili-goat--loading .chili-wing--left {
+  animation: chili-flap-l 0.4s ease-in-out infinite alternate;
+}
+.chili-goat--loading .chili-wing--right {
+  animation: chili-flap-r 0.4s ease-in-out infinite alternate;
+}
+
+/* --- Front Hoofs (hands) --- */
+.chili-hoof-fl,
+.chili-hoof-fr {
+  position: absolute;
+  width: 6px;
+  height: 14px;
+  background: var(--chili-hoof);
+  border-radius: 2px 2px 4px 4px;
+  top: 68px;
+}
+.chili-hoof-fl { left: 38px; transform: rotate(5deg); }
+.chili-hoof-fr { left: 52px; transform: rotate(-5deg); }
+
+/* --- Hind Hoofs --- */
+.chili-hoof-hl,
+.chili-hoof-hr {
+  position: absolute;
+  width: 6px;
+  height: 12px;
+  background: var(--chili-hoof);
+  border-radius: 2px 2px 4px 4px;
+  top: 72px;
+}
+.chili-hoof-hl { left: 32px; }
+.chili-hoof-hr { left: 56px; }
+
+/* --- Wand (held in right front hoof) --- */
+.chili-wand {
+  position: absolute;
+  top: 56px;
+  left: 52px;
+  width: 4px;
+  height: 28px;
+  background: linear-gradient(to top, var(--chili-wand), #9B6FD0);
+  border-radius: 2px;
+  transform: rotate(-25deg);
+  transform-origin: top center;
+}
+
+/* Wand star tip */
+.chili-wand::before {
+  content: '✦';
+  position: absolute;
+  top: -10px;
+  left: -5px;
+  font-size: 14px;
+  color: var(--chili-sparkle);
+  text-shadow: 0 0 6px var(--chili-sparkle);
+  opacity: 0.4;
+}
+
+/* Wand sparkle during building */
+.chili-goat--building .chili-wand::before {
+  opacity: 1;
+  animation: chili-wand-glow 0.6s ease-in-out infinite alternate;
+}
+
+/* ============================================================
+   SPARKLE PARTICLES (shown during building state)
+   ============================================================ */
+.chili-sparkles {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 60px;
+  height: 50px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.chili-goat--building .chili-sparkles {
+  opacity: 1;
+}
+
+.chili-spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--chili-sparkle);
+  box-shadow: 0 0 6px var(--chili-sparkle), 0 0 12px var(--chili-sparkle);
+}
+
+.chili-spark:nth-child(1) {
+  top: 0; left: 30px;
+  animation: chili-particle-1 1.2s ease-out infinite;
+}
+.chili-spark:nth-child(2) {
+  top: 10px; left: 45px;
+  background: var(--chili-sparkle-alt);
+  box-shadow: 0 0 6px var(--chili-sparkle-alt);
+  animation: chili-particle-2 1.4s ease-out 0.2s infinite;
+}
+.chili-spark:nth-child(3) {
+  top: 5px; left: 50px;
+  background: var(--chili-sparkle-blue);
+  box-shadow: 0 0 6px var(--chili-sparkle-blue);
+  animation: chili-particle-3 1.0s ease-out 0.4s infinite;
+}
+.chili-spark:nth-child(4) {
+  top: 15px; left: 35px;
+  animation: chili-particle-4 1.3s ease-out 0.6s infinite;
+}
+.chili-spark:nth-child(5) {
+  top: 8px; left: 55px;
+  background: var(--chili-sparkle-alt);
+  box-shadow: 0 0 6px var(--chili-sparkle-alt);
+  animation: chili-particle-5 1.1s ease-out 0.3s infinite;
+}
+
+/* ============================================================
+   STATUS TEXT
+   ============================================================ */
+.chili-status {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.chili-status-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* Progress dots */
+.chili-dots::after {
+  content: '';
+  animation: chili-ellipsis 1.5s steps(4, end) infinite;
+}
+
+/* ============================================================
+   CONSTRUCTION STRIPES BORDER
+   ============================================================ */
+.chili-stripes {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--chili-construction-stripe);
+  animation: chili-stripe-scroll 1s linear infinite;
+}
+
+/* ============================================================
+   SHUTDOWN / UNDER CONSTRUCTION NOTICE
+   ============================================================ */
+.chili-shutdown-notice {
+  position: absolute;
+  inset: 0;
+  z-index: 901;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 2px dashed var(--yellow);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.chili-shutdown-icon {
+  font-size: 36px;
+  animation: chili-float 3s ease-in-out infinite;
+}
+
+.chili-shutdown-title {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--yellow);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.chili-shutdown-msg {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  max-width: 200px;
+  line-height: 1.5;
+}
+
+.chili-shutdown-stripes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--chili-construction-stripe);
+  animation: chili-stripe-scroll 1s linear infinite;
+}
+
+.chili-shutdown-stripes-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--chili-construction-stripe);
+  animation: chili-stripe-scroll 1s linear infinite reverse;
+}
+
+/* ============================================================
+   COMPLETION FLASH
+   ============================================================ */
+.chili-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 902;
+  background: radial-gradient(circle, var(--chili-sparkle) 0%, transparent 70%);
+  opacity: 0;
+  animation: chili-flash-burst 0.6s ease-out forwards;
+  pointer-events: none;
+  border-radius: 12px;
+}
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+
+/* Gentle floating bob */
+@keyframes chili-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Wing flap — left */
+@keyframes chili-flap-l {
+  0% { transform: rotate(15deg) scaleY(1); }
+  100% { transform: rotate(-20deg) scaleY(0.7); }
+}
+
+/* Wing flap — right */
+@keyframes chili-flap-r {
+  0% { transform: rotate(-15deg) scaleY(1); }
+  100% { transform: rotate(20deg) scaleY(0.7); }
+}
+
+/* Wand glow pulse */
+@keyframes chili-wand-glow {
+  0% {
+    color: var(--chili-sparkle);
+    text-shadow: 0 0 6px var(--chili-sparkle);
+    transform: scale(1);
+  }
+  100% {
+    color: #FFF;
+    text-shadow: 0 0 12px var(--chili-sparkle), 0 0 24px var(--chili-sparkle-alt);
+    transform: scale(1.3);
+  }
+}
+
+/* Sparkle particles */
+@keyframes chili-particle-1 {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-15px, -20px) scale(0); }
+}
+@keyframes chili-particle-2 {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(10px, -25px) scale(0); }
+}
+@keyframes chili-particle-3 {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(20px, -15px) scale(0); }
+}
+@keyframes chili-particle-4 {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-10px, -30px) scale(0); }
+}
+@keyframes chili-particle-5 {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(15px, -20px) scale(0); }
+}
+
+/* Stripe scroll */
+@keyframes chili-stripe-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 28px 0; }
+}
+
+/* Fade in */
+@keyframes chili-fade-in {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Fade out */
+@keyframes chili-fade-out {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+
+/* Flash burst on completion */
+@keyframes chili-flash-burst {
+  0% { opacity: 0; }
+  30% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+/* Ellipsis loading dots */
+@keyframes chili-ellipsis {
+  0%  { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+/* ============================================================
+   RESPONSIVE — Smaller goat on small cards
+   ============================================================ */
+@media (max-width: 400px) {
+  .chili-goat {
+    transform: scale(0.7);
+    margin-bottom: 8px;
+  }
+  .chili-status { font-size: 12px; }
+}
+
+/* ============================================================
+   MINI VARIANT — For small stat cards
+   ============================================================ */
+.chili-overlay--mini .chili-goat {
+  transform: scale(0.5);
+  margin-bottom: 4px;
+}
+.chili-overlay--mini .chili-status {
+  font-size: 11px;
+}
+.chili-overlay--mini .chili-status-sub {
+  display: none;
+}

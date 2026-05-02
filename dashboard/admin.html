@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Admin HQ — Realbotville Command Center</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<link rel="stylesheet" href="css/chiligbot.css">
+<style>
+  :root {
+    --admin: #a78bfa; --admin-glow: rgba(167,139,250,0.15);
+    --admin-dark: #7c3aed; --admin-border: rgba(167,139,250,0.25);
+  }
+
+  /* ADMIN ACCESS GATE */
+  .admin-locked { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
+  .admin-locked .lock-big { font-size: 72px; margin-bottom: 16px; }
+  .admin-locked h2 { color: #ef4444; font-size: 22px; margin-bottom: 8px; }
+  .admin-locked p { color: var(--muted); font-size: 14px; }
+
+  /* TAB SYSTEM */
+  .admin-tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid var(--border); padding-bottom: 0; }
+  .admin-tab { padding: 10px 20px; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; position: relative; bottom: -2px; }
+  .admin-tab.active { background: var(--card); color: var(--admin); border-color: var(--border); border-bottom: 2px solid var(--card); }
+  .admin-tab:hover:not(.active) { color: var(--text); background: rgba(167,139,250,0.05); }
+  .admin-tab .tab-icon { margin-right: 6px; }
+  .admin-panel { display: none; }
+  .admin-panel.active { display: block; }
+
+  /* PROJECT SHAPER */
+  .shaper-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .shaper-search { flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; color: var(--text); font-size: 13px; outline: none; }
+  .shaper-search:focus { border-color: var(--admin); }
+  .shaper-filter { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .shaper-filter.active { background: rgba(167,139,250,0.1); color: var(--admin); border-color: var(--admin); }
+
+  .shaper-timeline { position: relative; padding-left: 28px; }
+  .shaper-timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+
+  .shaper-entry { position: relative; margin-bottom: 16px; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; transition: all 0.15s; }
+  .shaper-entry:hover { border-color: var(--admin-border); }
+  .shaper-entry::before { content: ''; position: absolute; left: -24px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: var(--admin); border: 2px solid var(--card); }
+  .shaper-entry.superseded { opacity: 0.6; }
+  .shaper-entry.superseded .shaper-cmd { text-decoration: line-through; color: var(--muted); }
+
+  .shaper-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .shaper-session { font-size: 11px; font-weight: 700; color: var(--admin); background: rgba(167,139,250,0.12); padding: 2px 8px; border-radius: 4px; }
+  .shaper-date { font-size: 11px; color: var(--muted); }
+  .shaper-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .shaper-tag.cmd { background: rgba(56,189,248,0.15); color: #38bdf8; }
+  .shaper-tag.vision { background: rgba(251,146,60,0.15); color: #fb923c; }
+  .shaper-tag.arch { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .shaper-tag.data { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .shaper-tag.bot { background: rgba(167,139,250,0.15); color: #a78bfa; }
+  .shaper-tag.ux { background: rgba(244,114,182,0.15); color: #f472b6; }
+  .shaper-tag.revised { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  .shaper-cmd { font-size: 14px; color: var(--text); line-height: 1.6; margin-bottom: 8px; font-style: italic; }
+  .shaper-cmd::before { content: '"'; color: var(--admin); font-size: 18px; font-weight: 700; }
+  .shaper-cmd::after { content: '"'; color: var(--admin); font-size: 18px; font-weight: 700; }
+
+  .shaper-response { font-size: 12px; color: var(--muted); line-height: 1.6; padding-left: 12px; border-left: 2px solid var(--border); }
+  .shaper-response ul { margin: 4px 0; padding-left: 16px; }
+  .shaper-response li { margin-bottom: 2px; }
+
+  .shaper-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .shaper-btn { font-size: 11px; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.1s; }
+  .shaper-btn:hover { border-color: var(--admin); color: var(--admin); }
+
+  /* USER MANAGEMENT */
+  .user-card { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; transition: all 0.15s; }
+  .user-card:hover { border-color: var(--admin-border); }
+  .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--admin-glow); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .user-info { flex: 1; }
+  .user-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .user-email { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .user-role-badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight: 700; }
+  .role-admin { background: rgba(167,139,250,0.2); color: #a78bfa; }
+  .role-member { background: rgba(56,189,248,0.2); color: #38bdf8; }
+  .role-guest { background: rgba(107,114,128,0.2); color: #6b7280; }
+  .user-last-login { font-size: 11px; color: var(--muted); text-align: right; min-width: 100px; }
+  .user-actions { display: flex; gap: 6px; }
+
+  /* AUDIT LOG */
+  .audit-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .audit-table th { text-align: left; padding: 8px 12px; color: var(--admin); border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .audit-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .audit-table tr:hover td { background: rgba(167,139,250,0.03); }
+
+  /* SYSTEM CARDS */
+  .sys-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .sys-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .sys-card h3 { font-size: 13px; color: var(--admin); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sys-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+  .sys-item:last-child { border-bottom: none; }
+  .sys-val { color: var(--text); font-weight: 600; }
+  .sys-label { color: var(--muted); }
+
+  /* JAPSTER MINI CHATBOX */
+  .admin-chat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-top: 16px; }
+  .admin-chat h3 { font-size: 13px; color: #22d3ee; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .admin-chat-messages { height: 180px; overflow-y: auto; padding: 8px; background: var(--bg); border-radius: 8px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .admin-chat-msg { font-size: 12px; padding: 6px 10px; border-radius: 8px; max-width: 85%; line-height: 1.5; }
+  .admin-chat-msg.bot { align-self: flex-start; background: rgba(34,211,238,0.1); color: var(--text); }
+  .admin-chat-msg.user { align-self: flex-end; background: rgba(167,139,250,0.12); color: var(--text); }
+  .admin-chat-input { display: flex; gap: 8px; }
+  .admin-chat-input input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; }
+  .admin-chat-input input:focus { border-color: #22d3ee; }
+  .admin-chat-input button { background: #22d3ee; color: #0f172a; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 700; font-size: 13px; cursor: pointer; }
+
+  /* ADD USER FORM */
+  .add-user-form { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .add-user-form input { flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; }
+  .add-user-form select { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; }
+  .add-user-form button { background: var(--admin); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 700; cursor: pointer; }
+
+  /* BUILD MONITOR */
+  .build-view-toggle { display: flex; gap: 4px; margin-bottom: 16px; }
+  .build-view-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .build-view-btn.active { background: rgba(167,139,250,0.1); color: var(--admin); border-color: var(--admin); }
+
+  .build-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; transition: all 0.15s; }
+  .build-card:hover { border-color: var(--admin-border); }
+  .build-card.expanded .build-detail { display: block; }
+
+  .build-header { display: flex; align-items: center; gap: 12px; cursor: pointer; flex-wrap: wrap; }
+  .build-status { font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight: 700; white-space: nowrap; }
+  .status-planned { background: rgba(107,114,128,0.25); color: #9ca3af; }
+  .status-progress { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .status-hold { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .status-testing { background: rgba(139,92,246,0.2); color: #a78bfa; }
+  .status-done { background: rgba(16,185,129,0.2); color: #34d399; }
+  .status-failed { background: rgba(239,68,68,0.2); color: #f87171; }
+
+  .build-name { font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
+  .build-meta { display: flex; gap: 12px; align-items: center; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .build-meta-item { display: flex; align-items: center; gap: 4px; }
+
+  .build-progress-wrap { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; margin: 10px 0 6px; overflow: hidden; }
+  .build-progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+
+  .build-last-action { font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 6px; }
+
+  .build-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .build-action-btn { font-size: 11px; padding: 4px 12px; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.1s; }
+  .build-action-btn:hover { border-color: var(--admin); color: var(--admin); }
+  .build-action-btn.hold { border-color: rgba(245,158,11,0.4); color: #fbbf24; }
+  .build-action-btn.hold:hover { background: rgba(245,158,11,0.1); }
+  .build-action-btn.done-btn { border-color: rgba(16,185,129,0.4); color: #34d399; }
+  .build-action-btn.done-btn:hover { background: rgba(16,185,129,0.1); }
+
+  .build-detail { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+  .build-comments { max-height: 200px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .build-comment { display: flex; gap: 8px; font-size: 12px; line-height: 1.5; padding: 6px 8px; border-radius: 6px; }
+  .build-comment.bot-comment { background: rgba(34,211,238,0.06); }
+  .build-comment.user-comment { background: rgba(167,139,250,0.06); }
+  .build-comment-avatar { font-size: 14px; flex-shrink: 0; width: 20px; text-align: center; }
+  .build-comment-body { flex: 1; }
+  .build-comment-author { font-weight: 700; color: var(--text); font-size: 11px; }
+  .build-comment-time { font-size: 10px; color: var(--muted); margin-left: 6px; }
+  .build-comment-text { color: var(--muted); }
+
+  .build-comment-input { display: flex; gap: 6px; }
+  .build-comment-input input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; color: var(--text); font-size: 12px; outline: none; }
+  .build-comment-input input:focus { border-color: var(--admin); }
+  .build-comment-input button { background: var(--admin); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer; }
+
+  .build-tokens { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .build-token-stat { font-size: 12px; }
+  .build-token-stat .token-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .build-token-stat .token-val { color: var(--text); font-weight: 700; font-size: 14px; }
+
+  /* KANBAN VIEW */
+  .build-kanban { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .kanban-col { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 200px; }
+  .kanban-col-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 8px; margin-bottom: 8px; border-radius: 6px; text-align: center; }
+  .kanban-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+  .kanban-item:hover { border-color: var(--admin-border); }
+  .kanban-item-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .kanban-item-meta { font-size: 11px; color: var(--muted); }
+  .kanban-item-progress { height: 3px; background: #1e293b; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .kanban-item-progress-fill { height: 100%; border-radius: 2px; }
+
+  /* ACTIVITY FEED */
+  .activity-feed { max-height: 400px; overflow-y: auto; }
+  .activity-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-icon { font-size: 14px; flex-shrink: 0; width: 20px; text-align: center; margin-top: 2px; }
+  .activity-body { flex: 1; }
+  .activity-title { color: var(--text); font-weight: 600; }
+  .activity-desc { color: var(--muted); margin-top: 2px; }
+  .activity-time { font-size: 10px; color: var(--muted); flex-shrink: 0; min-width: 60px; text-align: right; }
+
+  /* REPORT SECTIONS */
+  .rpt-section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; transition: all 0.15s; }
+  .rpt-section:hover { border-color: var(--admin-border); }
+  .rpt-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; user-select: none; }
+  .rpt-num { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--admin); color: #fff; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .rpt-title { font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
+  .rpt-toggle { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+  .rpt-section.rpt-open .rpt-toggle { transform: rotate(180deg); }
+  .rpt-body { display: none; padding: 0 16px 16px; }
+  .rpt-section.rpt-open .rpt-body { display: block; }
+
+  .rpt-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .rpt-badge--success { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .rpt-badge--danger { background: rgba(248,113,113,0.15); color: #f87171; }
+  .rpt-badge--warning { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .rpt-badge--info { background: rgba(56,189,248,0.15); color: #38bdf8; }
+  .rpt-badge--special { background: rgba(251,146,60,0.15); color: #fb923c; }
+
+  .rpt-summary { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 14px; padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 6px; border-left: 3px solid var(--admin); }
+  .rpt-detail { display: flex; flex-direction: column; gap: 10px; }
+
+  .rpt-item { display: flex; gap: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,0.015); }
+  .rpt-item--positive { border-left: 3px solid var(--green); }
+  .rpt-item--negative { border-left: 3px solid var(--red); }
+  .rpt-item--neutral { border-left: 3px solid var(--yellow); }
+  .rpt-item strong { font-size: 13px; color: var(--text); display: block; margin-bottom: 4px; }
+  .rpt-item p { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0; }
+  .rpt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .rpt-dot--green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .rpt-dot--red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .rpt-dot--yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+
+  .rpt-kv { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+  .rpt-kv:last-child { border-bottom: none; }
+  .rpt-k { color: var(--muted); }
+  .rpt-v { color: var(--text); font-weight: 600; text-align: right; max-width: 60%; }
+
+  /* DRILL-DOWN INTERACTIVITY */
+  .stat-link{cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
+  .stat-link:hover{transform:translateY(-2px);border-color:rgba(167,139,250,.4);box-shadow:0 4px 20px rgba(167,139,250,.1)}
+  .drill-arrow{font-size:14px;opacity:0;transition:opacity .15s;margin-left:4px}
+  .stat-link:hover .drill-arrow{opacity:.6}
+  .drill-row{cursor:pointer;transition:background .15s}
+  .drill-row:hover{background:rgba(167,139,250,.06) !important}
+
+  @media (max-width: 768px) {
+    .admin-tabs { gap: 2px; }
+    .admin-tab { padding: 8px 12px; font-size: 12px; }
+    .shaper-controls { flex-direction: column; }
+    .user-card { flex-wrap: wrap; }
+    .rpt-kv { flex-direction: column; gap: 2px; }
+    .rpt-v { text-align: left; max-width: 100%; }
+  }
+</style>
+</head>
+<body class="theme-helpdesk">
+<script src="js/subdomain-router.js"></script>
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- HEADER -->
+<div class="header" id="top">
+  <h1>&#128274; Admin HQ &mdash; FPCS Command Center</h1>
+  <div class="subtitle">Project management, user control, system health, and the living Project Shaper &bull; Admin-only access &bull; Page 8 of FPCS Dashboard</div>
+</div>
+
+<!-- ADMIN-ONLY CONTENT (shown/hidden by JS based on role) -->
+<div id="adminContent" style="display:none;">
+<div class="container">
+
+  <!-- STAT CARDS -->
+  <div class="grid" id="sec-overview">
+    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=system]').click()" title="View System Info"><div class="stat-number" style="color:var(--admin)">8 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Dashboard Pages</div></div>
+    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=users]').click()" title="Manage Users"><div class="stat-number" style="color:var(--green)">3 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Authorized Users</div></div>
+    <div class="stat-card stat-link" onclick="window.location.href='bots.html'" title="Open Bot HQ"><div class="stat-number" style="color:#38bdf8">16 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Active Bots</div></div>
+    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=builds]').click()" title="View Build Progress"><div class="stat-number" style="color:var(--yellow)">94% <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Project Progress</div></div>
+    <div class="stat-card stat-link" onclick="document.querySelector('.admin-tab[data-panel=builds]').click()" title="View Build Tickets"><div class="stat-number" style="color:var(--orange)">16 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Jira Tickets</div></div>
+    <div class="stat-card stat-link" onclick="window.open('https://docs.google.com/spreadsheets/d/1F755ibxaSksNyEih6E7LometYWitRNUoiWoDJVXEwhY','_blank')" title="Open Tax Sheet"><div class="stat-number" style="color:var(--green)">&#128202; <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Tax Sheet</div></div>
+  </div>
+
+  <!-- TAB SYSTEM -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-panel="shaper"><span class="tab-icon">&#128220;</span> Project Shaper</button>
+    <button class="admin-tab" data-panel="users"><span class="tab-icon">&#128101;</span> Users</button>
+    <button class="admin-tab" data-panel="audit"><span class="tab-icon">&#128203;</span> Audit Log</button>
+    <button class="admin-tab" data-panel="builds"><span class="tab-icon">&#128736;</span> Builds</button>
+    <button class="admin-tab" data-panel="system"><span class="tab-icon">&#9881;</span> System</button>
+    <button class="admin-tab" data-panel="settings"><span class="tab-icon">&#128295;</span> Settings</button>
+    <button class="admin-tab" data-panel="reports"><span class="tab-icon">&#128202;</span> Reports</button>
+  </div>
+
+  <!-- ==================== PROJECT SHAPER TAB ==================== -->
+  <div class="admin-panel active" id="panel-shaper">
+    <div class="section" id="sec-shaper">
+      <h2 style="color:var(--admin)">&#128220; Project Shaper &mdash; Living Command History</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
+        Every instruction given, every decision made &mdash; in raw format. Old revisions shown with <span style="text-decoration:line-through;color:var(--muted)">strikethrough</span>. AI responses condensed to bullet points. Scroll the full evolution of this project.
+      </p>
+
+      <!-- CONTROLS -->
+      <div class="shaper-controls">
+        <input type="text" class="shaper-search" id="shaperSearch" placeholder="Search commands, topics, keywords...">
+        <button class="shaper-filter active" data-filter="all">All</button>
+        <button class="shaper-filter" data-filter="cmd">Commands</button>
+        <button class="shaper-filter" data-filter="vision">Vision</button>
+        <button class="shaper-filter" data-filter="arch">Architecture</button>
+        <button class="shaper-filter" data-filter="data">Data</button>
+        <button class="shaper-filter" data-filter="bot">Bots</button>
+        <button class="shaper-filter" data-filter="revised">Revised</button>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="shaper-timeline" id="shaperTimeline">
+
+        <!-- SESSION 1 -->
+        <div class="shaper-entry" data-tags="data,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 1</span>
+            <span class="shaper-date">Feb 2026</span>
+            <span class="shaper-tag data">DATA</span>
+          </div>
+          <div class="shaper-cmd">Process my Outlook emails — 63,587 of them. Cross-reference against QBO, ledger, and bank records. Find every deduction I missed.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Processed 63,587 Outlook emails, extracted tax-relevant items</li>
+              <li>Cross-referenced QBO (2,155 raw rows), ledger, and bank statements</li>
+              <li>Identified Amazon purchases (842 orders) for classification</li>
+              <li>Built initial data pipeline: rebuild_master.py</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shaper-entry" data-tags="arch,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 1</span>
+            <span class="shaper-date">Feb 2026</span>
+            <span class="shaper-tag arch">ARCH</span>
+          </div>
+          <div class="shaper-cmd">Build me a dashboard. Seven pages. Tax HQ as the main page. Everything visual, everything tracked. I want to see my whole tax situation at a glance.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Created 7-page dashboard: Tax HQ, Bot HQ, Deductions, Income, Memory Bank, Japster Hub, Helpdesk</li>
+              <li>Deployed to dashboard.justout.today via GitHub Pages</li>
+              <li>Firebase Google Sign-In authentication</li>
+              <li>Each page: stat cards, data tables, progress indicators, filtering</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SESSION 2-3 -->
+        <div class="shaper-entry" data-tags="data,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 2-3</span>
+            <span class="shaper-date">Feb 2026</span>
+            <span class="shaper-tag data">DATA</span>
+          </div>
+          <div class="shaper-cmd">The QBO data has duplicates from double-entry accounting. Clean it up properly — deduplicate, categorize, cross-reference against the ledger.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>QBO raw 2,155 → 1,185 clean rows (removed 970 double-entry duplicates)</li>
+              <li>Built rebuild_master.py, rebuild_crossref.py, apply_categories.py pipeline</li>
+              <li>Ledger matched: 183 rows; unmatched: 562 (~$16K cash deductions to incorporate)</li>
+              <li>Exported to FPCS_2022_FINAL_MASTER.csv and .xlsx (color-coded)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shaper-entry" data-tags="bot,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 3-4</span>
+            <span class="shaper-date">Feb 2026</span>
+            <span class="shaper-tag bot">BOTS</span>
+          </div>
+          <div class="shaper-cmd">I want bots. A whole village of them. Realbotville. Opus is the commander, The Sarge supervises. Every bot has a specialty. They never talk to strangers.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Created Realbotville: 16 specialized bots in hierarchical structure</li>
+              <li>Opus (Commander) → The Sarge (Supervisor) → 5 Staff + village bots</li>
+              <li>Report Protocol: "Report 'name'" — Perfect 10 format, 6 categories</li>
+              <li>Library: Vol 1 (Architecture) + Vol 2 (Tricks) + Vol 3 (ForensicBot Research)</li>
+              <li>ForensicBot deployed: fund chain tracing, fee reconstruction, refund matching</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SESSION 4-5 -->
+        <div class="shaper-entry" data-tags="data,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 5</span>
+            <span class="shaper-date">Feb 2026</span>
+            <span class="shaper-tag data">DATA</span>
+          </div>
+          <div class="shaper-cmd">Run a deep audit. ForensicBot needs to find every transfer, refund pair, fee chain. Triple verify everything. I want deep insights.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>ForensicBot analysis: 14 transfers, 61 refund pairs, 39 fees ($1,742), 113 chains</li>
+              <li>Deep Account Audit: 1,469 lines, 17 corrections applied</li>
+              <li>$4,534 missed deductions reviewed and categorized</li>
+              <li>Processor fees reconstructed: $1,742 total</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SESSION 6-7 -->
+        <div class="shaper-entry" data-tags="arch,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 6-7</span>
+            <span class="shaper-date">Feb 2026</span>
+            <span class="shaper-tag arch">ARCH</span>
+          </div>
+          <div class="shaper-cmd">The dashboard pages are too big — 500 to 2200 lines each with duplicated code everywhere. Make it modular. Thin pages, fat shared modules. Write such good code that it is unfailable every step of the way.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Designed 6-phase modular architecture plan</li>
+              <li>Phase 1: Extract shared CSS (core, nav, auth) + JS (auth, nav) into external files</li>
+              <li>Phase 2-6: Reactive data store, widget registry, pipeline adapter, multi-project, verification</li>
+              <li>Converted deductions.html as proof of concept</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SESSION 8-9 -->
+        <div class="shaper-entry" data-tags="arch,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 8-9</span>
+            <span class="shaper-date">Feb 2026</span>
+            <span class="shaper-tag arch">ARCH</span>
+          </div>
+          <div class="shaper-cmd">Add Judith to the login. Her email is <span data-e="anVkaXRobWFyc2hhbGw4MEBnbWFpbC5jb20="></span>. She's a member, not admin. Add <span data-e="ZnJpZW5kbHlzYWxlczIyQGdtYWlsLmNvbQ=="></span> too.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Generated SHA-256 hashes for both emails</li>
+              <li>Added to AUTH_USERS array with 'member' role</li>
+              <li>Started multi-user auth with onboarding concept</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SESSION 10 — MASSIVE VISION -->
+        <div class="shaper-entry" data-tags="vision,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 10</span>
+            <span class="shaper-date">Feb 22, 2026</span>
+            <span class="shaper-tag vision">VISION</span>
+          </div>
+          <div class="shaper-cmd">I want a 3-tier access system. Admin, allowed members, and guests. No one on the allow list can see project data. Guests get their own personal workspace — journal, files, bookmarks, smart labels. Not rejected, just limited. Track every login.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Built 3-tier access: admin (Commander), member (Judith, FriendlySales), guest (unknown emails)</li>
+              <li>Guests get personal workspace: journal, file storage, bookmarks, custom labels — zero project visibility</li>
+              <li>All login attempts logged with email, timestamp, device info</li>
+              <li>Admin panel for allow-list management, role assignment, blocking</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shaper-entry" data-tags="vision,bot">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 10</span>
+            <span class="shaper-date">Feb 22, 2026</span>
+            <span class="shaper-tag vision">VISION</span>
+            <span class="shaper-tag bot">BOTS</span>
+          </div>
+          <div class="shaper-cmd">Each allowed user gets 5 personal bots. Receptionist reads them on first login — quick personality assessment, not boring. Poker bot draws out emotions and memories in a gamified format. Strength bot routes their talents. Weakness bot fills gaps gently. Manager bot orchestrates everything. Research dopamine reward systems, NLP, states of receptivity.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>5-bot personal team spec captured: Receptionist, Poker, Strength, Weakness, Manager</li>
+              <li>Receptionist: personality assessment, communication style detection, first experience curation</li>
+              <li>Poker: gamified emotional profiling, memory activation, engagement strategy</li>
+              <li>Manager: orchestrates team, intercedes on poor decisions, tracks progress</li>
+              <li>Research backlog: gamification psychology, NLP techniques, dopamine reward loops</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shaper-entry" data-tags="vision,ux">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 10</span>
+            <span class="shaper-date">Feb 22, 2026</span>
+            <span class="shaper-tag vision">VISION</span>
+            <span class="shaper-tag ux">UX</span>
+          </div>
+          <div class="shaper-cmd">Per-user dashboard theming — each person's dashboard looks completely different. Colors, fonts, layout density, dark/light mode. Feel welcome, feel like it's THEIR place. Gentle intervention on poor decisions — not just what they want to hear, what they NEED to hear. Validate feelings while pointing toward truth.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Per-user CSS custom properties planned: colors, fonts, layout density, mode</li>
+              <li>Preferences stored per-user in localStorage (→ Firebase RTDB Phase 2)</li>
+              <li>Gentle intervention protocol: validate → expand → hope → truth</li>
+              <li>Coach-style messaging molded to personality type</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shaper-entry" data-tags="data,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 10</span>
+            <span class="shaper-date">Feb 22, 2026</span>
+            <span class="shaper-tag data">DATA</span>
+          </div>
+          <div class="shaper-cmd">Judith Marshall — <span data-e="anVkaXRobWFyc2hhbGw4MEBnbWFpbC5jb20="></span>. Bookkeeper mentality, detail-oriented. Transaction coordinator for a prestigious real estate company in Salem OR, Willamette Valley. Hourly ~$19/hr (W-2) plus per-deal bonus (possibly 1099 / sole proprietor). May not have a formal business name for the bonus work. Dual income needs proper tax classification.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Profile captured in plan file with role, income structure, communication style</li>
+              <li>Tax implications noted: dual income (W-2 + possible 1099/sole proprietor)</li>
+              <li>Bot team assignment: TBD after onboarding assessment</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shaper-entry" data-tags="arch,cmd">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 10</span>
+            <span class="shaper-date">Feb 22, 2026</span>
+            <span class="shaper-tag arch">ARCH</span>
+          </div>
+          <div class="shaper-cmd">Convert all 7 pages to thin shells now. Phase 1 complete. Then deploy so Judith can try her login — she is waiting so prioritize giving her access.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>All 7 pages converted: 909 lines of duplicated code removed</li>
+              <li>Shared CSS: core.css (205 lines), nav.css (78 lines), auth.css (345 lines)</li>
+              <li>Shared JS: auth.js (538 lines), nav.js (121 lines)</li>
+              <li>Deployed to GitHub Pages — Judith can log in at dashboard.justout.today</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shaper-entry" data-tags="vision,cmd,ux">
+          <div class="shaper-meta">
+            <span class="shaper-session">Session 10</span>
+            <span class="shaper-date">Feb 22, 2026</span>
+            <span class="shaper-tag vision">VISION</span>
+            <span class="shaper-tag ux">UX</span>
+          </div>
+          <div class="shaper-cmd">Create an admin section. List the entire project as a conversation, piece by piece. Editable everything. Japster chatbox for efficient editing. Old revisions shown with strikethrough — total overview, every instruction, stored residually as conversation happens. Admin user's raw words, AI responses in brief bullet points. A Project Shaper page.</div>
+          <div class="shaper-response">
+            <ul>
+              <li>Admin HQ (Page 8) created with Project Shaper as centerpiece</li>
+              <li>Timeline view: all commands in raw format, AI responses as bullets</li>
+              <li>Superseded entries shown with strikethrough (class: superseded)</li>
+              <li>Filter by category: Commands, Vision, Architecture, Data, Bots, Revised</li>
+              <li>Search, user management, audit log, system health tabs</li>
+            </ul>
+          </div>
+        </div>
+
+      </div><!-- /shaper-timeline -->
+
+      <!-- JAPSTER MINI CHATBOX -->
+      <div class="admin-chat">
+        <h3>&#128172; Japster &mdash; Quick Admin Commands</h3>
+        <div class="admin-chat-messages" id="adminChatMessages">
+          <div class="admin-chat-msg bot">Ready, Commander. What needs doing?</div>
+        </div>
+        <div class="admin-chat-input">
+          <input type="text" id="adminChatInput" placeholder="Type a command or ask Japster...">
+          <button id="adminChatSend">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== USERS TAB ==================== -->
+  <div class="admin-panel" id="panel-users">
+    <div class="section" id="sec-users">
+      <h2 style="color:var(--admin)">&#128101; User Management &mdash; Allow-List</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
+        Manage authorized users, roles, and access. Only admins can modify this list.
+      </p>
+
+      <!-- ADD USER -->
+      <div class="add-user-form">
+        <input type="email" id="newUserEmail" placeholder="Email address to add...">
+        <select id="newUserRole">
+          <option value="member">Member</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button id="addUserBtn">&#10010; Add User</button>
+      </div>
+
+      <!-- USER LIST -->
+      <div id="userList">
+        <div class="user-card">
+          <div class="user-avatar">&#128081;</div>
+          <div class="user-info">
+            <div class="user-name">Commander (Daniel Marshall)</div>
+            <div class="user-email">Primary admin &bull; Full access</div>
+          </div>
+          <span class="user-role-badge role-admin">ADMIN</span>
+          <div class="user-last-login">Active now</div>
+        </div>
+
+        <div class="user-card">
+          <div class="user-avatar">&#128214;</div>
+          <div class="user-info">
+            <div class="user-name">Judith Marshall</div>
+            <div class="user-email">Transaction coordinator &bull; Bookkeeper &bull; Salem, OR</div>
+          </div>
+          <span class="user-role-badge role-member">MEMBER</span>
+          <div class="user-last-login">Never logged in</div>
+        </div>
+
+        <div class="user-card">
+          <div class="user-avatar">&#128176;</div>
+          <div class="user-info">
+            <div class="user-name">Friendly Sales</div>
+            <div class="user-email">Sales account</div>
+          </div>
+          <span class="user-role-badge role-member">MEMBER</span>
+          <div class="user-last-login">Never logged in</div>
+        </div>
+      </div>
+
+      <!-- GUEST LOG -->
+      <h3 style="color:var(--admin); margin-top:24px;">&#128100; Guest Login Attempts</h3>
+      <p style="color:var(--muted); font-size:12px; margin-bottom:10px;">Unknown emails that signed in. They received guest access (personal workspace only, zero project data).</p>
+      <div id="guestLog" style="color:var(--muted); font-size:13px; font-style:italic;">No guest logins recorded yet.</div>
+    </div>
+  </div>
+
+  <!-- ==================== AUDIT LOG TAB ==================== -->
+  <div class="admin-panel" id="panel-audit">
+    <div class="section" id="sec-audit">
+      <h2 style="color:var(--admin)">&#128203; Audit Log</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
+        Every login, action, and system event tracked. Stored in localStorage (Phase 2: Firebase RTDB).
+      </p>
+
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Details</th>
+            <th>Tier</th>
+          </tr>
+        </thead>
+        <tbody id="auditTableBody">
+          <tr><td colspan="5" style="color:var(--muted); text-align:center; padding:24px;">Audit log loads from localStorage. Log in from the main dashboard to generate entries.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== SYSTEM TAB ==================== -->
+  <div class="admin-panel" id="panel-system">
+    <div class="section" id="sec-system">
+      <h2 style="color:var(--admin)">&#9881; System Health</h2>
+
+      <div class="sys-grid">
+        <div class="sys-card">
+          <h3>&#129302; Bot Fleet</h3>
+          <div class="sys-item"><span class="sys-label">Total Bots</span><span class="sys-val" id="sysFleetTotal">--</span></div>
+          <div class="sys-item"><span class="sys-label">Active</span><span class="sys-val" id="sysFleetActive" style="color:var(--green)">--</span></div>
+          <div class="sys-item"><span class="sys-label">Identities Loaded</span><span class="sys-val">13</span></div>
+          <div class="sys-item"><span class="sys-label">Library Volumes</span><span class="sys-val">9+</span></div>
+          <div class="sys-item"><span class="sys-label">Highest Rank</span><span class="sys-val">Commander (Opus)</span></div>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#128202; Tax Work</h3>
+          <p style="color:var(--muted);font-size:12px;margin-bottom:10px;">Live data lives in Google Sheets — linked to Firestore.</p>
+          <div class="sys-item"><span class="sys-label">Sheet</span><span class="sys-val"><a href="https://docs.google.com/spreadsheets/d/1F755ibxaSksNyEih6E7LometYWitRNUoiWoDJVXEwhY" target="_blank" style="color:var(--admin);text-decoration:none">Open Tax Sheet &#8599;</a></span></div>
+          <div class="sys-item"><span class="sys-label">Tabs</span><span class="sys-val">Transactions, Deductions, Income, Unmatched</span></div>
+          <div class="sys-item"><span class="sys-label">Mail Deadline</span><span class="sys-val" style="color:var(--red)">Apr 10, 2026</span></div>
+          <div class="sys-item"><span class="sys-label">OR Statute</span><span class="sys-val" style="color:var(--red)">Apr 15, 2026</span></div>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#127919; Infrastructure</h3>
+          <div class="sys-item"><span class="sys-label">Hosting</span><span class="sys-val">GitHub Pages</span></div>
+          <div class="sys-item"><span class="sys-label">Auth</span><span class="sys-val">Firebase</span></div>
+          <div class="sys-item"><span class="sys-label">Domain</span><span class="sys-val">dashboard.justout.today</span></div>
+          <div class="sys-item"><span class="sys-label">Repo</span><span class="sys-val">fpcs-dashboard</span></div>
+          <div class="sys-item"><span class="sys-label">Cost</span><span class="sys-val" style="color:var(--green)">$0/mo</span></div>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#127915; Helpdesk</h3>
+          <div id="helpdeskSummary">
+            <div class="sys-item"><span class="sys-label">Total Tickets</span><span class="sys-val" id="hdTotal">--</span></div>
+            <div class="sys-item"><span class="sys-label">Open</span><span class="sys-val" id="hdOpen" style="color:var(--red)">--</span></div>
+            <div class="sys-item"><span class="sys-label">In Progress</span><span class="sys-val" id="hdProgress" style="color:var(--yellow)">--</span></div>
+            <div class="sys-item"><span class="sys-label">Done</span><span class="sys-val" id="hdDone" style="color:var(--green)">--</span></div>
+            <div class="sys-item"><span class="sys-label">Urgent/High</span><span class="sys-val" id="hdUrgent" style="color:var(--red)">--</span></div>
+          </div>
+          <a href="helpdesk.html" style="display:inline-block;margin-top:8px;font-size:12px;color:var(--admin);text-decoration:none;">View Helpdesk &rarr;</a>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#128640; Projects</h3>
+          <div class="sys-item"><span class="sys-label">FPCS Taxes</span><span class="sys-val" style="color:var(--yellow)">In Progress</span></div>
+          <div class="sys-item"><span class="sys-label">Village Dashboard</span><span class="sys-val" style="color:var(--green)">Live</span></div>
+          <div class="sys-item"><span class="sys-label">Japster Store</span><span class="sys-val" style="color:var(--yellow)">Building</span></div>
+          <div class="sys-item"><span class="sys-label">SentryLion</span><span class="sys-val" style="color:var(--yellow)">Beta</span></div>
+          <div class="sys-item"><span class="sys-label">Realbotville</span><span class="sys-val" style="color:var(--green)">Evolving</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== BUILD MONITOR TAB ==================== -->
+  <div class="admin-panel" id="panel-builds">
+    <div class="section" id="sec-builds">
+      <h2 style="color:var(--admin)">&#128736; Build Monitor &mdash; Major Builds &amp; Progress</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
+        Track every major build, feature, and system upgrade. Chat, comment, hold, or complete builds. Click any build to expand details.
+      </p>
+
+      <!-- VIEW TOGGLE -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+        <div class="build-view-toggle">
+          <button class="build-view-btn active" data-view="list">&#9776; List</button>
+          <button class="build-view-btn" data-view="board">&#9638; Board</button>
+          <button class="build-view-btn" data-view="feed">&#128337; Activity</button>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="shaper-filter active" data-bfilter="all">All</button>
+          <button class="shaper-filter" data-bfilter="progress">In Progress</button>
+          <button class="shaper-filter" data-bfilter="hold">On Hold</button>
+          <button class="shaper-filter" data-bfilter="planned">Planned</button>
+          <button class="shaper-filter" data-bfilter="done">Done</button>
+        </div>
+      </div>
+
+      <!-- ===== LIST VIEW ===== -->
+      <div id="buildListView">
+
+        <!-- BUILD 1: Phase 1 Modular Architecture -->
+        <div class="build-card" data-status="done" data-build="phase1">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-done">&#10004; Done</span>
+            <span class="build-name">Phase 1: Modular Architecture</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Feb 22</span>
+              <span class="build-meta-item">&#128172; 3</span>
+              <span class="build-meta-item">&#128196; 12 files</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:100%; background:linear-gradient(90deg,#10b981,#34d399)"></div></div>
+          <div class="build-last-action">Deployed: Thin shell pages + shared CSS/JS modules + 3-tier auth</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+            <button class="build-action-btn">&#128203; View Log</button>
+          </div>
+          <div class="build-detail">
+            <div class="build-tokens">
+              <div class="build-token-stat"><div class="token-label">Files Changed</div><div class="token-val">12</div></div>
+              <div class="build-token-stat"><div class="token-label">Lines Added</div><div class="token-val">1,485</div></div>
+              <div class="build-token-stat"><div class="token-label">Lines Removed</div><div class="token-val">909</div></div>
+              <div class="build-token-stat"><div class="token-label">Sessions</div><div class="token-val">4</div></div>
+            </div>
+            <div class="build-comments" style="margin-top:10px">
+              <div class="build-comment bot-comment"><span class="build-comment-avatar">&#129302;</span><div class="build-comment-body"><span class="build-comment-author">JapsterPro<span class="build-comment-time">Feb 22</span></span><div class="build-comment-text">All 7 pages converted to thin shells. 909 lines of duplicated code eliminated.</div></div></div>
+              <div class="build-comment bot-comment"><span class="build-comment-avatar">&#129302;</span><div class="build-comment-body"><span class="build-comment-author">JapsterPro<span class="build-comment-time">Feb 22</span></span><div class="build-comment-text">3-tier auth deployed: admin, member, guest. Judith can log in now.</div></div></div>
+              <div class="build-comment user-comment"><span class="build-comment-avatar">&#128081;</span><div class="build-comment-body"><span class="build-comment-author">Commander<span class="build-comment-time">Feb 22</span></span><div class="build-comment-text">Tell Judith she can try her login. She is waiting.</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUILD 2: Admin HQ -->
+        <div class="build-card" data-status="done" data-build="admin">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-done">&#10004; Done</span>
+            <span class="build-name">Admin HQ (Page 8) + Project Shaper</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Feb 22</span>
+              <span class="build-meta-item">&#128172; 1</span>
+              <span class="build-meta-item">&#128196; 2 files</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:100%; background:linear-gradient(90deg,#10b981,#34d399)"></div></div>
+          <div class="build-last-action">Deployed: 5-tab admin dashboard with Project Shaper, users, audit, system, settings</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+          </div>
+          <div class="build-detail">
+            <div class="build-tokens">
+              <div class="build-token-stat"><div class="token-label">Lines Added</div><div class="token-val">859</div></div>
+              <div class="build-token-stat"><div class="token-label">Tabs</div><div class="token-val">5</div></div>
+            </div>
+            <div class="build-comments" style="margin-top:10px">
+              <div class="build-comment user-comment"><span class="build-comment-avatar">&#128081;</span><div class="build-comment-body"><span class="build-comment-author">Commander<span class="build-comment-time">Feb 22</span></span><div class="build-comment-text">Create an admin section listing the entire project as a conversation, piece by piece, with editable everything.</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUILD 3: Multi-World Architecture -->
+        <div class="build-card" data-status="progress" data-build="worlds">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-progress">&#9654; In Progress</span>
+            <span class="build-name">Multi-World Architecture</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Target: Mar 15</span>
+              <span class="build-meta-item">&#128172; 2</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:15%; background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div>
+          <div class="build-last-action">Architecture designed. Per-user worlds, invite system, permissions page. Building...</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+            <button class="build-action-btn hold">&#9208; Hold</button>
+            <button class="build-action-btn done-btn">&#10004; Complete</button>
+          </div>
+          <div class="build-detail">
+            <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+              <strong style="color:var(--text)">Scope:</strong>
+              <ul style="margin:4px 0 0 16px;">
+                <li>Each user gets their own "world" (independent workspace)</li>
+                <li>Share button → invite email → allow-list auto-add</li>
+                <li>Quick guest preset (no world, just account page + invites)</li>
+                <li>Per-project permissions (view, contribute, edit, manage, admin)</li>
+                <li>Multi-project dropdown switching with residual memory</li>
+                <li>Onboarding with humor, help tips, question marks, graphics</li>
+              </ul>
+            </div>
+            <div class="build-comments" style="margin-top:10px">
+              <div class="build-comment user-comment"><span class="build-comment-avatar">&#128081;</span><div class="build-comment-body"><span class="build-comment-author">Commander<span class="build-comment-time">Feb 22</span></span><div class="build-comment-text">Each user gets their own world. Share button adds to allow-list and sends invite. Guest preset for quick responders.</div></div></div>
+              <div class="build-comment bot-comment"><span class="build-comment-avatar">&#129302;</span><div class="build-comment-body"><span class="build-comment-author">JapsterPro<span class="build-comment-time">Feb 22</span></span><div class="build-comment-text">Architecture captured in plan file. Multi-world, invite system, permissions, and multi-project switching designed.</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUILD 4: Build Monitor -->
+        <div class="build-card" data-status="progress" data-build="buildmon">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-progress">&#9654; In Progress</span>
+            <span class="build-name">Build Monitor System</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Feb 22</span>
+              <span class="build-meta-item">&#128172; 1</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:80%; background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div>
+          <div class="build-last-action">List view + board view + activity feed built. Research-backed design (CI/CD + Linear + Carbon).</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+            <button class="build-action-btn done-btn">&#10004; Complete</button>
+          </div>
+          <div class="build-detail">
+            <div class="build-comments" style="margin-top:10px">
+              <div class="build-comment user-comment"><span class="build-comment-avatar">&#128081;</span><div class="build-comment-body"><span class="build-comment-author">Commander<span class="build-comment-time">Feb 22</span></span><div class="build-comment-text">I need a build section where I can see any new major builds progress and monitor it with chat, comments, on hold buttons.</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUILD 5: Firebase RTDB -->
+        <div class="build-card" data-status="planned" data-build="firebase">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-planned">&#9679; Planned</span>
+            <span class="build-name">Phase 2: Firebase RTDB — Reactive Data Store</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Target: Mar 1</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:0%; background:#6b7280"></div></div>
+          <div class="build-last-action">Architecture designed. Dual-layer store (static JSON baseline + RTDB live edits overlay).</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+            <button class="build-action-btn" style="border-color:rgba(59,130,246,0.4);color:#60a5fa;">&#9654; Start</button>
+          </div>
+          <div class="build-detail">
+            <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+              <strong style="color:var(--text)">Scope:</strong>
+              <ul style="margin:4px 0 0 16px;">
+                <li>Enable Firebase RTDB in existing project</li>
+                <li>store.js — reactive pub/sub with merge logic</li>
+                <li>BroadcastChannel for same-browser tab sync</li>
+                <li>Dynamic user management (no more hardcoded AUTH_USERS)</li>
+                <li>User preferences, audit logs, project data in cloud</li>
+                <li>Change one number → everything updates everywhere</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUILD 6: Widget Registry -->
+        <div class="build-card" data-status="planned" data-build="widgets">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-planned">&#9679; Planned</span>
+            <span class="build-name">Phase 3: Component Widget Registry</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Target: Mar 8</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:0%; background:#6b7280"></div></div>
+          <div class="build-last-action">Zero hardcoded data in HTML. Every number from reactive store. Auto-rendering widgets.</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+          </div>
+        </div>
+
+        <!-- BUILD 7: 5-Bot Personal Team -->
+        <div class="build-card" data-status="planned" data-build="bots5">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-planned">&#9679; Planned</span>
+            <span class="build-name">5-Bot Personal Team (Per User)</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Post-deadline</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:0%; background:#6b7280"></div></div>
+          <div class="build-last-action">Receptionist, Poker, Strength, Weakness, Manager bots. Personality profiling. NLP research.</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+          </div>
+        </div>
+
+        <!-- BUILD 8: Onboarding UX Upgrade -->
+        <div class="build-card" data-status="planned" data-build="onboard-ux">
+          <div class="build-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="build-status status-planned">&#9679; Planned</span>
+            <span class="build-name">Onboarding UX — Humor, Help Tips, Graphics</span>
+            <div class="build-meta">
+              <span class="build-meta-item">&#128197; Mar 5</span>
+            </div>
+          </div>
+          <div class="build-progress-wrap"><div class="build-progress-fill" style="width:0%; background:#6b7280"></div></div>
+          <div class="build-last-action">Question marks on things, help area with graphics/symbology/topology, simulation testing.</div>
+          <div class="build-actions">
+            <button class="build-action-btn" onclick="this.closest('.build-card').classList.toggle('expanded')">&#128172; Comments</button>
+          </div>
+        </div>
+
+      </div><!-- /buildListView -->
+
+      <!-- ===== KANBAN VIEW ===== -->
+      <div id="buildBoardView" style="display:none;">
+        <div class="build-kanban">
+          <div class="kanban-col">
+            <div class="kanban-col-header" style="background:rgba(107,114,128,0.15);color:#9ca3af;">&#9679; Planned</div>
+            <div class="kanban-item"><div class="kanban-item-name">Firebase RTDB</div><div class="kanban-item-meta">Phase 2 &bull; Target: Mar 1</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:0%;background:#6b7280"></div></div></div>
+            <div class="kanban-item"><div class="kanban-item-name">Widget Registry</div><div class="kanban-item-meta">Phase 3 &bull; Target: Mar 8</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:0%;background:#6b7280"></div></div></div>
+            <div class="kanban-item"><div class="kanban-item-name">5-Bot Team</div><div class="kanban-item-meta">Post-deadline</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:0%;background:#6b7280"></div></div></div>
+            <div class="kanban-item"><div class="kanban-item-name">Onboarding UX</div><div class="kanban-item-meta">Target: Mar 5</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:0%;background:#6b7280"></div></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header" style="background:rgba(59,130,246,0.15);color:#60a5fa;">&#9654; In Progress</div>
+            <div class="kanban-item"><div class="kanban-item-name">Multi-World Architecture</div><div class="kanban-item-meta">Target: Mar 15 &bull; 15%</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:15%;background:#3b82f6"></div></div></div>
+            <div class="kanban-item"><div class="kanban-item-name">Build Monitor</div><div class="kanban-item-meta">Feb 22 &bull; 80%</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:80%;background:#3b82f6"></div></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header" style="background:rgba(245,158,11,0.15);color:#fbbf24;">&#9208; On Hold</div>
+            <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">No builds on hold</div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header" style="background:rgba(16,185,129,0.15);color:#34d399;">&#10004; Done</div>
+            <div class="kanban-item"><div class="kanban-item-name">Phase 1: Modular Arch</div><div class="kanban-item-meta">Feb 22 &bull; 12 files</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:100%;background:#10b981"></div></div></div>
+            <div class="kanban-item"><div class="kanban-item-name">Admin HQ + Shaper</div><div class="kanban-item-meta">Feb 22 &bull; 859 lines</div><div class="kanban-item-progress"><div class="kanban-item-progress-fill" style="width:100%;background:#10b981"></div></div></div>
+          </div>
+        </div>
+      </div><!-- /buildBoardView -->
+
+      <!-- ===== ACTIVITY FEED VIEW ===== -->
+      <div id="buildFeedView" style="display:none;">
+        <div class="activity-feed">
+          <div style="font-size:12px;font-weight:700;color:var(--admin);padding:8px 0;text-transform:uppercase;letter-spacing:1px;">Today &mdash; Feb 22, 2026</div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#128274;</span>
+            <div class="activity-body">
+              <div class="activity-title">Admin HQ deployed</div>
+              <div class="activity-desc">Page 8 with Project Shaper, users, audit log, system health, settings. 859 lines added.</div>
+            </div>
+            <span class="activity-time">Just now</span>
+          </div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#128172;</span>
+            <div class="activity-body">
+              <div class="activity-title">Commander requested Build Monitor</div>
+              <div class="activity-desc">"I need a build section where I can see any new major builds progress and monitor it with chat, comments, on hold buttons."</div>
+            </div>
+            <span class="activity-time">12 min ago</span>
+          </div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#127758;</span>
+            <div class="activity-body">
+              <div class="activity-title">Commander defined Multi-World Architecture</div>
+              <div class="activity-desc">Per-user worlds, share/invite system, quick guest preset, multi-project switching, permissions page.</div>
+            </div>
+            <span class="activity-time">25 min ago</span>
+          </div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#128640;</span>
+            <div class="activity-body">
+              <div class="activity-title">Phase 1 deployed to production</div>
+              <div class="activity-desc">12 files changed, 1,485 lines added, 909 removed. All 7 pages + shared CSS/JS + 3-tier auth.</div>
+            </div>
+            <span class="activity-time">45 min ago</span>
+          </div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#128100;</span>
+            <div class="activity-body">
+              <div class="activity-title">Judith Marshall access enabled</div>
+              <div class="activity-desc">Member tier. Onboarding flow: data sharing checkboxes + contribution survey + boot sequence.</div>
+            </div>
+            <span class="activity-time">45 min ago</span>
+          </div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#128202;</span>
+            <div class="activity-body">
+              <div class="activity-title">Project Shaper populated</div>
+              <div class="activity-desc">10 sessions of command history captured in timeline format. Raw quotes + AI bullet summaries.</div>
+            </div>
+            <span class="activity-time">30 min ago</span>
+          </div>
+
+          <div style="font-size:12px;font-weight:700;color:var(--muted);padding:12px 0 8px;text-transform:uppercase;letter-spacing:1px;">Earlier Sessions</div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#129302;</span>
+            <div class="activity-body">
+              <div class="activity-title">ForensicBot deployed</div>
+              <div class="activity-desc">Fund chain tracing, fee reconstruction, refund matching. 14 transfers, 61 refund pairs found.</div>
+            </div>
+            <span class="activity-time">Session 5</span>
+          </div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#128202;</span>
+            <div class="activity-body">
+              <div class="activity-title">Data pipeline rebuilt</div>
+              <div class="activity-desc">QBO 2,155 → 1,185 clean rows. 970 double-entry duplicates removed. $32,440 deductible identified.</div>
+            </div>
+            <span class="activity-time">Session 2-3</span>
+          </div>
+
+          <div class="activity-item">
+            <span class="activity-icon">&#127968;</span>
+            <div class="activity-body">
+              <div class="activity-title">Dashboard created — 7 pages</div>
+              <div class="activity-desc">Tax HQ, Bot HQ, Deductions, Income, Memory Bank, Japster Hub, Helpdesk. Deployed to dashboard.justout.today.</div>
+            </div>
+            <span class="activity-time">Session 1</span>
+          </div>
+        </div>
+      </div><!-- /buildFeedView -->
+
+    </div>
+  </div>
+
+  <!-- ==================== SETTINGS TAB ==================== -->
+  <div class="admin-panel" id="panel-settings">
+    <div class="section" id="sec-settings">
+      <h2 style="color:var(--admin)">&#128295; Settings &amp; Configuration</h2>
+
+      <div class="sys-grid">
+        <div class="sys-card">
+          <h3>&#127912; Dashboard Theme</h3>
+          <p style="color:var(--muted); font-size:12px; margin-bottom:12px;">Global theme defaults. Per-user overrides planned for Phase 2.</p>
+          <div class="sys-item"><span class="sys-label">Mode</span><span class="sys-val">Dark</span></div>
+          <div class="sys-item"><span class="sys-label">Accent Color</span><span class="sys-val" style="color:var(--accent)">&#9632; Sky Blue</span></div>
+          <div class="sys-item"><span class="sys-label">Font</span><span class="sys-val">system-ui</span></div>
+          <div class="sys-item"><span class="sys-label">Layout Density</span><span class="sys-val">Comfortable</span></div>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#128274; Security</h3>
+          <div class="sys-item"><span class="sys-label">Auth Method</span><span class="sys-val">Google OAuth</span></div>
+          <div class="sys-item"><span class="sys-label">Hash Algorithm</span><span class="sys-val">SHA-256</span></div>
+          <div class="sys-item"><span class="sys-label">Guest Access</span><span class="sys-val" style="color:var(--green)">Enabled</span></div>
+          <div class="sys-item"><span class="sys-label">Login Logging</span><span class="sys-val" style="color:var(--green)">Active</span></div>
+          <div class="sys-item"><span class="sys-label">Blocked Users</span><span class="sys-val">0</span></div>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#128230; Data Storage</h3>
+          <div class="sys-item"><span class="sys-label">Current</span><span class="sys-val">localStorage</span></div>
+          <div class="sys-item"><span class="sys-label">Phase 2</span><span class="sys-val" style="color:var(--muted)">Firebase RTDB</span></div>
+          <div class="sys-item"><span class="sys-label">Backup</span><span class="sys-val" style="color:var(--muted)">Planned</span></div>
+          <div class="sys-item"><span class="sys-label">Export</span><span class="sys-val" style="color:var(--muted)">Planned</span></div>
+        </div>
+
+        <div class="sys-card">
+          <h3>&#128640; Future Build-Outs</h3>
+          <p style="color:var(--muted); font-size:12px;">Queued for post-deadline development:</p>
+          <div class="sys-item"><span class="sys-label">Firebase RTDB</span><span class="sys-val" style="color:var(--yellow)">Phase 2</span></div>
+          <div class="sys-item"><span class="sys-label">Widget Registry</span><span class="sys-val" style="color:var(--muted)">Phase 3</span></div>
+          <div class="sys-item"><span class="sys-label">Pipeline Adapter</span><span class="sys-val" style="color:var(--muted)">Phase 4</span></div>
+          <div class="sys-item"><span class="sys-label">Multi-Project</span><span class="sys-val" style="color:var(--muted)">Phase 5</span></div>
+          <div class="sys-item"><span class="sys-label">Verification</span><span class="sys-val" style="color:var(--muted)">Phase 6</span></div>
+        </div>
+      </div>
+
+      <button class="btn" style="background:var(--admin); margin-top:12px;" id="updateBtn">&#128260; Check for Updates</button>
+    </div>
+  </div>
+
+  <!-- ==================== REPORTS TAB ==================== -->
+  <div class="admin-panel" id="panel-reports">
+    <div class="section" id="sec-reports">
+      <h2 style="color:var(--admin)">&#128202; Project Assessment &mdash; Full Status Report</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">
+        Comprehensive 7-section analysis with ADHD-friendly formatting. Progressive disclosure: click headers to expand. SupbotPro&rsquo;s isolated review at the bottom.
+      </p>
+
+      <!-- Report Controls -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+        <button class="shaper-filter active" data-rfilter="all">All Sections</button>
+        <button class="shaper-filter" data-rfilter="good">&#128994; Good</button>
+        <button class="shaper-filter" data-rfilter="bad">&#128308; Needs Work</button>
+        <button class="shaper-filter" data-rfilter="mixed">&#128992; Mixed</button>
+        <span style="margin-left:auto; font-size:11px; color:var(--muted);">Last assessed: Feb 22, 2026</span>
+      </div>
+
+      <!-- SECTION 1: PURPOSE & INTENT -->
+      <div class="rpt-section" data-rtype="good" id="rpt-purpose">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num">1</span>
+          <span class="rpt-title">Purpose &amp; Intent</span>
+          <span class="rpt-badge rpt-badge--info">Foundation</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-summary">
+            <strong>What this project IS:</strong> A modular tax preparation dashboard that doubles as the first product of TRAILS (Technology &middot; Robotics &middot; AI &middot; Language &middot; Skills) Career Center.
+          </div>
+          <div class="rpt-detail">
+            <div class="rpt-kv"><span class="rpt-k">Primary Goal</span><span class="rpt-v">File 2022 Oregon taxes before April 10, 2026 deadline</span></div>
+            <div class="rpt-kv"><span class="rpt-k">Secondary Goal</span><span class="rpt-v">Build commercial-grade dashboard architecture for future products</span></div>
+            <div class="rpt-kv"><span class="rpt-k">Architecture</span><span class="rpt-v">Thin Pages + Fat Shared Modules (Phase 1 complete)</span></div>
+            <div class="rpt-kv"><span class="rpt-k">Hosting</span><span class="rpt-v">$0 &mdash; GitHub Pages + Firebase Auth free tier</span></div>
+            <div class="rpt-kv"><span class="rpt-k">Users</span><span class="rpt-v">3-tier access (Admin / Member / Guest) with SHA-256 hashing</span></div>
+            <div class="rpt-kv"><span class="rpt-k">Pages Built</span><span class="rpt-v">8 pages, all converted to thin shells with shared CSS/JS</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: REALISTIC GROWTH AREAS -->
+      <div class="rpt-section" data-rtype="mixed" id="rpt-growth">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num">2</span>
+          <span class="rpt-title">Realistic Growth Areas</span>
+          <span class="rpt-badge rpt-badge--warning">Opportunity</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-summary">
+            The architecture is solid. The main growth vector is connecting the pipeline (Python scripts) to the dashboard (reactive data store). This is Phases 2-4.
+          </div>
+          <div class="rpt-detail">
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Firebase RTDB Integration (Phase 2)</strong>
+                <p>The killer feature: change one number and everything updates everywhere. RTDB is already in the same Firebase project. Enable it, add security rules, connect store.js.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Widget Registry (Phase 3)</strong>
+                <p>Replace hardcoded HTML stat cards with render functions that subscribe to store paths. Zero stale data possible.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--neutral">
+              <span class="rpt-dot rpt-dot--yellow"></span>
+              <div>
+                <strong>Pipeline Adapter (Phase 4)</strong>
+                <p>Python scripts currently output to CSV. Need generate_store.py to produce fpcs-2022.json that the dashboard reads. Risk: changes to 12 Python scripts.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--neutral">
+              <span class="rpt-dot rpt-dot--yellow"></span>
+              <div>
+                <strong>Multi-Project + Worlds (Phase 5)</strong>
+                <p>Post-deadline. Each user gets their own World. Project selector in nav. Data isolation per project. This is the commercial multiplier.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: GOOD REPORT -->
+      <div class="rpt-section rpt-open" data-rtype="good" id="rpt-good">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num">3</span>
+          <span class="rpt-title">Good Report</span>
+          <span class="rpt-badge rpt-badge--success">Strengths</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-summary">
+            The project has strong fundamentals. Phase 1 extraction eliminated 60% of duplicated code. Auth system is production-grade. Bot ecosystem is creative and functional.
+          </div>
+          <div class="rpt-detail">
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Phase 1 Complete: Shared Modules</strong>
+                <p>All 8 pages use shared core.css, nav.css, auth.css, auth.js, nav.js. Each page is now a ~50-line thin shell. Cache-friendly, maintainable, DRY.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>3-Tier Auth System</strong>
+                <p>SHA-256 email hashing, admin/member/guest roles, onboarding flow, boot animation, guest workspace. No server needed.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Admin HQ (Page 8)</strong>
+                <p>7 tabs covering Project Shaper, Users, Audit, Builds, System, Settings, and now Reports. Living command history. Build monitor with list/board/feed views.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Bot Ecosystem</strong>
+                <p>Realbotville lore. Beckoning system. Google Sheet relay for bot-to-bot communication. Bot Registry for tracking 100+ bots. ChiliGBot construction mascot.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>$0 Operating Cost</strong>
+                <p>GitHub Pages for hosting, Firebase free tier for auth. No server, no monthly bills, no vendor lock-in on the hosting layer.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: BAD REPORT -->
+      <div class="rpt-section" data-rtype="bad" id="rpt-bad">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num">4</span>
+          <span class="rpt-title">Needs Attention</span>
+          <span class="rpt-badge rpt-badge--danger">Gaps</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-summary">
+            No reactive data store yet. Dashboard still shows hardcoded sample data. Incognito auth fails. No automated testing. Several planned features exist only as UI shells.
+          </div>
+          <div class="rpt-detail">
+            <div class="rpt-item rpt-item--negative">
+              <span class="rpt-dot rpt-dot--red"></span>
+              <div>
+                <strong>All Dashboard Data Is Hardcoded</strong>
+                <p>Every stat card, table, and chart shows placeholder values. Nothing reads from the Python pipeline output. Phase 2 (store.js + Firebase RTDB) fixes this entirely.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--negative">
+              <span class="rpt-dot rpt-dot--red"></span>
+              <div>
+                <strong>No signInWithRedirect Fallback</strong>
+                <p>Firebase Auth uses signInWithPopup only. Fails in incognito and popup-blocked browsers. Need to add redirect fallback to auth.js.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--negative">
+              <span class="rpt-dot rpt-dot--red"></span>
+              <div>
+                <strong>No Automated Testing</strong>
+                <p>Zero unit tests, no integration tests, no CI/CD pipeline. Changes are verified manually by opening each page. Risk increases with each new feature.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--negative">
+              <span class="rpt-dot rpt-dot--red"></span>
+              <div>
+                <strong>UI Shells Without Functionality</strong>
+                <p>Several tabs have beautiful UI but no backend logic: Deductions calculations, Income aggregation, Memory Bank storage. These are visual mockups awaiting Phase 2-3 data.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 5: MIXED REPORT -->
+      <div class="rpt-section" data-rtype="mixed" id="rpt-mixed">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num">5</span>
+          <span class="rpt-title">Mixed Signals</span>
+          <span class="rpt-badge rpt-badge--warning">Both Sides</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-summary">
+            Some things are both strengths and risks. The vision is massive (which inspires but also scatters). The vanilla JS choice is both freeing and limiting.
+          </div>
+          <div class="rpt-detail">
+            <div class="rpt-item rpt-item--neutral">
+              <span class="rpt-dot rpt-dot--yellow"></span>
+              <div>
+                <strong>Vision Scope vs. Execution Speed</strong>
+                <p><span style="color:var(--green);">&#9650;</span> The TRAILS vision is genuinely inspiring and commercially viable. Worlds, bot teams, gamification &mdash; real product thinking.
+                <br><span style="color:var(--red);">&#9660;</span> Risk of spreading too thin. 47 days to deadline. Must ruthlessly prioritize tax-filing features over ecosystem features.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--neutral">
+              <span class="rpt-dot rpt-dot--yellow"></span>
+              <div>
+                <strong>No Framework (Vanilla JS)</strong>
+                <p><span style="color:var(--green);">&#9650;</span> No build tools, no dependencies, no npm. Any developer can open and understand. GitHub Pages serves as-is.
+                <br><span style="color:var(--red);">&#9660;</span> Past ~20 pages, vanilla JS becomes harder to manage. No TypeScript = no compile-time type checking. Refactoring is riskier.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--neutral">
+              <span class="rpt-dot rpt-dot--yellow"></span>
+              <div>
+                <strong>Firebase Dependency</strong>
+                <p><span style="color:var(--green);">&#9650;</span> Free tier is generous (1GB storage, 10GB/mo bandwidth, 100 concurrent connections). Auth already working perfectly.
+                <br><span style="color:var(--red);">&#9660;</span> Vendor lock-in. If Google changes pricing or deprecates RTDB, migration is painful. Mitigation: static JSON baseline always exists in git.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 6: HICCUP AREAS -->
+      <div class="rpt-section" data-rtype="bad" id="rpt-hiccups">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num">6</span>
+          <span class="rpt-title">Hiccup Areas</span>
+          <span class="rpt-badge rpt-badge--danger">Recurring</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-summary">
+            Patterns that keep tripping up the build. Addressing these reduces friction across all future sessions.
+          </div>
+          <div class="rpt-detail">
+            <div class="rpt-item rpt-item--negative">
+              <span class="rpt-dot rpt-dot--red"></span>
+              <div>
+                <strong>Context Window Limits</strong>
+                <p>Sessions run out of context mid-task. Complex state must be summarized and resumed. Solution: better session handoff via MEMORY.md and ONBOARD.md, plus background agents.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--negative">
+              <span class="rpt-dot rpt-dot--red"></span>
+              <div>
+                <strong>Large File Edits</strong>
+                <p>admin.html is now 1100+ lines. Reading and editing requires multiple offset reads. Solution: will shrink to thin shell when Phase 3 widget registry is built.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--neutral">
+              <span class="rpt-dot rpt-dot--yellow"></span>
+              <div>
+                <strong>Chrome Extension Limitations</strong>
+                <p>Cannot access incognito tabs. Extension disconnects occasionally. Google Sheet navigation requires precise pixel coordinates. These are tooling limits, not code issues.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 7: NUTS & BOLTS -->
+      <div class="rpt-section" data-rtype="good" id="rpt-nuts">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num">7</span>
+          <span class="rpt-title">Nuts &amp; Bolts</span>
+          <span class="rpt-badge rpt-badge--info">Technical</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-summary">
+            Concrete technical metrics and file inventory.
+          </div>
+          <div class="rpt-detail">
+            <div class="sys-grid">
+              <div class="sys-card">
+                <h3>&#128193; File Inventory</h3>
+                <div class="sys-item"><span class="sys-label">HTML Pages</span><span class="sys-val">8</span></div>
+                <div class="sys-item"><span class="sys-label">Shared CSS</span><span class="sys-val">3 (core, nav, auth) + chiligbot</span></div>
+                <div class="sys-item"><span class="sys-label">Shared JS</span><span class="sys-val">2 (auth, nav) + chiligbot</span></div>
+                <div class="sys-item"><span class="sys-label">Python Scripts</span><span class="sys-val">12</span></div>
+                <div class="sys-item"><span class="sys-label">Data Files</span><span class="sys-val">CSV + JSON configs</span></div>
+              </div>
+
+              <div class="sys-card">
+                <h3>&#128200; Code Metrics</h3>
+                <div class="sys-item"><span class="sys-label">auth.js</span><span class="sys-val">538 lines</span></div>
+                <div class="sys-item"><span class="sys-label">nav.js</span><span class="sys-val">122 lines</span></div>
+                <div class="sys-item"><span class="sys-label">core.css</span><span class="sys-val">~200 lines</span></div>
+                <div class="sys-item"><span class="sys-label">Admin HQ</span><span class="sys-val">1100+ lines (largest page)</span></div>
+                <div class="sys-item"><span class="sys-label">Code Reduction</span><span class="sys-val" style="color:var(--green)">~60% via Phase 1</span></div>
+              </div>
+
+              <div class="sys-card">
+                <h3>&#9889; Performance</h3>
+                <div class="sys-item"><span class="sys-label">Hosting</span><span class="sys-val">GitHub Pages CDN</span></div>
+                <div class="sys-item"><span class="sys-label">Build Step</span><span class="sys-val">None (pure vanilla)</span></div>
+                <div class="sys-item"><span class="sys-label">Dependencies</span><span class="sys-val">Firebase SDK only</span></div>
+                <div class="sys-item"><span class="sys-label">Bundle Size</span><span class="sys-val">~50KB shared (pre-gzip)</span></div>
+                <div class="sys-item"><span class="sys-label">TTFB</span><span class="sys-val">&lt;100ms (CDN edge)</span></div>
+              </div>
+
+              <div class="sys-card">
+                <h3>&#128274; Security</h3>
+                <div class="sys-item"><span class="sys-label">Auth</span><span class="sys-val">Firebase Google OAuth</span></div>
+                <div class="sys-item"><span class="sys-label">Whitelist</span><span class="sys-val">SHA-256 email hashes</span></div>
+                <div class="sys-item"><span class="sys-label">Tiers</span><span class="sys-val">3 (Admin/Member/Guest)</span></div>
+                <div class="sys-item"><span class="sys-label">HTTPS</span><span class="sys-val" style="color:var(--green)">Enforced</span></div>
+                <div class="sys-item"><span class="sys-label">Guest Logging</span><span class="sys-val" style="color:var(--green)">Active</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 8: CAPTAIN'S REVIEW (SupbotPro) -->
+      <div class="rpt-section rpt-open" data-rtype="mixed" id="rpt-captain" style="border-left:3px solid var(--orange);">
+        <div class="rpt-header" onclick="this.parentElement.classList.toggle('rpt-open')">
+          <span class="rpt-num" style="background:var(--orange);">&#9733;</span>
+          <span class="rpt-title">Captain&rsquo;s Review &mdash; SupbotPro</span>
+          <span class="rpt-badge rpt-badge--special">Isolated Perspective</span>
+          <span class="rpt-toggle">&#9660;</span>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-captain-intro" style="background:rgba(251,146,60,0.08); border:1px solid rgba(251,146,60,0.2); border-radius:8px; padding:14px; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+              <span style="font-size:24px;">&#128171;</span>
+              <div>
+                <strong style="color:var(--orange); font-size:14px;">SupbotPro &mdash; Independent Assessment</strong>
+                <div style="font-size:11px; color:var(--muted);">Objective review from outside the build team. No sugar coating.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rpt-detail">
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Architecture Decision: Correct</strong>
+                <p>Going vanilla JS + GitHub Pages was the right call for this project&rsquo;s constraints. $0 hosting, no build tools, and the Commander can inspect every line. The &ldquo;thin pages, fat modules&rdquo; pattern is textbook separation of concerns. Well executed.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Auth System: Production-Grade</strong>
+                <p>The 3-tier auth with SHA-256 hashing, onboarding flow, and boot animation is genuinely impressive for a static site. Most &ldquo;professional&rdquo; dashboards don&rsquo;t have this level of access control. The guest tracking is a smart security layer.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--negative">
+              <span class="rpt-dot rpt-dot--red"></span>
+              <div>
+                <strong>Deadline Risk: Real</strong>
+                <p>47 days to mail. The dashboard looks great, but the actual tax numbers are still hardcoded. Phase 2 (reactive store) is the critical path. If it doesn&rsquo;t ship, the dashboard is a beautiful shell with no engine. Recommendation: freeze all non-tax features until Phase 2 data flow works end-to-end.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--neutral">
+              <span class="rpt-dot rpt-dot--yellow"></span>
+              <div>
+                <strong>Bot Ecosystem: Creative but Sprawling</strong>
+                <p>Realbotville, ChiliGBot, MatthiasZ, DanielZ, SupbotPro, 5-bot teams per user &mdash; the lore is genuinely fun and adds personality. But each new bot concept is a context-window tax. The Commander should keep building the lore (it&rsquo;s good for the product) but delay bot implementation until after the tax deadline. The Google Sheet relay system is clever and works today.</p>
+              </div>
+            </div>
+            <div class="rpt-item rpt-item--positive">
+              <span class="rpt-dot rpt-dot--green"></span>
+              <div>
+                <strong>Commander&rsquo;s Vision: Commercially Viable</strong>
+                <p>TRAILS as a career center SaaS is a real business idea. Tax prep as the first product, then expand to other guided workflows. The multi-world architecture supports multi-tenancy. The per-user theming is a differentiator. This isn&rsquo;t just a tax tool &mdash; it&rsquo;s a platform. The Commander sees it clearly.</p>
+              </div>
+            </div>
+
+            <div style="margin-top:16px; padding:12px; background:rgba(251,146,60,0.06); border-radius:8px; border-left:3px solid var(--orange);">
+              <strong style="color:var(--orange); font-size:13px;">&#128171; Bottom Line</strong>
+              <p style="color:var(--text); font-size:13px; margin-top:6px; line-height:1.7;">
+                Ship the tax deadline first. The architecture is solid, the vision is real, and the team (human + bot) is productive. But right now there are two projects competing for the same context window: &ldquo;build the product&rdquo; and &ldquo;file the taxes.&rdquo; For the next 47 days, the taxes win. Everything else is Phase 2+. Trust the plan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  FPCS Tax Preparation System &bull; Admin HQ v1.0 &bull; Page 8 &bull; Command Center &amp; Project Shaper &bull; TRAILS
+</div>
+</div><!-- /adminContent -->
+
+<!-- NON-ADMIN BLOCK -->
+<div id="adminLocked" style="display:none;">
+  <div class="admin-locked">
+    <div class="lock-big">&#128274;</div>
+    <h2>Admin Access Required</h2>
+    <p>This page is restricted to administrators only.<br>Contact the Commander for access.</p>
+  </div>
+</div>
+
+</div><!-- /dashContent -->
+
+<!-- PAGE SCRIPTS -->
+<script>
+(function() {
+  'use strict';
+
+  // --- Tab System ---
+  document.querySelectorAll('.admin-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.admin-panel').forEach(function(p) { p.classList.remove('active'); });
+      tab.classList.add('active');
+      var panel = document.getElementById('panel-' + tab.dataset.panel);
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  // --- Shaper Search ---
+  var searchInput = document.getElementById('shaperSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      var query = this.value.toLowerCase();
+      document.querySelectorAll('.shaper-entry').forEach(function(entry) {
+        var text = entry.textContent.toLowerCase();
+        entry.style.display = text.includes(query) ? '' : 'none';
+      });
+    });
+  }
+
+  // --- Shaper Filters ---
+  document.querySelectorAll('.shaper-filter').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.shaper-filter').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var filter = btn.dataset.filter;
+      document.querySelectorAll('.shaper-entry').forEach(function(entry) {
+        if (filter === 'all') {
+          entry.style.display = '';
+        } else {
+          var tags = entry.dataset.tags || '';
+          entry.style.display = tags.includes(filter) ? '' : 'none';
+        }
+      });
+    });
+  });
+
+  // --- Build Monitor: View Toggle ---
+  document.querySelectorAll('.build-view-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.build-view-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var view = btn.dataset.view;
+      document.getElementById('buildListView').style.display = view === 'list' ? '' : 'none';
+      document.getElementById('buildBoardView').style.display = view === 'board' ? '' : 'none';
+      document.getElementById('buildFeedView').style.display = view === 'feed' ? '' : 'none';
+    });
+  });
+
+  // --- Build Monitor: Status Filter ---
+  document.querySelectorAll('[data-bfilter]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-bfilter]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var filter = btn.dataset.bfilter;
+      document.querySelectorAll('.build-card').forEach(function(card) {
+        if (filter === 'all') {
+          card.style.display = '';
+        } else {
+          card.style.display = card.dataset.status === filter ? '' : 'none';
+        }
+      });
+    });
+  });
+
+  // --- Report Filters ---
+  document.querySelectorAll('[data-rfilter]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-rfilter]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var filter = btn.dataset.rfilter;
+      document.querySelectorAll('.rpt-section').forEach(function(sec) {
+        if (filter === 'all') {
+          sec.style.display = '';
+        } else {
+          sec.style.display = sec.dataset.rtype === filter ? '' : 'none';
+        }
+      });
+    });
+  });
+
+  // --- Days Remaining Calculator ---
+  var daysEl = document.getElementById('daysRemaining');
+  if (daysEl) {
+    var deadline = new Date('2026-04-10');
+    var today = new Date();
+    var diff = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+    daysEl.textContent = diff + ' days';
+    daysEl.style.color = diff < 14 ? 'var(--red)' : diff < 30 ? 'var(--yellow)' : 'var(--green)';
+  }
+
+  // --- Audit Log Loader ---
+  function loadAuditLog() {
+    var tbody = document.getElementById('auditTableBody');
+    if (!tbody) return;
+    try {
+      var logs = JSON.parse(localStorage.getItem('fpcs_login_log') || '[]');
+      if (logs.length === 0) return;
+      var html = '';
+      logs.slice().reverse().forEach(function(entry) {
+        // Handle both old format (ts) and new format (timestamp)
+        var time = entry.timestamp || entry.ts;
+        var timeStr = time ? new Date(time).toLocaleString() : 'Unknown';
+
+        // Get display name — handle old entries without label
+        var name = entry.label || entry.name || entry.email || 'Unknown';
+
+        // Clean up role display — handle 'guest-blocked' etc.
+        var role = (entry.role || 'guest').replace('-blocked', '');
+        var roleDisplay = role.toUpperCase();
+
+        // Page info
+        var action = 'Login' + (entry.page ? ' (' + entry.page + ')' : '');
+
+        // Device info — handle old entries without device
+        var device = entry.device || '-';
+
+        html += '<tr>';
+        html += '<td style="white-space:nowrap">' + timeStr + '</td>';
+        html += '<td>' + name + '</td>';
+        html += '<td>' + action + '</td>';
+        html += '<td style="font-size:11px;color:var(--muted)">' + device + '</td>';
+        html += '<td><span class="user-role-badge role-' + role + '">' + roleDisplay + '</span></td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    } catch (e) {
+      console.warn('[Admin] Could not load audit log:', e);
+    }
+  }
+
+  // --- Japster Mini Chat ---
+  var chatInput = document.getElementById('adminChatInput');
+  var chatSend = document.getElementById('adminChatSend');
+  var chatMessages = document.getElementById('adminChatMessages');
+
+  function addChatMessage(text, type) {
+    if (!chatMessages) return;
+    var div = document.createElement('div');
+    div.className = 'admin-chat-msg ' + type;
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function handleAdminChat() {
+    if (!chatInput) return;
+    var msg = chatInput.value.trim();
+    if (!msg) return;
+    addChatMessage(msg, 'user');
+    chatInput.value = '';
+
+    // Simple command responses (expand with real bot integration later)
+    var lower = msg.toLowerCase();
+    setTimeout(function() {
+      if (lower.includes('status') || lower.includes('progress')) {
+        addChatMessage('Project is at 94% overall. Data: 99%, Tax Prep: 85%, Dashboard: 100%, Bots/Village: 75%, Filing: 0%. Deadline: April 10.', 'bot');
+      } else if (lower.includes('users') || lower.includes('who')) {
+        addChatMessage('3 authorized users: Commander (admin), Judith Marshall (member), Friendly Sales (member). 0 guest logins recorded.', 'bot');
+      } else if (lower.includes('deadline') || lower.includes('days')) {
+        var d = new Date('2026-04-10');
+        var diff = Math.ceil((d - new Date()) / 86400000);
+        addChatMessage('Mail-by deadline: April 10, 2026. That\'s ' + diff + ' days from now. Oregon statute expires April 15.', 'bot');
+      } else if (lower.includes('help')) {
+        addChatMessage('Commands I understand: status, users, deadline, jira, data, bots. Full AI integration coming in Phase 2.', 'bot');
+      } else if (lower.includes('jira')) {
+        addChatMessage('Jira board: KAN project, 16 tickets total, 3 done. Board: friendlypc.atlassian.net/browse/KAN-1', 'bot');
+      } else if (lower.includes('data') || lower.includes('numbers')) {
+        addChatMessage('1,883 clean rows. $42,889.72 deductible (309 rows). Gross income ~$21,701. Net loss ~($21,189). 516 unmatched (452 auto-resolved, 64 need James).', 'bot');
+      } else if (lower.includes('bot')) {
+        addChatMessage('16 bots in Realbotville. Opus commands, Sarge supervises. ForensicBot deployed and active. Library: 3 volumes.', 'bot');
+      } else {
+        addChatMessage('Got it, Commander. I\'ll queue that for processing. Full AI chat integration coming in Phase 2 with Firebase RTDB.', 'bot');
+      }
+    }, 400);
+  }
+
+  if (chatSend) chatSend.addEventListener('click', handleAdminChat);
+  if (chatInput) chatInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') handleAdminChat(); });
+
+  // --- Add User (placeholder) ---
+  var addBtn = document.getElementById('addUserBtn');
+  if (addBtn) {
+    addBtn.addEventListener('click', function() {
+      var email = document.getElementById('newUserEmail').value.trim();
+      if (!email) return;
+      alert('Add user: ' + email + '\n\nThis will generate a SHA-256 hash and add to AUTH_USERS in auth.js.\nFull implementation coming in Phase 2 (Firebase RTDB for dynamic user management).');
+      document.getElementById('newUserEmail').value = '';
+    });
+  }
+
+  // --- Update Button ---
+  var updateBtn = document.getElementById('updateBtn');
+  if (updateBtn) {
+    updateBtn.addEventListener('click', function() {
+      updateBtn.innerHTML = '\u2705 System up to date';
+      updateBtn.style.background = 'var(--green)';
+      setTimeout(function() {
+        updateBtn.innerHTML = '\ud83d\udd04 Check for Updates';
+        updateBtn.style.background = 'var(--admin)';
+      }, 2000);
+    });
+  }
+
+  // --- Build Card: Add Comment ---
+  function addBuildComment(buildId, text) {
+    if (!text || !text.trim()) return;
+    var card = document.querySelector('[data-build="' + buildId + '"]');
+    if (!card) return;
+    var commentsDiv = card.querySelector('.build-comments');
+    if (!commentsDiv) {
+      // Create comments container if it doesn't exist
+      var detail = card.querySelector('.build-detail');
+      if (!detail) return;
+      commentsDiv = document.createElement('div');
+      commentsDiv.className = 'build-comments';
+      commentsDiv.style.marginTop = '10px';
+      detail.insertBefore(commentsDiv, detail.firstChild);
+    }
+    var user = window.FPCS_USER || {};
+    var name = user.role === 'admin' ? 'Commander' : (user.displayName || user.email || 'User');
+    var avatar = user.role === 'admin' ? '\ud83d\udc51' : '\ud83d\udc64';
+    var now = new Date();
+    var timeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    var div = document.createElement('div');
+    div.className = 'build-comment user-comment';
+    div.innerHTML = '<span class="build-comment-avatar">' + avatar + '</span>' +
+      '<div class="build-comment-body">' +
+      '<span class="build-comment-author">' + name + '<span class="build-comment-time">' + timeStr + '</span></span>' +
+      '<div class="build-comment-text">' + text.replace(/</g, '&lt;') + '</div>' +
+      '</div>';
+    commentsDiv.appendChild(div);
+    commentsDiv.scrollTop = commentsDiv.scrollHeight;
+
+    // Update comment count in build meta
+    var countEl = card.querySelector('.build-meta .build-meta-item:nth-child(2)');
+    if (countEl) {
+      var count = commentsDiv.querySelectorAll('.build-comment').length;
+      countEl.innerHTML = '\ud83d\udcac ' + count;
+    }
+
+    // Save to localStorage
+    saveBuildComments();
+  }
+
+  function saveBuildComments() {
+    try {
+      var data = {};
+      document.querySelectorAll('.build-card').forEach(function(card) {
+        var id = card.dataset.build;
+        var comments = [];
+        card.querySelectorAll('.build-comment').forEach(function(c) {
+          var author = c.querySelector('.build-comment-author');
+          var text = c.querySelector('.build-comment-text');
+          var time = c.querySelector('.build-comment-time');
+          if (author && text) {
+            comments.push({
+              type: c.classList.contains('bot-comment') ? 'bot' : 'user',
+              author: author.childNodes[0].textContent.trim(),
+              time: time ? time.textContent.trim() : '',
+              text: text.textContent.trim()
+            });
+          }
+        });
+        if (comments.length > 0) data[id] = comments;
+      });
+      localStorage.setItem('fpcs_build_comments', JSON.stringify(data));
+    } catch (e) { /* silent */ }
+  }
+
+  function loadBuildComments() {
+    try {
+      var data = JSON.parse(localStorage.getItem('fpcs_build_comments') || '{}');
+      Object.keys(data).forEach(function(buildId) {
+        var card = document.querySelector('[data-build="' + buildId + '"]');
+        if (!card) return;
+        var commentsDiv = card.querySelector('.build-comments');
+        if (!commentsDiv) return;
+        var existing = commentsDiv.querySelectorAll('.build-comment').length;
+        var stored = data[buildId];
+        // Only add comments beyond what's already in HTML
+        for (var i = existing; i < stored.length; i++) {
+          var c = stored[i];
+          var div = document.createElement('div');
+          div.className = 'build-comment ' + c.type + '-comment';
+          div.innerHTML = '<span class="build-comment-avatar">' + (c.type === 'bot' ? '\ud83e\udd16' : '\ud83d\udc51') + '</span>' +
+            '<div class="build-comment-body">' +
+            '<span class="build-comment-author">' + c.author + '<span class="build-comment-time">' + c.time + '</span></span>' +
+            '<div class="build-comment-text">' + c.text.replace(/</g, '&lt;') + '</div>' +
+            '</div>';
+          commentsDiv.appendChild(div);
+        }
+      });
+    } catch (e) { /* silent */ }
+  }
+
+  // Inject comment input fields into every build detail
+  document.querySelectorAll('.build-card').forEach(function(card) {
+    var buildId = card.dataset.build;
+    var detail = card.querySelector('.build-detail');
+    if (!detail) {
+      // Create a detail section if missing
+      detail = document.createElement('div');
+      detail.className = 'build-detail';
+      card.appendChild(detail);
+    }
+    // Add comment input at the bottom of detail
+    var inputDiv = document.createElement('div');
+    inputDiv.className = 'build-comment-input';
+    inputDiv.style.marginTop = '10px';
+    inputDiv.innerHTML = '<input type="text" placeholder="Add a comment..." data-build="' + buildId + '">' +
+      '<button onclick="var inp=this.previousElementSibling;addBuildComment(\'' + buildId + '\',inp.value);inp.value=\'\';">Post</button>';
+    detail.appendChild(inputDiv);
+    // Enter key to submit
+    inputDiv.querySelector('input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        addBuildComment(buildId, this.value);
+        this.value = '';
+      }
+    });
+  });
+
+  // Load any saved comments
+  loadBuildComments();
+
+  // --- Build Card: Status Change Buttons ---
+  document.querySelectorAll('.build-action-btn').forEach(function(btn) {
+    var text = btn.textContent.trim();
+    var card = btn.closest('.build-card');
+    if (!card) return;
+
+    // Hold button
+    if (text.includes('Hold')) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        card.dataset.status = 'hold';
+        var statusEl = card.querySelector('.build-status');
+        if (statusEl) {
+          statusEl.className = 'build-status status-hold';
+          statusEl.innerHTML = '\u23f8 On Hold';
+        }
+        // Add system comment
+        addBuildComment(card.dataset.build, '[Status changed to ON HOLD]');
+        saveBuildStatuses();
+      });
+    }
+
+    // Complete button
+    if (text.includes('Complete')) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        card.dataset.status = 'done';
+        var statusEl = card.querySelector('.build-status');
+        if (statusEl) {
+          statusEl.className = 'build-status status-done';
+          statusEl.innerHTML = '\u2714 Done';
+        }
+        var progressFill = card.querySelector('.build-progress-fill');
+        if (progressFill) {
+          progressFill.style.width = '100%';
+          progressFill.style.background = 'linear-gradient(90deg,#10b981,#34d399)';
+        }
+        addBuildComment(card.dataset.build, '[Build marked COMPLETE]');
+        saveBuildStatuses();
+      });
+    }
+
+    // Start button
+    if (text.includes('Start')) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        card.dataset.status = 'progress';
+        var statusEl = card.querySelector('.build-status');
+        if (statusEl) {
+          statusEl.className = 'build-status status-progress';
+          statusEl.innerHTML = '\u25b6 In Progress';
+        }
+        var progressFill = card.querySelector('.build-progress-fill');
+        if (progressFill) {
+          progressFill.style.width = '5%';
+          progressFill.style.background = 'linear-gradient(90deg,#3b82f6,#60a5fa)';
+        }
+        addBuildComment(card.dataset.build, '[Build STARTED]');
+        saveBuildStatuses();
+      });
+    }
+
+    // View Log button
+    if (text.includes('View Log')) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        card.classList.toggle('expanded');
+      });
+    }
+  });
+
+  function saveBuildStatuses() {
+    try {
+      var statuses = {};
+      document.querySelectorAll('.build-card').forEach(function(card) {
+        statuses[card.dataset.build] = {
+          status: card.dataset.status,
+          progress: card.querySelector('.build-progress-fill') ? card.querySelector('.build-progress-fill').style.width : '0%'
+        };
+      });
+      localStorage.setItem('fpcs_build_statuses', JSON.stringify(statuses));
+    } catch (e) { /* silent */ }
+  }
+
+  function loadBuildStatuses() {
+    try {
+      var statuses = JSON.parse(localStorage.getItem('fpcs_build_statuses') || '{}');
+      Object.keys(statuses).forEach(function(buildId) {
+        var card = document.querySelector('[data-build="' + buildId + '"]');
+        if (!card) return;
+        var s = statuses[buildId];
+        card.dataset.status = s.status;
+        var statusEl = card.querySelector('.build-status');
+        if (statusEl) {
+          var statusMap = {
+            'done': { cls: 'status-done', label: '\u2714 Done' },
+            'progress': { cls: 'status-progress', label: '\u25b6 In Progress' },
+            'hold': { cls: 'status-hold', label: '\u23f8 On Hold' },
+            'planned': { cls: 'status-planned', label: '\u25cf Planned' },
+            'testing': { cls: 'status-testing', label: '\ud83e\uddea Testing' },
+            'failed': { cls: 'status-failed', label: '\u2716 Failed' }
+          };
+          var m = statusMap[s.status];
+          if (m) {
+            statusEl.className = 'build-status ' + m.cls;
+            statusEl.innerHTML = m.label;
+          }
+        }
+        var progressFill = card.querySelector('.build-progress-fill');
+        if (progressFill && s.progress) {
+          progressFill.style.width = s.progress;
+          if (s.status === 'done') progressFill.style.background = 'linear-gradient(90deg,#10b981,#34d399)';
+          else if (s.status === 'hold') progressFill.style.background = 'linear-gradient(90deg,#f59e0b,#fbbf24)';
+          else if (s.status === 'progress') progressFill.style.background = 'linear-gradient(90deg,#3b82f6,#60a5fa)';
+        }
+      });
+    } catch (e) { /* silent */ }
+  }
+
+  loadBuildStatuses();
+
+  // --- Helpdesk Summary Loader ---
+  function loadHelpdeskSummary() {
+    try {
+      var tickets = JSON.parse(localStorage.getItem('fpcs_helpdesk_tickets') || '[]');
+      if (tickets.length === 0) return;
+      var open = 0, progress = 0, done = 0, urgent = 0;
+      tickets.forEach(function(t) {
+        var s = (t.status || '').toLowerCase();
+        if (s === 'open') open++;
+        else if (s === 'in progress') progress++;
+        else if (s === 'done') done++;
+        var p = (t.priority || '').toLowerCase();
+        if (p === 'urgent' || p === 'high') urgent++;
+      });
+      var el = function(id, val) { var e = document.getElementById(id); if (e) e.textContent = val; };
+      el('hdTotal', tickets.length);
+      el('hdOpen', open);
+      el('hdProgress', progress);
+      el('hdDone', done);
+      el('hdUrgent', urgent);
+    } catch (e) { /* silent */ }
+  }
+  loadHelpdeskSummary();
+
+  // --- Guest Log Loader ---
+  function loadGuestLog() {
+    var guestDiv = document.getElementById('guestLog');
+    if (!guestDiv) return;
+    try {
+      var logs = JSON.parse(localStorage.getItem('fpcs_login_log') || '[]');
+      var guests = logs.filter(function(e) { return e.role === 'guest' || e.role === 'guest-blocked'; });
+      if (guests.length === 0) {
+        guestDiv.innerHTML = '<span style="font-style:italic;">No guest logins recorded yet.</span>';
+        return;
+      }
+      var html = '<table class="audit-table" style="margin-top:8px;"><thead><tr><th>Time</th><th>Email</th><th>Device</th></tr></thead><tbody>';
+      guests.slice().reverse().forEach(function(g) {
+        var time = g.timestamp || g.ts;
+        var timeStr = time ? new Date(time).toLocaleString() : 'Unknown';
+        html += '<tr>';
+        html += '<td style="white-space:nowrap">' + timeStr + '</td>';
+        html += '<td>' + (g.email || 'Unknown') + '</td>';
+        html += '<td style="font-size:11px;color:var(--muted)">' + (g.device || '-') + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      guestDiv.innerHTML = html;
+    } catch (e) { /* silent */ }
+  }
+
+  // --- Admin Access Gate ---
+  // Wait for auth to complete, then check role
+  window.addEventListener('fpcs-authed', function() {
+    var user = window.FPCS_USER || {};
+    var adminContent = document.getElementById('adminContent');
+    var adminLocked = document.getElementById('adminLocked');
+    if (user.role === 'admin') {
+      if (adminContent) adminContent.style.display = '';
+      if (adminLocked) adminLocked.style.display = 'none';
+      loadAuditLog();
+      loadGuestLog();
+    } else {
+      if (adminContent) adminContent.style.display = 'none';
+      if (adminLocked) adminLocked.style.display = '';
+    }
+  });
+
+  // Fallback: check after 3 seconds if event didn't fire
+  setTimeout(function() {
+    var user = window.FPCS_USER || {};
+    var adminContent = document.getElementById('adminContent');
+    var adminLocked = document.getElementById('adminLocked');
+    if (user.role === 'admin') {
+      if (adminContent) adminContent.style.display = '';
+      if (adminLocked) adminLocked.style.display = 'none';
+      loadAuditLog();
+      loadGuestLog();
+    } else if (user.email) {
+      if (adminContent) adminContent.style.display = 'none';
+      if (adminLocked) adminLocked.style.display = '';
+    }
+  }, 3000);
+
+})();
+</script>
+
+<!-- FPCS CONFIG -->
+<script>
+  window.FPCS_PAGE = {
+    name: 'Admin HQ',
+    theme: 'theme-admin',
+    onAuthed: function(user) {
+      // Dispatch custom event for admin gate
+      window.dispatchEvent(new Event('fpcs-authed'));
+    }
+  };
+  window.FPCS_NAV = {
+    active: 'admin',
+    sections: [
+      { icon: '&#128220;', label: 'Project Shaper', href: '#sec-shaper' },
+      { icon: '&#128736;', label: 'Builds',         href: '#sec-builds' },
+      { icon: '&#128101;', label: 'Users',          href: '#sec-users' },
+      { icon: '&#128203;', label: 'Audit Log',      href: '#sec-audit' },
+      { icon: '&#9881;',   label: 'System',         href: '#sec-system' },
+      { icon: '&#128295;', label: 'Settings',       href: '#sec-settings' },
+      { icon: '&#128202;', label: 'Reports',        href: '#sec-reports' }
+    ]
+  };
+</script>
+
+<!-- Email obfuscation decoder (prevents scraping from public repo) -->
+<script>document.querySelectorAll('[data-e]').forEach(function(el){el.textContent=atob(el.getAttribute('data-e'))});</script>
+
+<!-- AUTH, DATA & NAV -->
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/chiligbot.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

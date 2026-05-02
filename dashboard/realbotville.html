@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Realbotville — FPCS Dashboard</title>
+<style>
+/* ===== RESET & FULLSCREEN ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0e1a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e2e8f0}
+canvas{display:block}
+
+/* ===== LOADING SCREEN ===== */
+#loadScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0e1a;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:opacity 1.2s ease}
+#loadScreen.fade-out{opacity:0;pointer-events:none}
+#loadStars{position:absolute;top:0;left:0;width:100%;height:100%}
+#loadTitle{font-size:32px;font-weight:800;color:#38bdf8;letter-spacing:3px;text-shadow:0 0 20px rgba(56,189,248,0.5);z-index:1;margin-bottom:12px;min-height:44px}
+#loadSub{font-size:14px;color:#64748b;z-index:1;margin-bottom:32px}
+#loadBarWrap{width:320px;height:24px;background:rgba(30,41,59,0.6);border:1px solid #334155;border-radius:12px;overflow:hidden;z-index:1;position:relative}
+#loadBarFill{width:0%;height:100%;background:linear-gradient(90deg,#38bdf8,#a855f7,#fbbf24);border-radius:12px;transition:width 0.3s ease}
+#loadBarWrap::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(255,255,255,0.03) 8px,rgba(255,255,255,0.03) 16px);border-radius:12px;z-index:1}
+#loadPercent{font-size:11px;color:#94a3b8;margin-top:8px;z-index:1;letter-spacing:1px}
+#loadParticles{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ===== GAME CANVAS ===== */
+#gameCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
+
+/* ===== HUD TOP ===== */
+#hudTop{position:fixed;top:0;left:0;right:0;height:42px;background:linear-gradient(180deg,rgba(10,14,26,0.94) 60%,rgba(10,14,26,0) 100%);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 16px;pointer-events:none;opacity:0;transition:opacity 0.6s}
+#hudTop.show{opacity:1}
+#hudTop>*{pointer-events:auto}
+.hud-left{display:flex;align-items:center;gap:12px}
+.hud-back{background:rgba(30,41,59,0.85);border:1px solid #334155;color:#94a3b8;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s}
+.hud-back:hover{border-color:#38bdf8;color:#38bdf8}
+.hud-title{font-size:18px;font-weight:800;color:#38bdf8;text-shadow:0 0 12px rgba(56,189,248,0.3);letter-spacing:1px}
+.hud-title span{font-size:12px;color:#64748b;font-weight:400;margin-left:8px}
+.hud-stats{display:flex;gap:16px;font-size:12px;color:#94a3b8}
+.hud-stats strong{color:#38bdf8;margin-left:2px}
+.hud-time{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+
+/* ===== HUD BOTTOM ===== */
+#hudBottom{position:fixed;bottom:0;left:0;right:0;height:60px;background:linear-gradient(0deg,rgba(10,14,26,0.94) 60%,rgba(10,14,26,0) 100%);z-index:100;display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px 10px;pointer-events:none;opacity:0;transition:opacity 0.6s}
+#hudBottom.show{opacity:1}
+#hudBottom>*{pointer-events:auto}
+#minimap{border:1px solid #334155;border-radius:6px;background:rgba(10,14,26,0.8)}
+.hud-info{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:11px;color:#64748b;font-family:'Courier New',monospace}
+.hud-info .coords{color:#4ade80}
+.hud-info .fps{color:#fbbf24}
+
+/* ===== INTERACTION PROMPT ===== */
+#interactPrompt{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.92);border:1px solid #38bdf8;color:#e2e8f0;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:150;display:none;text-align:center;backdrop-filter:blur(8px);box-shadow:0 0 20px rgba(56,189,248,0.2);animation:promptPulse 2s ease-in-out infinite}
+@keyframes promptPulse{0%,100%{box-shadow:0 0 20px rgba(56,189,248,0.2)}50%{box-shadow:0 0 30px rgba(56,189,248,0.4)}}
+#interactPrompt .key{display:inline-block;background:#334155;color:#38bdf8;padding:2px 8px;border-radius:4px;font-family:'Courier New',monospace;margin:0 2px}
+
+/* ===== SPEECH BUBBLE ===== */
+.speech-bubble{position:absolute;background:rgba(15,23,42,0.95);border:1px solid #38bdf8;color:#e2e8f0;padding:6px 12px;border-radius:8px;font-size:11px;max-width:180px;pointer-events:none;z-index:120;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,0.4)}
+.speech-bubble::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #38bdf8}
+
+/* ===== TRANSITION OVERLAY ===== */
+#transitionOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0e1a;z-index:9000;display:none;flex-direction:column;justify-content:center;align-items:center}
+#transitionOverlay.active{display:flex}
+#transitionText{font-size:24px;font-weight:700;color:#38bdf8;text-shadow:0 0 20px rgba(56,189,248,0.5)}
+#transitionAnim{margin-top:20px;font-size:40px}
+
+/* ===== CONTROLS HELP ===== */
+#controlsHelp{position:fixed;top:50px;right:16px;background:rgba(15,23,42,0.9);border:1px solid #334155;border-radius:8px;padding:12px 16px;z-index:110;font-size:11px;color:#94a3b8;line-height:1.8;display:none;backdrop-filter:blur(8px)}
+#controlsHelp.show{display:block}
+#controlsHelp .key-hint{color:#38bdf8;font-family:'Courier New',monospace;font-weight:700}
+#controlsHelp .close-help{position:absolute;top:4px;right:8px;background:none;border:none;color:#64748b;cursor:pointer;font-size:14px}
+#controlsHelp .close-help:hover{color:#ef4444}
+
+@media(max-width:768px){
+  .hud-title{font-size:14px}
+  .hud-title span{display:none}
+  .hud-stats{gap:8px;font-size:10px}
+  #minimap{width:100px!important;height:75px!important}
+}
+</style>
+</head>
+<body>
+<script src="js/subdomain-router.js"></script>
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access Realbotville.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- LOADING SCREEN -->
+<div id="loadScreen">
+  <canvas id="loadStars"></canvas>
+  <canvas id="loadParticles" width="400" height="400"></canvas>
+  <div id="loadTitle"></div>
+  <div id="loadSub">Preparing the village...</div>
+  <div id="loadBarWrap"><div id="loadBarFill"></div></div>
+  <div id="loadPercent">0%</div>
+</div>
+
+<!-- GAME CANVAS -->
+<canvas id="gameCanvas"></canvas>
+
+<!-- HUD TOP -->
+<div id="hudTop">
+  <div class="hud-left">
+    <a class="hud-back" href="bots.html">&larr; Bot HQ</a>
+    <div class="hud-title">REALBOTVILLE <span>v2.0</span></div>
+  </div>
+  <div class="hud-stats">
+    <div>Bots: <strong id="hudBotCount">5</strong></div>
+    <div id="hudTimeLabel" class="hud-time" style="background:rgba(56,189,248,0.15);color:#38bdf8">DAWN</div>
+    <div><strong id="hudHelp" style="cursor:pointer;color:#64748b" title="Controls">[ ? ]</strong></div>
+  </div>
+</div>
+
+<!-- HUD BOTTOM -->
+<div id="hudBottom">
+  <canvas id="minimap" width="160" height="120"></canvas>
+  <div class="hud-info">
+    <div class="coords" id="hudCoords">X: 0 Y: 0</div>
+    <div class="fps" id="hudFps">60 FPS</div>
+  </div>
+</div>
+
+<!-- INTERACTION PROMPT -->
+<div id="interactPrompt"></div>
+
+<!-- TRANSITION OVERLAY -->
+<div id="transitionOverlay">
+  <div id="transitionText"></div>
+  <div id="transitionAnim"></div>
+</div>
+
+<!-- CONTROLS HELP -->
+<div id="controlsHelp">
+  <button class="close-help" id="closeHelp">&times;</button>
+  <div><span class="key-hint">WASD</span> / <span class="key-hint">Arrows</span> &mdash; Move</div>
+  <div><span class="key-hint">CTRL</span> &mdash; Interact / Enter</div>
+  <div><span class="key-hint">ESC</span> &mdash; Exit building</div>
+  <div><span class="key-hint">H</span> &mdash; Toggle this help</div>
+  <div><span class="key-hint">M</span> &mdash; Toggle minimap</div>
+  <div style="margin-top:6px;color:#64748b;font-size:10px">Walk near bots to hear them talk!</div>
+</div>
+
+<script>
+// ============================================================
+//   REALBOTVILLE v2.0 — 2D Walkable Tile-Based Village
+//   Pure Canvas Engine — No frameworks
+// ============================================================
+
+(function() {
+'use strict';
+
+// ===== CONSTANTS =====
+const TILE = 32;
+const MAP_W = 60;
+const MAP_H = 50;
+const PLAYER_SPEED = 2.4;
+const BOT_SPEED = 0.6;
+const DAY_CYCLE_DURATION = 180; // seconds for full cycle
+
+// Tile types
+const T = {
+  GRASS: 0, PATH: 1, WATER: 2, WALL: 3, DOOR: 4, ROOF: 5,
+  TREE_TRUNK: 6, TREE_TOP: 7, FENCE: 8, FLOWER: 9, FOUNTAIN: 10,
+  TOTEM: 11, FLOOR: 12, BUSH: 13, BRIDGE: 14
+};
+
+// Tile colors (base, dark theme with cyan/amber accents)
+const TILE_COLORS = {
+  [T.GRASS]:      ['#0f2a0f','#122e12','#0d260d','#102b10'],
+  [T.PATH]:       ['#2a2518','#2e2819','#26211a','#2c2617'],
+  [T.WATER]:      ['#0c3a5a','#0a3252','#0e4262','#0b3656'],
+  [T.WALL]:       ['#1e293b','#1a2536','#222d40','#1c2738'],
+  [T.DOOR]:       ['#92400e','#7c3610','#a04a0c','#863c0e'],
+  [T.ROOF]:       ['#334155','#2d3b4f','#39475b','#313f53'],
+  [T.TREE_TRUNK]: ['#3d2212','#351e10','#432614','#3a2011'],
+  [T.TREE_TOP]:   ['#14532d','#124a28','#165c32','#104225'],
+  [T.FENCE]:      ['#44403c','#3e3a36','#4a4642','#423e3a'],
+  [T.FLOWER]:     ['#0f2a0f'],
+  [T.FOUNTAIN]:   ['#1e3a5f','#1a3458','#223e64','#1c3660'],
+  [T.TOTEM]:      ['#b45309','#a04808','#c85e0a','#9a4307'],
+  [T.FLOOR]:      ['#1a1a2e','#18182a','#1c1c32','#161628'],
+  [T.BUSH]:       ['#1a4a1a','#164216','#1e521e','#143e14'],
+  [T.BRIDGE]:     ['#5c3a1e','#52341a','#634022','#4e301c']
+};
+
+// Collision map: which tiles block movement
+const SOLID = new Set([T.WALL, T.ROOF, T.TREE_TRUNK, T.TREE_TOP, T.FENCE, T.FOUNTAIN, T.TOTEM, T.WATER]);
+
+// ===== MAP DATA =====
+// Build the tile map procedurally
+let tileMap = [];
+for (let y = 0; y < MAP_H; y++) {
+  tileMap[y] = [];
+  for (let x = 0; x < MAP_W; x++) {
+    tileMap[y][x] = T.GRASS;
+  }
+}
+
+// Helper: fill rect on map
+function fillMap(x, y, w, h, tile) {
+  for (let dy = 0; dy < h; dy++) {
+    for (let dx = 0; dx < w; dx++) {
+      const mx = x + dx, my = y + dy;
+      if (mx >= 0 && mx < MAP_W && my >= 0 && my < MAP_H) {
+        tileMap[my][mx] = tile;
+      }
+    }
+  }
+}
+
+// Helper: horizontal/vertical path
+function hPath(y, x1, x2) { fillMap(Math.min(x1,x2), y, Math.abs(x2-x1)+1, 2, T.PATH); }
+function vPath(x, y1, y2) { fillMap(x, Math.min(y1,y2), 2, Math.abs(y2-y1)+1, T.PATH); }
+
+// --- FENCE BORDER ---
+for (let x = 2; x < MAP_W-2; x++) { tileMap[2][x] = T.FENCE; tileMap[MAP_H-3][x] = T.FENCE; }
+for (let y = 2; y < MAP_H-2; y++) { tileMap[y][2] = T.FENCE; tileMap[y][MAP_W-3] = T.FENCE; }
+// Gate openings
+tileMap[2][29] = T.PATH; tileMap[2][30] = T.PATH;
+tileMap[MAP_H-3][29] = T.PATH; tileMap[MAP_H-3][30] = T.PATH;
+
+// --- ROADS ---
+// Main cross roads
+hPath(24, 4, 55); // main horizontal through center
+vPath(29, 4, 45); // main vertical through center
+// Branch roads
+hPath(12, 8, 24);  // top left area
+hPath(12, 35, 52); // top right area
+hPath(36, 8, 24);  // bottom left area
+hPath(36, 35, 52); // bottom right area
+// Connecting roads
+vPath(14, 12, 24);
+vPath(44, 12, 24);
+vPath(14, 24, 36);
+vPath(44, 24, 36);
+
+// --- VILLAGE SQUARE (center) ---
+fillMap(25, 20, 10, 10, T.PATH);
+// Fountain in center
+fillMap(28, 23, 4, 4, T.FOUNTAIN);
+fillMap(29, 24, 2, 2, T.WATER);
+
+// --- SENTRYLION TOTEM (village square, east of fountain) ---
+fillMap(34, 24, 2, 2, T.TOTEM);
+
+// --- BUILDINGS ---
+
+// Building struct: {name, x, y, w, h, wallColor, roofColor, doorX, doorY, interactable}
+const BUILDINGS = [];
+
+function placeBuilding(name, bx, by, bw, bh, wallHex, roofHex, doorSide) {
+  // Walls
+  for (let dy = 0; dy < bh; dy++) {
+    for (let dx = 0; dx < bw; dx++) {
+      const mx = bx + dx, my = by + dy;
+      if (mx >= 0 && mx < MAP_W && my >= 0 && my < MAP_H) {
+        // Edges are walls, interior is floor
+        if (dx === 0 || dx === bw-1 || dy === 0 || dy === bh-1) {
+          tileMap[my][mx] = T.WALL;
+        } else {
+          tileMap[my][mx] = T.FLOOR;
+        }
+      }
+    }
+  }
+  // Roof (row above building)
+  for (let dx = -1; dx <= bw; dx++) {
+    const mx = bx + dx, my = by - 1;
+    if (mx >= 0 && mx < MAP_W && my >= 0 && my < MAP_H) {
+      tileMap[my][mx] = T.ROOF;
+    }
+  }
+  // Door
+  let doorX, doorY;
+  if (doorSide === 'bottom') { doorX = bx + Math.floor(bw/2); doorY = by + bh - 1; }
+  else if (doorSide === 'top') { doorX = bx + Math.floor(bw/2); doorY = by; }
+  else if (doorSide === 'left') { doorX = bx; doorY = by + Math.floor(bh/2); }
+  else { doorX = bx + bw - 1; doorY = by + Math.floor(bh/2); }
+  if (doorX >= 0 && doorX < MAP_W && doorY >= 0 && doorY < MAP_H) {
+    tileMap[doorY][doorX] = T.DOOR;
+  }
+
+  BUILDINGS.push({ name, x: bx, y: by, w: bw, h: bh, wallHex, roofHex, doorX, doorY });
+}
+
+// LIBRARY (top-left)
+placeBuilding('Library', 6, 7, 8, 6, '#1e3a5f', '#2d4a6f', 'bottom');
+// WORKSHOP (top-right)
+placeBuilding('Workshop', 38, 7, 8, 6, '#4a1a5e', '#5a2a6e', 'bottom');
+// MARKET (bottom-left)
+placeBuilding('Market', 6, 33, 8, 6, '#2a5a1a', '#3a6a2a', 'top');
+// COMMAND POST (bottom-right)
+placeBuilding('Command Post', 38, 33, 8, 6, '#5a2a1a', '#6a3a2a', 'top');
+// TAVERN (near center left)
+placeBuilding('Tavern', 10, 20, 6, 5, '#3a2a1a', '#4a3a2a', 'right');
+// CLINIC (near center right)
+placeBuilding('Clinic', 46, 20, 6, 5, '#1a3a3a', '#2a4a4a', 'left');
+
+// --- TREES ---
+const TREE_POSITIONS = [
+  [4,4],[7,4],[10,4],[50,4],[53,4],[56,4],
+  [4,16],[4,19],[4,30],[4,40],[4,44],
+  [56,16],[56,19],[56,30],[56,40],[56,44],
+  [20,8],[22,8],[20,16],[22,16],
+  [48,15],[50,15],[48,28],[50,28],
+  [8,42],[10,42],[12,42],[48,42],[50,42],[52,42],
+  [18,30],[20,30],[36,30],[38,30],
+  [24,4],[34,4],[24,44],[34,44],
+  [17,18],[17,22],[43,18],[43,22],
+  [7,28],[52,28]
+];
+TREE_POSITIONS.forEach(([tx, ty]) => {
+  if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H && tileMap[ty][tx] === T.GRASS) {
+    tileMap[ty][tx] = T.TREE_TRUNK;
+    if (ty > 0 && tileMap[ty-1][tx] === T.GRASS) tileMap[ty-1][tx] = T.TREE_TOP;
+  }
+});
+
+// --- BUSHES ---
+const BUSH_POSITIONS = [
+  [5,14],[6,14],[16,10],[17,10],[42,10],[43,10],
+  [5,32],[6,32],[52,32],[53,32],
+  [26,18],[33,18],[26,31],[33,31],
+  [11,26],[48,26]
+];
+BUSH_POSITIONS.forEach(([bx, by]) => {
+  if (bx >= 0 && bx < MAP_W && by >= 0 && by < MAP_H && tileMap[by][bx] === T.GRASS) {
+    tileMap[by][bx] = T.BUSH;
+  }
+});
+
+// --- FLOWERS (on grass, decorative, not solid) ---
+const FLOWER_POS = [
+  [8,15],[9,17],[12,28],[45,15],[47,17],[50,38],
+  [20,22],[22,28],[38,22],[36,28],[15,40],[44,40],
+  [27,19],[32,19],[27,30],[32,30]
+];
+FLOWER_POS.forEach(([fx, fy]) => {
+  if (fx >= 0 && fx < MAP_W && fy >= 0 && fy < MAP_H && tileMap[fy][fx] === T.GRASS) {
+    tileMap[fy][fx] = T.FLOWER;
+  }
+});
+
+// ===== PLAYER =====
+const player = {
+  x: 30 * TILE,  // start near center
+  y: 28 * TILE,
+  w: 20,
+  h: 20,
+  speed: PLAYER_SPEED,
+  dir: 'down', // down, up, left, right
+  frame: 0,
+  frameTimer: 0,
+  moving: false
+};
+
+// ===== BOTS =====
+const BOTS = [
+  {
+    id: 'sarge', name: 'Sarge', icon: 'helmet', color: '#b45309', accentColor: '#d97706',
+    homeX: 42, homeY: 35,
+    patrol: [[42,35],[42,30],[35,25],[30,25],[35,25],[42,30]],
+    patrolIdx: 0,
+    sayings: [
+      "All quiet on the western front.",
+      "Keep your code clean, soldier!",
+      "I've got my eye on every endpoint.",
+      "Stand tall. Ship fast.",
+      "Security is not optional!"
+    ]
+  },
+  {
+    id: 'penny', name: 'Penny', icon: 'coin', color: '#ec4899', accentColor: '#f472b6',
+    homeX: 10, homeY: 35,
+    patrol: [[10,35],[10,28],[20,24],[30,24],[38,12],[30,24],[20,24],[10,28]],
+    patrolIdx: 0,
+    sayings: [
+      "Every pixel counts!",
+      "I found 3 new deductions today!",
+      "The market is thriving!",
+      "Budget approved. Let's build!",
+      "Pennies make dollars, darling."
+    ]
+  },
+  {
+    id: 'cruncher', name: 'Cruncher', icon: 'calc', color: '#3b82f6', accentColor: '#60a5fa',
+    homeX: 29, homeY: 22,
+    patrol: [[29,22],[31,22],[33,24],[31,26],[29,26],[27,24]],
+    patrolIdx: 0,
+    sayings: [
+      "Calculating... carry the one...",
+      "Numbers never lie. People do.",
+      "Revenue up 12.7% this quarter!",
+      "I dream in spreadsheets.",
+      "The data is beautiful today."
+    ]
+  },
+  {
+    id: 'jasper', name: 'Jasper', icon: 'chat', color: '#22c55e', accentColor: '#4ade80',
+    homeX: 27, homeY: 26,
+    patrol: [[27,26],[27,26],[27,26],[28,27],[27,26]], // mostly sits
+    patrolIdx: 0,
+    sitting: true,
+    sayings: [
+      "Hey there, friend!",
+      "Beautiful day in the village!",
+      "I love watching the fountain.",
+      "Pull up a chair, stay awhile!",
+      "The village is peaceful today.",
+      "*waves enthusiastically*"
+    ]
+  },
+  {
+    id: 'flint', name: 'Flint', icon: 'search', color: '#f59e0b', accentColor: '#fbbf24',
+    homeX: 30, homeY: 15,
+    patrol: [[10,10],[38,10],[46,22],[38,36],[10,36],[10,22]],
+    patrolIdx: 0,
+    sayings: [
+      "Hmm, interesting footprints...",
+      "I found a clue!",
+      "The mystery deepens...",
+      "Nothing escapes my lens.",
+      "Investigating anomaly at sector 7.",
+      "Elementary, my dear bot."
+    ]
+  }
+];
+
+// Initialize bot state
+BOTS.forEach(bot => {
+  bot.x = bot.homeX * TILE;
+  bot.y = bot.homeY * TILE;
+  bot.targetX = bot.patrol[0][0] * TILE;
+  bot.targetY = bot.patrol[0][1] * TILE;
+  bot.frame = 0;
+  bot.frameTimer = 0;
+  bot.dir = 'down';
+  bot.speechTimer = 0;
+  bot.speechText = '';
+  bot.waveTimer = 0;
+  bot.bobOffset = Math.random() * Math.PI * 2;
+});
+
+// ===== INPUT =====
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  // Prevent scrolling with arrow keys
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
+    e.preventDefault();
+  }
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// ===== CAMERA =====
+const camera = { x: 0, y: 0 };
+
+// ===== DAY/NIGHT CYCLE =====
+let dayTime = 0.25; // 0=midnight, 0.25=dawn, 0.5=noon, 0.75=dusk
+let daySpeed = 1 / (DAY_CYCLE_DURATION * 60); // per frame at 60fps
+
+function getDayColor() {
+  // Returns ambient overlay color and opacity for time of day
+  const t = dayTime;
+  if (t < 0.2) return { r: 5, g: 5, b: 30, a: 0.45 };       // night
+  if (t < 0.3) return { r: 20, g: 10, b: 30, a: 0.25 * (1 - (t-0.2)/0.1) + 0.15 }; // dawn
+  if (t < 0.7) return { r: 0, g: 0, b: 0, a: 0 };            // day (no overlay)
+  if (t < 0.8) return { r: 30, g: 10, b: 5, a: 0.15 * ((t-0.7)/0.1) }; // dusk
+  return { r: 5, g: 5, b: 30, a: 0.15 + 0.30 * ((t-0.8)/0.2) }; // night
+}
+
+function getTimeLabel() {
+  const t = dayTime;
+  if (t < 0.2) return ['NIGHT', '#6366f1', 'rgba(99,102,241,0.15)'];
+  if (t < 0.3) return ['DAWN', '#f59e0b', 'rgba(245,158,11,0.15)'];
+  if (t < 0.5) return ['MORNING', '#38bdf8', 'rgba(56,189,248,0.15)'];
+  if (t < 0.7) return ['AFTERNOON', '#22c55e', 'rgba(34,197,94,0.15)'];
+  if (t < 0.8) return ['DUSK', '#f97316', 'rgba(249,115,22,0.15)'];
+  return ['NIGHT', '#6366f1', 'rgba(99,102,241,0.15)'];
+}
+
+// ===== CANVAS SETUP =====
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ===== RENDERING =====
+let grassVariants = [];
+// Pre-compute grass tile variants
+for (let y = 0; y < MAP_H; y++) {
+  grassVariants[y] = [];
+  for (let x = 0; x < MAP_W; x++) {
+    grassVariants[y][x] = Math.floor(Math.random() * 4);
+  }
+}
+
+// Particle system for totem
+const totemParticles = [];
+for (let i = 0; i < 20; i++) {
+  totemParticles.push({
+    x: 0, y: 0, vx: (Math.random()-0.5)*0.8, vy: -Math.random()*1.2 - 0.3,
+    life: Math.random(), maxLife: 0.5 + Math.random()*0.5,
+    size: 1 + Math.random()*2
+  });
+}
+
+function drawTile(tx, ty, screenX, screenY) {
+  const tile = tileMap[ty][tx];
+  const colors = TILE_COLORS[tile];
+  if (!colors) return;
+
+  if (tile === T.GRASS) {
+    ctx.fillStyle = colors[grassVariants[ty][tx]];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Occasional grass detail
+    if ((tx + ty * 7) % 11 === 0) {
+      ctx.fillStyle = '#1a3a1a';
+      ctx.fillRect(screenX + 12, screenY + 8, 2, 6);
+      ctx.fillRect(screenX + 14, screenY + 6, 2, 4);
+    }
+  } else if (tile === T.PATH) {
+    ctx.fillStyle = colors[grassVariants[ty][tx] % colors.length];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Path detail: small stones
+    if ((tx * 3 + ty * 5) % 7 === 0) {
+      ctx.fillStyle = '#3a3528';
+      ctx.beginPath();
+      ctx.arc(screenX + 10, screenY + 14, 2, 0, Math.PI*2);
+      ctx.fill();
+    }
+    if ((tx * 7 + ty) % 9 === 0) {
+      ctx.fillStyle = '#34302a';
+      ctx.beginPath();
+      ctx.arc(screenX + 22, screenY + 20, 1.5, 0, Math.PI*2);
+      ctx.fill();
+    }
+  } else if (tile === T.WATER) {
+    const waveOffset = Math.sin(Date.now() * 0.002 + tx * 0.5 + ty * 0.3) * 10;
+    const r = 10 + waveOffset|0;
+    const g = 50 + waveOffset|0;
+    const b = 90 + Math.abs(waveOffset)|0;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Wave lines
+    ctx.strokeStyle = 'rgba(56,189,248,0.2)';
+    ctx.lineWidth = 1;
+    const wOff = Math.sin(Date.now() * 0.003 + tx) * 4;
+    ctx.beginPath();
+    ctx.moveTo(screenX + 2, screenY + 10 + wOff);
+    ctx.quadraticCurveTo(screenX + 16, screenY + 6 + wOff, screenX + 30, screenY + 10 + wOff);
+    ctx.stroke();
+  } else if (tile === T.WALL) {
+    // Find which building this belongs to
+    let bldg = BUILDINGS.find(b => tx >= b.x && tx < b.x+b.w && ty >= b.y && ty < b.y+b.h);
+    ctx.fillStyle = bldg ? bldg.wallHex : '#1e293b';
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Brick lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(screenX + 1, screenY + 1, TILE-2, TILE/2 - 1);
+    if (ty % 2 === 0) {
+      ctx.strokeRect(screenX + TILE/2, screenY + TILE/2, TILE/2 - 1, TILE/2 - 1);
+    }
+  } else if (tile === T.DOOR) {
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Door frame
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(screenX + 6, screenY + 2, 20, 28);
+    ctx.fillStyle = '#5a3a10';
+    ctx.fillRect(screenX + 8, screenY + 4, 16, 24);
+    // Door handle
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(screenX + 20, screenY + 18, 2, 0, Math.PI*2);
+    ctx.fill();
+  } else if (tile === T.ROOF) {
+    let bldg = BUILDINGS.find(b => tx >= b.x-1 && tx <= b.x+b.w && ty === b.y-1);
+    ctx.fillStyle = bldg ? bldg.roofHex : '#334155';
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Roof shingle lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(screenX, screenY + 8 + i * 10);
+      ctx.lineTo(screenX + TILE, screenY + 8 + i * 10);
+      ctx.stroke();
+    }
+  } else if (tile === T.TREE_TRUNK) {
+    // Grass underneath
+    ctx.fillStyle = TILE_COLORS[T.GRASS][grassVariants[ty][tx]];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Trunk
+    ctx.fillStyle = '#3d2212';
+    ctx.fillRect(screenX + 12, screenY + 4, 8, 24);
+    ctx.fillStyle = '#2a1808';
+    ctx.fillRect(screenX + 14, screenY + 8, 4, 16);
+  } else if (tile === T.TREE_TOP) {
+    // Grass underneath
+    ctx.fillStyle = TILE_COLORS[T.GRASS][0];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Canopy
+    const pulse = Math.sin(Date.now() * 0.001 + tx * 2) * 2;
+    ctx.fillStyle = '#14532d';
+    ctx.beginPath();
+    ctx.arc(screenX + 16, screenY + 18 + pulse, 14, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#1a6e3a';
+    ctx.beginPath();
+    ctx.arc(screenX + 12, screenY + 14 + pulse, 9, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#0f4a22';
+    ctx.beginPath();
+    ctx.arc(screenX + 22, screenY + 16 + pulse, 8, 0, Math.PI*2);
+    ctx.fill();
+  } else if (tile === T.FENCE) {
+    ctx.fillStyle = TILE_COLORS[T.GRASS][0];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    ctx.fillStyle = '#5c4a36';
+    // Fence posts
+    ctx.fillRect(screenX + 2, screenY + 8, 4, 20);
+    ctx.fillRect(screenX + 26, screenY + 8, 4, 20);
+    // Rails
+    ctx.fillRect(screenX, screenY + 12, TILE, 3);
+    ctx.fillRect(screenX, screenY + 22, TILE, 3);
+  } else if (tile === T.FLOWER) {
+    ctx.fillStyle = TILE_COLORS[T.GRASS][grassVariants[ty][tx]];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Flowers
+    const fcolors = ['#ec4899','#f59e0b','#a855f7','#38bdf8','#ef4444'];
+    const fc = fcolors[(tx * 3 + ty * 7) % fcolors.length];
+    const pulse = Math.sin(Date.now() * 0.002 + tx + ty) * 1;
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(screenX + 15, screenY + 16, 2, 12);
+    ctx.fillStyle = fc;
+    ctx.beginPath();
+    ctx.arc(screenX + 16, screenY + 14 + pulse, 4, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fef3c7';
+    ctx.beginPath();
+    ctx.arc(screenX + 16, screenY + 14 + pulse, 1.5, 0, Math.PI*2);
+    ctx.fill();
+  } else if (tile === T.FOUNTAIN) {
+    ctx.fillStyle = '#1e3a5f';
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Stone texture
+    ctx.strokeStyle = 'rgba(56,189,248,0.1)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(screenX + 2, screenY + 2, TILE-4, TILE-4);
+  } else if (tile === T.TOTEM) {
+    ctx.fillStyle = TILE_COLORS[T.GRASS][0];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Totem base
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(screenX + 6, screenY + 12, 20, 18);
+    // Totem glow
+    const glowPulse = 0.4 + Math.sin(Date.now() * 0.003) * 0.3;
+    ctx.fillStyle = `rgba(180, 83, 9, ${glowPulse})`;
+    ctx.beginPath();
+    ctx.arc(screenX + 16, screenY + 16, 12, 0, Math.PI*2);
+    ctx.fill();
+    // Totem face
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(screenX + 10, screenY + 14, 4, 3);
+    ctx.fillRect(screenX + 18, screenY + 14, 4, 3);
+    ctx.fillRect(screenX + 12, screenY + 20, 8, 2);
+    // Amber eye glow
+    ctx.fillStyle = `rgba(251, 191, 36, ${0.6 + Math.sin(Date.now()*0.005)*0.4})`;
+    ctx.beginPath();
+    ctx.arc(screenX + 12, screenY + 15, 2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(screenX + 20, screenY + 15, 2, 0, Math.PI*2);
+    ctx.fill();
+  } else if (tile === T.FLOOR) {
+    ctx.fillStyle = colors[grassVariants[ty][tx] % colors.length];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    // Floor tile pattern
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(screenX + 1, screenY + 1, TILE-2, TILE-2);
+  } else if (tile === T.BUSH) {
+    ctx.fillStyle = TILE_COLORS[T.GRASS][0];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+    const bPulse = Math.sin(Date.now() * 0.0015 + tx) * 1;
+    ctx.fillStyle = '#1a4a1a';
+    ctx.beginPath();
+    ctx.arc(screenX + 16, screenY + 20 + bPulse, 10, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#226a22';
+    ctx.beginPath();
+    ctx.arc(screenX + 12, screenY + 16 + bPulse, 7, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#1e5e1e';
+    ctx.beginPath();
+    ctx.arc(screenX + 22, screenY + 18 + bPulse, 6, 0, Math.PI*2);
+    ctx.fill();
+  } else if (tile === T.BRIDGE) {
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(screenX, screenY, TILE, TILE);
+  }
+}
+
+function drawPlayer(screenX, screenY) {
+  const bob = player.moving ? Math.sin(Date.now() * 0.01) * 2 : 0;
+  const px = screenX;
+  const py = screenY + bob;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(px + 10, py + 20, 8, 3, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(px + 4, py + 6, 12, 10);
+
+  // Head
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillRect(px + 5, py, 10, 8);
+
+  // Eyes based on direction
+  ctx.fillStyle = '#0f172a';
+  if (player.dir === 'down') {
+    ctx.fillRect(px + 7, py + 3, 2, 2);
+    ctx.fillRect(px + 11, py + 3, 2, 2);
+  } else if (player.dir === 'up') {
+    // Back of head, no eyes
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(px + 6, py + 1, 8, 5);
+  } else if (player.dir === 'left') {
+    ctx.fillRect(px + 6, py + 3, 2, 2);
+  } else {
+    ctx.fillRect(px + 12, py + 3, 2, 2);
+  }
+
+  // Legs
+  const legAnim = player.moving ? Math.sin(Date.now() * 0.012) * 3 : 0;
+  ctx.fillStyle = '#1e40af';
+  ctx.fillRect(px + 5, py + 16, 4, 6 + legAnim);
+  ctx.fillRect(px + 11, py + 16, 4, 6 - legAnim);
+
+  // Cyan glow effect
+  ctx.shadowColor = '#38bdf8';
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = 'rgba(56,189,248,0.15)';
+  ctx.beginPath();
+  ctx.arc(px + 10, py + 10, 14, 0, Math.PI*2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawBot(bot, screenX, screenY) {
+  const bob = Math.sin(Date.now() * 0.003 + bot.bobOffset) * 1.5;
+  const px = screenX;
+  const py = screenY + bob;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(px + 10, py + 20, 7, 3, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = bot.color;
+  ctx.fillRect(px + 4, py + 6, 12, 10);
+
+  // Head
+  ctx.fillStyle = bot.accentColor;
+  ctx.fillRect(px + 5, py, 10, 8);
+
+  // Eyes
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(px + 7, py + 3, 2, 2);
+  ctx.fillRect(px + 11, py + 3, 2, 2);
+
+  // Icon indicator above head
+  ctx.fillStyle = bot.color;
+  ctx.beginPath();
+  ctx.arc(px + 10, py - 6, 5, 0, Math.PI*2);
+  ctx.fill();
+
+  if (bot.icon === 'helmet') {
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(px + 6, py - 10, 8, 5);
+    ctx.fillRect(px + 4, py - 6, 12, 2);
+  } else if (bot.icon === 'coin') {
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(px + 10, py - 6, 4, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#92400e';
+    ctx.font = '6px monospace';
+    ctx.fillText('$', px + 8, py - 4);
+  } else if (bot.icon === 'calc') {
+    ctx.fillStyle = '#1e3a5f';
+    ctx.fillRect(px + 6, py - 10, 8, 7);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(px + 7, py - 9, 6, 2);
+    ctx.fillStyle = '#60a5fa';
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) {
+      ctx.fillRect(px + 7 + c*2, py - 6 + r*2, 1, 1);
+    }
+  } else if (bot.icon === 'chat') {
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.moveTo(px + 5, py - 10);
+    ctx.lineTo(px + 15, py - 10);
+    ctx.lineTo(px + 15, py - 4);
+    ctx.lineTo(px + 12, py - 4);
+    ctx.lineTo(px + 10, py - 1);
+    ctx.lineTo(px + 10, py - 4);
+    ctx.lineTo(px + 5, py - 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#0f2a0f';
+    ctx.fillRect(px + 7, py - 8, 6, 1);
+    ctx.fillRect(px + 7, py - 6, 4, 1);
+  } else if (bot.icon === 'search') {
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(px + 9, py - 7, 3, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(px + 11, py - 5);
+    ctx.lineTo(px + 14, py - 2);
+    ctx.stroke();
+  }
+
+  // Legs
+  const moving = Math.abs(bot.x - bot.targetX) > 2 || Math.abs(bot.y - bot.targetY) > 2;
+  const legAnim = moving ? Math.sin(Date.now() * 0.008 + bot.bobOffset) * 2 : 0;
+  ctx.fillStyle = darkenHex(bot.color, 0.3);
+  ctx.fillRect(px + 5, py + 16, 4, 5 + legAnim);
+  ctx.fillRect(px + 11, py + 16, 4, 5 - legAnim);
+
+  // Name tag
+  ctx.font = 'bold 9px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  const nameW = ctx.measureText(bot.name).width + 8;
+  ctx.fillStyle = 'rgba(10,14,26,0.85)';
+  ctx.fillRect(px + 10 - nameW/2, py - 18, nameW, 12);
+  ctx.strokeStyle = bot.color;
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(px + 10 - nameW/2, py - 18, nameW, 12);
+  ctx.fillStyle = bot.accentColor;
+  ctx.fillText(bot.name, px + 10, py - 9);
+  ctx.textAlign = 'left';
+
+  // Wave animation for Jasper
+  if (bot.sitting && bot.waveTimer > 0) {
+    const waveAngle = Math.sin(Date.now() * 0.015) * 0.4;
+    ctx.save();
+    ctx.translate(px + 16, py + 8);
+    ctx.rotate(waveAngle - 0.3);
+    ctx.fillStyle = bot.accentColor;
+    ctx.fillRect(0, -6, 3, 6);
+    ctx.fillRect(-1, -8, 5, 3);
+    ctx.restore();
+  }
+}
+
+function drawSpeechBubble(bot, screenX, screenY) {
+  if (bot.speechTimer <= 0 || !bot.speechText) return;
+  const alpha = Math.min(1, bot.speechTimer / 30);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.font = '10px "Segoe UI", sans-serif';
+  const textW = ctx.measureText(bot.speechText).width;
+  const bw = textW + 16;
+  const bh = 20;
+  const bx = screenX + 10 - bw/2;
+  const by = screenY - 32;
+
+  // Bubble background
+  ctx.fillStyle = 'rgba(15,23,42,0.92)';
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 6);
+  ctx.fill();
+  ctx.strokeStyle = bot.color;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Arrow
+  ctx.fillStyle = 'rgba(15,23,42,0.92)';
+  ctx.beginPath();
+  ctx.moveTo(screenX + 6, by + bh);
+  ctx.lineTo(screenX + 10, by + bh + 5);
+  ctx.lineTo(screenX + 14, by + bh);
+  ctx.closePath();
+  ctx.fill();
+
+  // Text
+  ctx.fillStyle = '#e2e8f0';
+  ctx.textAlign = 'center';
+  ctx.fillText(bot.speechText, screenX + 10, by + 14);
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+// Totem particle rendering
+function drawTotemParticles(totemScreenX, totemScreenY) {
+  const cx = totemScreenX + TILE;
+  const cy = totemScreenY + TILE;
+
+  totemParticles.forEach(p => {
+    p.life += 0.016;
+    if (p.life > p.maxLife) {
+      p.life = 0;
+      p.x = (Math.random()-0.5) * 20;
+      p.y = 0;
+      p.vx = (Math.random()-0.5) * 0.8;
+      p.vy = -Math.random() * 1.5 - 0.5;
+    }
+    p.x += p.vx;
+    p.y += p.vy;
+
+    const alpha = 1 - (p.life / p.maxLife);
+    ctx.fillStyle = `rgba(251, 191, 36, ${alpha * 0.7})`;
+    ctx.beginPath();
+    ctx.arc(cx + p.x, cy + p.y - 10, p.size * alpha, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Glow ring around totem
+  const glowSize = 24 + Math.sin(Date.now() * 0.003) * 4;
+  const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, glowSize);
+  grad.addColorStop(0, 'rgba(251, 191, 36, 0.15)');
+  grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, glowSize, 0, Math.PI*2);
+  ctx.fill();
+}
+
+// ===== BUILDING LABELS =====
+function drawBuildingLabels() {
+  BUILDINGS.forEach(bldg => {
+    const cx = bldg.x * TILE + (bldg.w * TILE) / 2 - camera.x;
+    const cy = bldg.y * TILE - 12 - camera.y;
+
+    // Only draw if on screen
+    if (cx < -100 || cx > W + 100 || cy < -50 || cy > H + 50) return;
+
+    ctx.font = 'bold 10px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    const tw = ctx.measureText(bldg.name).width + 12;
+
+    ctx.fillStyle = 'rgba(10,14,26,0.8)';
+    ctx.beginPath();
+    ctx.roundRect(cx - tw/2, cy - 7, tw, 16, 4);
+    ctx.fill();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(bldg.name, cx, cy + 5);
+    ctx.textAlign = 'left';
+  });
+}
+
+// ===== COLLISION DETECTION =====
+function canMove(x, y, w, h) {
+  // Check all four corners + mid-points
+  const checks = [
+    [x + 3, y + 4],      // top-left
+    [x + w - 3, y + 4],  // top-right
+    [x + 3, y + h - 2],  // bottom-left
+    [x + w - 3, y + h - 2], // bottom-right
+    [x + w/2, y + 4],    // top-center
+    [x + w/2, y + h - 2] // bottom-center
+  ];
+  for (const [cx, cy] of checks) {
+    const tx = Math.floor(cx / TILE);
+    const ty = Math.floor(cy / TILE);
+    if (tx < 0 || tx >= MAP_W || ty < 0 || ty >= MAP_H) return false;
+    if (SOLID.has(tileMap[ty][tx])) return false;
+  }
+  return true;
+}
+
+// ===== INTERACTION ZONES =====
+function getPlayerTile() {
+  return {
+    tx: Math.floor((player.x + player.w/2) / TILE),
+    ty: Math.floor((player.y + player.h/2) / TILE)
+  };
+}
+
+function checkInteraction() {
+  const {tx, ty} = getPlayerTile();
+
+  // Check Library door
+  const library = BUILDINGS.find(b => b.name === 'Library');
+  if (library && Math.abs(tx - library.doorX) <= 1 && Math.abs(ty - library.doorY) <= 1) {
+    return { type: 'library', label: 'Press <span class="key">CTRL</span> to enter the Library' };
+  }
+
+  // Check Totem
+  if (Math.abs(tx - 34) <= 2 && Math.abs(ty - 24) <= 2) {
+    return { type: 'totem', label: 'Press <span class="key">CTRL</span> to access SentryLion' };
+  }
+
+  // Check Command Post
+  const cmdPost = BUILDINGS.find(b => b.name === 'Command Post');
+  if (cmdPost && Math.abs(tx - cmdPost.doorX) <= 1 && Math.abs(ty - cmdPost.doorY) <= 1) {
+    return { type: 'command', label: 'Press <span class="key">CTRL</span> to enter Command Post' };
+  }
+
+  // Check Workshop
+  const workshop = BUILDINGS.find(b => b.name === 'Workshop');
+  if (workshop && Math.abs(tx - workshop.doorX) <= 1 && Math.abs(ty - workshop.doorY) <= 1) {
+    return { type: 'workshop', label: 'Press <span class="key">CTRL</span> to enter Workshop' };
+  }
+
+  // Check Market
+  const market = BUILDINGS.find(b => b.name === 'Market');
+  if (market && Math.abs(tx - market.doorX) <= 1 && Math.abs(ty - market.doorY) <= 1) {
+    return { type: 'market', label: 'Press <span class="key">CTRL</span> to enter Market' };
+  }
+
+  return null;
+}
+
+// ===== TRANSITIONS =====
+let transitioning = false;
+
+function doTransition(targetUrl, text, animEmoji) {
+  if (transitioning) return;
+  transitioning = true;
+
+  const overlay = document.getElementById('transitionOverlay');
+  const transText = document.getElementById('transitionText');
+  const transAnim = document.getElementById('transitionAnim');
+
+  overlay.classList.add('active');
+  overlay.style.opacity = '0';
+  transText.textContent = text;
+  transAnim.textContent = animEmoji;
+
+  // Fade in
+  let opacity = 0;
+  const fadeIn = setInterval(() => {
+    opacity += 0.05;
+    overlay.style.opacity = opacity;
+    if (opacity >= 1) {
+      clearInterval(fadeIn);
+      // Animate emoji
+      let rotations = 0;
+      const spin = setInterval(() => {
+        transAnim.style.transform = `rotate(${rotations * 30}deg) scale(${1 + Math.sin(rotations * 0.3) * 0.3})`;
+        rotations++;
+        if (rotations > 20) {
+          clearInterval(spin);
+          // Navigate
+          if (targetUrl) {
+            window.location.href = targetUrl;
+          } else {
+            transitioning = false;
+            overlay.classList.remove('active');
+          }
+        }
+      }, 50);
+    }
+  }, 30);
+}
+
+// ===== CTRL INTERACTION =====
+let ctrlPressed = false;
+window.addEventListener('keydown', e => {
+  if ((e.code === 'ControlLeft' || e.code === 'ControlRight') && !ctrlPressed) {
+    ctrlPressed = true;
+    const interaction = checkInteraction();
+    if (interaction) {
+      if (interaction.type === 'library') {
+        doTransition('library.html', 'Entering the Library...', '📚');
+      } else if (interaction.type === 'totem') {
+        doTransition('sentrylion.html', 'Accessing SentryLion...', '🦁');
+      } else if (interaction.type === 'command') {
+        doTransition('bots.html', 'Entering Command Post...', '🎖');
+      } else if (interaction.type === 'workshop') {
+        doTransition(null, 'Workshop coming soon...', '🔧');
+      } else if (interaction.type === 'market') {
+        doTransition(null, 'Market coming soon...', '🏪');
+      }
+    }
+  }
+});
+window.addEventListener('keyup', e => {
+  if (e.code === 'ControlLeft' || e.code === 'ControlRight') ctrlPressed = false;
+});
+
+// ===== HELP TOGGLE =====
+let helpVisible = false;
+document.getElementById('hudHelp').addEventListener('click', () => {
+  helpVisible = !helpVisible;
+  document.getElementById('controlsHelp').classList.toggle('show', helpVisible);
+});
+document.getElementById('closeHelp').addEventListener('click', () => {
+  helpVisible = false;
+  document.getElementById('controlsHelp').classList.remove('show');
+});
+window.addEventListener('keydown', e => {
+  if (e.code === 'KeyH' && !e.ctrlKey) {
+    helpVisible = !helpVisible;
+    document.getElementById('controlsHelp').classList.toggle('show', helpVisible);
+  }
+  if (e.code === 'KeyM') {
+    const mm = document.getElementById('minimap');
+    mm.style.display = mm.style.display === 'none' ? 'block' : 'none';
+  }
+});
+
+// ===== MINIMAP =====
+function drawMinimap() {
+  const mm = document.getElementById('minimap');
+  if (mm.style.display === 'none') return;
+  const mctx = mm.getContext('2d');
+  const mw = mm.width, mh = mm.height;
+  const sx = mw / (MAP_W * TILE);
+  const sy = mh / (MAP_H * TILE);
+
+  mctx.fillStyle = '#0a0e1a';
+  mctx.fillRect(0, 0, mw, mh);
+
+  // Draw buildings
+  BUILDINGS.forEach(b => {
+    mctx.fillStyle = b.wallHex;
+    mctx.fillRect(b.x * TILE * sx, b.y * TILE * sy, b.w * TILE * sx, b.h * TILE * sy);
+  });
+
+  // Draw paths (simplified)
+  mctx.fillStyle = '#3a3020';
+  // Horizontal center
+  mctx.fillRect(4 * TILE * sx, 24 * TILE * sy, 52 * TILE * sx, 2 * TILE * sy);
+  // Vertical center
+  mctx.fillRect(29 * TILE * sx, 4 * TILE * sy, 2 * TILE * sx, 42 * TILE * sy);
+
+  // Draw fountain
+  mctx.fillStyle = '#0c4a6e';
+  mctx.fillRect(28 * TILE * sx, 23 * TILE * sy, 4 * TILE * sx, 4 * TILE * sy);
+
+  // Draw totem
+  mctx.fillStyle = '#fbbf24';
+  mctx.fillRect(34 * TILE * sx, 24 * TILE * sy, 2 * TILE * sx, 2 * TILE * sy);
+
+  // Draw bots
+  BOTS.forEach(bot => {
+    mctx.fillStyle = bot.accentColor;
+    mctx.beginPath();
+    mctx.arc(bot.x * sx + 2, bot.y * sy + 2, 2, 0, Math.PI*2);
+    mctx.fill();
+  });
+
+  // Draw player
+  mctx.fillStyle = '#38bdf8';
+  mctx.beginPath();
+  mctx.arc(player.x * sx + 2, player.y * sy + 2, 3, 0, Math.PI*2);
+  mctx.fill();
+
+  // Draw viewport rect
+  mctx.strokeStyle = 'rgba(56,189,248,0.5)';
+  mctx.lineWidth = 1;
+  mctx.strokeRect(camera.x * sx, camera.y * sy, W * sx, H * sy);
+}
+
+// ===== UTILITY =====
+function darkenHex(hex, amt) {
+  let r = parseInt(hex.slice(1,3),16);
+  let g = parseInt(hex.slice(3,5),16);
+  let b = parseInt(hex.slice(5,7),16);
+  r = Math.floor(r * (1 - amt));
+  g = Math.floor(g * (1 - amt));
+  b = Math.floor(b * (1 - amt));
+  return `rgb(${r},${g},${b})`;
+}
+
+// ===== GAME LOOP =====
+let lastTime = 0;
+let frameCount = 0;
+let fpsTimer = 0;
+let currentFPS = 60;
+let gameStarted = false;
+
+function update(dt) {
+  // Player movement
+  let dx = 0, dy = 0;
+  if (keys['KeyW'] || keys['ArrowUp']) { dy = -1; player.dir = 'up'; }
+  if (keys['KeyS'] || keys['ArrowDown']) { dy = 1; player.dir = 'down'; }
+  if (keys['KeyA'] || keys['ArrowLeft']) { dx = -1; player.dir = 'left'; }
+  if (keys['KeyD'] || keys['ArrowRight']) { dx = 1; player.dir = 'right'; }
+
+  player.moving = dx !== 0 || dy !== 0;
+
+  // Normalize diagonal
+  if (dx !== 0 && dy !== 0) {
+    dx *= 0.707;
+    dy *= 0.707;
+  }
+
+  const newX = player.x + dx * player.speed;
+  const newY = player.y + dy * player.speed;
+
+  // Try X then Y separately for wall sliding
+  if (canMove(newX, player.y, player.w, player.h)) {
+    player.x = newX;
+  }
+  if (canMove(player.x, newY, player.w, player.h)) {
+    player.y = newY;
+  }
+
+  // Clamp to map
+  player.x = Math.max(0, Math.min(MAP_W * TILE - player.w, player.x));
+  player.y = Math.max(0, Math.min(MAP_H * TILE - player.h, player.y));
+
+  // Camera follow (smooth)
+  const targetCamX = player.x - W/2 + player.w/2;
+  const targetCamY = player.y - H/2 + player.h/2;
+  camera.x += (targetCamX - camera.x) * 0.08;
+  camera.y += (targetCamY - camera.y) * 0.08;
+
+  // Clamp camera
+  camera.x = Math.max(0, Math.min(MAP_W * TILE - W, camera.x));
+  camera.y = Math.max(0, Math.min(MAP_H * TILE - H, camera.y));
+
+  // Day/night cycle
+  dayTime = (dayTime + daySpeed) % 1;
+
+  // Update bots
+  BOTS.forEach(bot => {
+    // Patrol movement
+    const tdx = bot.targetX - bot.x;
+    const tdy = bot.targetY - bot.y;
+    const dist = Math.sqrt(tdx*tdx + tdy*tdy);
+
+    if (dist < 4) {
+      // Reached target, go to next patrol point
+      bot.patrolIdx = (bot.patrolIdx + 1) % bot.patrol.length;
+      bot.targetX = bot.patrol[bot.patrolIdx][0] * TILE;
+      bot.targetY = bot.patrol[bot.patrolIdx][1] * TILE;
+    } else {
+      const speed = bot.sitting ? BOT_SPEED * 0.2 : BOT_SPEED;
+      bot.x += (tdx / dist) * speed;
+      bot.y += (tdy / dist) * speed;
+
+      // Update direction
+      if (Math.abs(tdx) > Math.abs(tdy)) {
+        bot.dir = tdx > 0 ? 'right' : 'left';
+      } else {
+        bot.dir = tdy > 0 ? 'down' : 'up';
+      }
+    }
+
+    // Speech bubbles - when player is near
+    const pdx = player.x - bot.x;
+    const pdy = player.y - bot.y;
+    const pDist = Math.sqrt(pdx*pdx + pdy*pdy);
+
+    if (pDist < 80 && bot.speechTimer <= 0) {
+      bot.speechText = bot.sayings[Math.floor(Math.random() * bot.sayings.length)];
+      bot.speechTimer = 180; // 3 seconds at 60fps
+    }
+    if (bot.speechTimer > 0) bot.speechTimer--;
+
+    // Jasper wave
+    if (bot.sitting) {
+      if (pDist < 100) {
+        bot.waveTimer = 60;
+      }
+      if (bot.waveTimer > 0) bot.waveTimer--;
+    }
+  });
+
+  // Update interaction prompt
+  const interaction = checkInteraction();
+  const prompt = document.getElementById('interactPrompt');
+  if (interaction) {
+    prompt.innerHTML = interaction.label;
+    prompt.style.display = 'block';
+  } else {
+    prompt.style.display = 'none';
+  }
+
+  // Update HUD
+  const {tx, ty} = getPlayerTile();
+  document.getElementById('hudCoords').textContent = `X: ${tx} Y: ${ty}`;
+
+  const [timeLabel, timeColor, timeBg] = getTimeLabel();
+  const hudTime = document.getElementById('hudTimeLabel');
+  hudTime.textContent = timeLabel;
+  hudTime.style.color = timeColor;
+  hudTime.style.background = timeBg;
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#0a0e1a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Calculate visible tile range
+  const startTX = Math.max(0, Math.floor(camera.x / TILE) - 1);
+  const startTY = Math.max(0, Math.floor(camera.y / TILE) - 1);
+  const endTX = Math.min(MAP_W - 1, Math.ceil((camera.x + W) / TILE) + 1);
+  const endTY = Math.min(MAP_H - 1, Math.ceil((camera.y + H) / TILE) + 1);
+
+  // Draw tiles
+  for (let ty = startTY; ty <= endTY; ty++) {
+    for (let tx = startTX; tx <= endTX; tx++) {
+      const screenX = tx * TILE - camera.x;
+      const screenY = ty * TILE - camera.y;
+      drawTile(tx, ty, screenX, screenY);
+    }
+  }
+
+  // Draw totem particles (above tiles, below entities)
+  const totemSX = 34 * TILE - camera.x;
+  const totemSY = 24 * TILE - camera.y;
+  if (totemSX > -100 && totemSX < W + 100 && totemSY > -100 && totemSY < H + 100) {
+    drawTotemParticles(totemSX, totemSY);
+  }
+
+  // Collect all entities for depth sorting (y-sorting)
+  const entities = [];
+
+  // Player
+  entities.push({
+    y: player.y,
+    draw: () => drawPlayer(player.x - camera.x, player.y - camera.y)
+  });
+
+  // Bots
+  BOTS.forEach(bot => {
+    entities.push({
+      y: bot.y,
+      draw: () => {
+        const sx = bot.x - camera.x;
+        const sy = bot.y - camera.y;
+        drawBot(bot, sx, sy);
+        drawSpeechBubble(bot, sx, sy);
+      }
+    });
+  });
+
+  // Sort by Y for proper layering
+  entities.sort((a, b) => a.y - b.y);
+  entities.forEach(e => e.draw());
+
+  // Building labels
+  drawBuildingLabels();
+
+  // Day/night overlay
+  const dayCol = getDayColor();
+  if (dayCol.a > 0) {
+    ctx.fillStyle = `rgba(${dayCol.r},${dayCol.g},${dayCol.b},${dayCol.a})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Minimap
+  drawMinimap();
+}
+
+function gameLoop(timestamp) {
+  if (!gameStarted) return;
+
+  const dt = timestamp - lastTime;
+  lastTime = timestamp;
+
+  // FPS counter
+  frameCount++;
+  fpsTimer += dt;
+  if (fpsTimer >= 1000) {
+    currentFPS = frameCount;
+    document.getElementById('hudFps').textContent = currentFPS + ' FPS';
+    frameCount = 0;
+    fpsTimer = 0;
+  }
+
+  update(dt);
+  render();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ===== LOADING SCREEN =====
+function runLoadingScreen() {
+  const loadCanvas = document.getElementById('loadStars');
+  const lctx = loadCanvas.getContext('2d');
+  loadCanvas.width = window.innerWidth;
+  loadCanvas.height = window.innerHeight;
+
+  // Stars
+  const stars = [];
+  for (let i = 0; i < 200; i++) {
+    stars.push({
+      x: Math.random() * loadCanvas.width,
+      y: Math.random() * loadCanvas.height,
+      size: Math.random() * 2 + 0.5,
+      speed: Math.random() * 0.5 + 0.1,
+      twinkle: Math.random() * Math.PI * 2
+    });
+  }
+
+  // Particles canvas
+  const partCanvas = document.getElementById('loadParticles');
+  const pctx = partCanvas.getContext('2d');
+  partCanvas.width = window.innerWidth;
+  partCanvas.height = window.innerHeight;
+
+  const fireflies = [];
+  for (let i = 0; i < 30; i++) {
+    fireflies.push({
+      x: Math.random() * partCanvas.width,
+      y: Math.random() * partCanvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      size: Math.random() * 3 + 1,
+      phase: Math.random() * Math.PI * 2,
+      color: Math.random() > 0.5 ? '#38bdf8' : '#fbbf24'
+    });
+  }
+
+  // Typewriter effect
+  const titleText = 'Entering Realbotville...';
+  let charIdx = 0;
+  const titleEl = document.getElementById('loadTitle');
+  const typeInterval = setInterval(() => {
+    if (charIdx <= titleText.length) {
+      titleEl.textContent = titleText.substring(0, charIdx) + (charIdx < titleText.length ? '|' : '');
+      charIdx++;
+    } else {
+      titleEl.textContent = titleText;
+      clearInterval(typeInterval);
+    }
+  }, 80);
+
+  // Progress bar
+  let progress = 0;
+  const subTexts = [
+    'Preparing the village...',
+    'Waking up the bots...',
+    'Planting trees...',
+    'Lighting the fountain...',
+    'Activating SentryLion Totem...',
+    'Opening the gates...'
+  ];
+  const subEl = document.getElementById('loadSub');
+  const fillEl = document.getElementById('loadBarFill');
+  const pctEl = document.getElementById('loadPercent');
+
+  const progressInterval = setInterval(() => {
+    progress += 1 + Math.random() * 2;
+    if (progress > 100) progress = 100;
+    fillEl.style.width = progress + '%';
+    pctEl.textContent = Math.floor(progress) + '%';
+
+    const subIdx = Math.min(subTexts.length - 1, Math.floor(progress / (100 / subTexts.length)));
+    subEl.textContent = subTexts[subIdx];
+
+    if (progress >= 100) {
+      clearInterval(progressInterval);
+      setTimeout(startGame, 400);
+    }
+  }, 60);
+
+  // Animate stars + fireflies
+  function animateLoad() {
+    if (gameStarted) return;
+
+    // Stars
+    lctx.fillStyle = '#0a0e1a';
+    lctx.fillRect(0, 0, loadCanvas.width, loadCanvas.height);
+    stars.forEach(s => {
+      s.twinkle += 0.02;
+      const alpha = 0.3 + Math.sin(s.twinkle) * 0.3;
+      lctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      lctx.beginPath();
+      lctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      lctx.fill();
+    });
+
+    // Fireflies
+    pctx.clearRect(0, 0, partCanvas.width, partCanvas.height);
+    fireflies.forEach(f => {
+      f.x += f.vx + Math.sin(Date.now() * 0.001 + f.phase) * 0.3;
+      f.y += f.vy + Math.cos(Date.now() * 0.001 + f.phase) * 0.3;
+
+      // Wrap around
+      if (f.x < 0) f.x = partCanvas.width;
+      if (f.x > partCanvas.width) f.x = 0;
+      if (f.y < 0) f.y = partCanvas.height;
+      if (f.y > partCanvas.height) f.y = 0;
+
+      const alpha = 0.3 + Math.sin(Date.now() * 0.003 + f.phase) * 0.3;
+      pctx.fillStyle = f.color.replace(')', `,${alpha})`).replace('rgb', 'rgba');
+
+      // Glow
+      const grd = pctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.size * 4);
+      grd.addColorStop(0, f.color + Math.floor(alpha * 80).toString(16).padStart(2, '0'));
+      grd.addColorStop(1, f.color + '00');
+      pctx.fillStyle = grd;
+      pctx.beginPath();
+      pctx.arc(f.x, f.y, f.size * 4, 0, Math.PI * 2);
+      pctx.fill();
+
+      // Core
+      pctx.fillStyle = '#ffffff';
+      pctx.beginPath();
+      pctx.arc(f.x, f.y, f.size * 0.5, 0, Math.PI * 2);
+      pctx.fill();
+    });
+
+    requestAnimationFrame(animateLoad);
+  }
+  animateLoad();
+}
+
+function startGame() {
+  gameStarted = true;
+
+  // Fade out loading screen
+  const ls = document.getElementById('loadScreen');
+  ls.classList.add('fade-out');
+  setTimeout(() => { ls.style.display = 'none'; }, 1200);
+
+  // Show HUD
+  setTimeout(() => {
+    document.getElementById('hudTop').classList.add('show');
+    document.getElementById('hudBottom').classList.add('show');
+  }, 600);
+
+  // Show controls help briefly
+  setTimeout(() => {
+    helpVisible = true;
+    document.getElementById('controlsHelp').classList.add('show');
+    setTimeout(() => {
+      helpVisible = false;
+      document.getElementById('controlsHelp').classList.remove('show');
+    }, 5000);
+  }, 1500);
+
+  // Start game loop
+  lastTime = performance.now();
+  requestAnimationFrame(gameLoop);
+}
+
+// ===== ROUNDRECT POLYFILL =====
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    this.moveTo(x + r[0], y);
+    this.lineTo(x + w - r[1], y);
+    this.quadraticCurveTo(x + w, y, x + w, y + r[1]);
+    this.lineTo(x + w, y + h - r[2]);
+    this.quadraticCurveTo(x + w, y + h, x + w - r[2], y + h);
+    this.lineTo(x + r[3], y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - r[3]);
+    this.lineTo(x, y + r[0]);
+    this.quadraticCurveTo(x, y, x + r[0], y);
+    this.closePath();
+  };
+}
+
+// ===== KICK OFF =====
+runLoadingScreen();
+
+})();
+</script>
+</div><!-- /dashContent -->
+
+<script>
+  window.FPCS_PAGE = {
+    name: 'Realbotville',
+    theme: 'theme-bots'
+  };
+  window.FPCS_NAV = {
+    active: 'village',
+    sections: []
+  };
+</script>
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

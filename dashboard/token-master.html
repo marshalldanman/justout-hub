@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>TokenMaster — FPCS Realbotville</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/token-master.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+</head>
+<body class="theme-tokens">
+<script src="js/subdomain-router.js"></script>
+
+<!-- Auth gate -->
+<div id="auth-screen" style="display:flex; align-items:center; justify-content:center; height:100vh;">
+  <div style="text-align:center;">
+    <div style="font-size:48px; margin-bottom:16px;">&#9201;&#65039;</div>
+    <h2 style="color:var(--page-accent); margin-bottom:12px;">TokenMaster</h2>
+    <p style="color:var(--muted); margin-bottom:24px;">Token Usage Command Center</p>
+    <button id="google-signin-btn" class="auth-btn" style="display:none;">Sign in with Google</button>
+  </div>
+</div>
+
+<!-- Main content (hidden until auth) -->
+<div id="main-content" style="display:none;">
+
+  <!-- Hero -->
+  <div class="sb-hero">
+    <div class="sb-hero-content">
+      <h1>&#9201;&#65039; TokenMaster</h1>
+      <div class="subtitle">Token Usage Command Center — Realbotville</div>
+    </div>
+  </div>
+
+  <!-- Budget Strip -->
+  <div class="tm-budget-strip" id="budgetStrip">
+    <div class="tm-budget-cell" id="budgetDaily">
+      <div class="b-label">Today</div>
+      <div class="b-val">--</div>
+      <div class="b-sub">of -- budget</div>
+      <div class="tm-budget-bar"><div class="tm-budget-bar-fill" style="width:0%"></div></div>
+    </div>
+    <div class="tm-budget-cell">
+      <div class="b-label">This Week</div>
+      <div class="b-val" id="weeklyUsage">--</div>
+      <div class="b-sub">7-day rolling</div>
+    </div>
+    <div class="tm-budget-cell">
+      <div class="b-label">This Month</div>
+      <div class="b-val" id="monthlyUsage">--</div>
+      <div class="b-sub">30-day rolling</div>
+    </div>
+    <div class="tm-budget-cell">
+      <div class="b-label">Sessions Today</div>
+      <div class="b-val" id="sessionsToday">--</div>
+      <div class="b-sub" id="toolCallsToday">-- tool calls</div>
+    </div>
+    <div class="tm-budget-cell">
+      <div class="b-label">Agent Spawns</div>
+      <div class="b-val" id="agentSpawns">--</div>
+      <div class="b-sub">today</div>
+    </div>
+    <div class="tm-budget-cell">
+      <div class="b-label">Scout Status</div>
+      <div class="b-val" id="scoutStatus" style="font-size:16px;">--</div>
+      <div class="b-sub" id="scoutLastRun">--</div>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="tm-alerts" id="alertFeed" style="display:none;"></div>
+
+  <!-- View Toggle + Filters -->
+  <div class="tm-view-toggle">
+    <button class="tm-view-btn active" data-view="grid" onclick="setView('grid')">&#9638; Grid</button>
+    <button class="tm-view-btn" data-view="sessions" onclick="setView('sessions')">&#128196; Sessions</button>
+  </div>
+
+  <div class="tm-filter-bar" id="filterBar">
+    <button class="tm-filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+    <button class="tm-filter-btn" data-filter="bot" onclick="setFilter('bot')">&#129302; Bots</button>
+    <button class="tm-filter-btn" data-filter="project" onclick="setFilter('project')">&#128193; Projects</button>
+    <button class="tm-filter-btn" data-filter="red" onclick="setFilter('red')">&#128308; Over Budget</button>
+    <select class="tm-filter-sort" id="sortSelect" onchange="sortCards(this.value)">
+      <option value="usage_desc">Highest Usage</option>
+      <option value="usage_asc">Lowest Usage</option>
+      <option value="name_asc">Name A-Z</option>
+      <option value="budget_pct">Budget %</option>
+    </select>
+  </div>
+
+  <!-- Player Card Grid -->
+  <div class="tm-grid" id="cardGrid"></div>
+
+  <!-- Active Sessions (hidden by default) -->
+  <div class="tm-section" id="sessionsPanel" style="display:none;">
+    <div class="tm-section-title">&#128196; Active Sessions Today</div>
+    <table class="tm-sessions-table" id="sessionsTable">
+      <thead>
+        <tr>
+          <th>Session</th>
+          <th>Project</th>
+          <th>Entry</th>
+          <th>Tool Calls</th>
+          <th>Agents</th>
+          <th>Duration</th>
+          <th>Top Tools</th>
+        </tr>
+      </thead>
+      <tbody id="sessionsBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Stats Cache Info -->
+  <div class="tm-section" id="statsCachePanel">
+    <div class="tm-section-title">&#128202; Model Usage (Stats Cache)</div>
+    <div id="modelUsageGrid" class="tm-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"></div>
+  </div>
+
+</div>
+
+<script>
+  window.FPCS_PAGE = { name: 'TokenMaster', theme: 'theme-tokens' };
+  window.FPCS_NAV = {
+    active: 'tokens',
+    sections: [
+      { icon: '&#128176;', label: 'Budget', href: '#budgetStrip' },
+      { icon: '&#9638;', label: 'Cards', href: '#cardGrid' },
+      { icon: '&#128196;', label: 'Sessions', href: '#sessionsPanel' },
+      { icon: '&#128202;', label: 'Models', href: '#statsCachePanel' }
+    ]
+  };
+</script>
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/token-master.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

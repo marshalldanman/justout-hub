@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Realbotville — Village Command Center</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<style>
+  /* === Village HQ Styles === */
+  body { --page-accent: var(--accent); }
+
+  .village-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    padding: 24px 32px 20px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .village-header h1 {
+    font-size: 26px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .village-header .subtitle {
+    color: var(--muted);
+    margin-top: 4px;
+    font-size: 14px;
+  }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .card h3 {
+    font-size: 14px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card .big-number {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .sub-text {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .bot-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .bot-row:last-child { border-bottom: none; }
+  .bot-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .bot-dot.active { background: var(--green); box-shadow: 0 0 6px rgba(74,222,128,.5); }
+  .bot-dot.sleeping { background: var(--yellow); }
+  .bot-dot.idle { background: var(--muted); }
+  .bot-name { font-weight: 600; flex: 1; }
+  .bot-rank { font-size: 11px; color: var(--purple); }
+
+  .quick-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+    margin-bottom: 8px;
+  }
+  .quick-link:hover {
+    background: rgba(56, 189, 248, 0.06);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .quick-link .ql-icon { font-size: 18px; }
+  .quick-link .ql-desc { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+  .activity-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-time { color: var(--muted); min-width: 70px; font-size: 11px; }
+  .activity-text { flex: 1; }
+
+  .project-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .project-pct {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .project-info { flex: 1; }
+  .project-info .p-name { font-weight: 700; font-size: 14px; }
+  .project-info .p-status { font-size: 12px; color: var(--muted); margin-top: 2px; }
+</style>
+</head>
+<body class="theme-village">
+<script src="js/subdomain-router.js"></script>
+
+<!-- Auth gate is injected by auth.js — do NOT add a duplicate here -->
+
+<!-- Main content (hidden until auth) -->
+<div id="dashContent" style="display:none">
+
+  <div class="village-header">
+    <h1>&#127961; Realbotville Command Center</h1>
+    <p class="subtitle">Village HQ &mdash; 13 bots, 1 mission</p>
+  </div>
+
+  <div class="container">
+
+    <!-- Row 1: Key Stats -->
+    <div class="dash-grid">
+      <div class="card">
+        <h3>\u{1F916} Bot Fleet</h3>
+        <div class="big-number" id="statBotCount">13</div>
+        <div class="sub-text" id="statBotStatus">Loading fleet status...</div>
+      </div>
+      <div class="card">
+        <h3>\u{26A1} Village Exertion</h3>
+        <div class="big-number" id="statEP">100%</div>
+        <div class="sub-text" id="statEPZone">Fresh — ready for hard tasks</div>
+      </div>
+      <div class="card">
+        <h3>\u{1F39B} Helpdesk</h3>
+        <div class="big-number" id="statTickets">0</div>
+        <div class="sub-text" id="statTicketStatus">No open tickets</div>
+      </div>
+    </div>
+
+    <!-- Row 2: Bot Roster + Quick Actions -->
+    <div class="dash-grid">
+      <div class="card" style="grid-column: span 1">
+        <h3>\u{1F465} Active Bots</h3>
+        <div id="botRoster">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>\u{26A1} Quick Actions</h3>
+        <a class="quick-link" href="https://docs.google.com/spreadsheets/d/1F755ibxaSksNyEih6E7LometYWitRNUoiWoDJVXEwhY" target="_blank">
+          <span class="ql-icon">\u{1F4CA}</span>
+          <span>
+            Taxes Work Sheet
+            <span class="ql-desc">Firestore data in Sheets</span>
+          </span>
+        </a>
+        <a class="quick-link" href="bots.html">
+          <span class="ql-icon">\u{1F916}</span>
+          <span>
+            Bot HQ
+            <span class="ql-desc">Manage bot fleet</span>
+          </span>
+        </a>
+        <a class="quick-link" href="library.html">
+          <span class="ql-icon">\u{1F4DA}</span>
+          <span>
+            Village Library
+            <span class="ql-desc">Knowledge volumes</span>
+          </span>
+        </a>
+        <a class="quick-link" href="helpdesk.html">
+          <span class="ql-icon">\u{1F39B}</span>
+          <span>
+            Helpdesk
+            <span class="ql-desc">Issues &amp; tickets</span>
+          </span>
+        </a>
+        <a class="quick-link" href="https://friendlypc.atlassian.net/browse/KAN-1" target="_blank">
+          <span class="ql-icon">\u{1F4CB}</span>
+          <span>
+            Jira Board
+            <span class="ql-desc">Project tickets</span>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Row 3: Projects + Activity -->
+    <div class="dash-grid">
+      <div class="card">
+        <h3>\u{1F4C1} Active Projects</h3>
+        <div class="project-card">
+          <div class="project-pct" style="background:rgba(74,222,128,.15);color:var(--green)">94%</div>
+          <div class="project-info">
+            <div class="p-name">FPCS 2022 Tax Prep</div>
+            <div class="p-status">Deadline: April 10 &mdash; Filing phase pending</div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-pct" style="background:rgba(56,189,248,.15);color:var(--accent)">75%</div>
+          <div class="project-info">
+            <div class="p-name">Realbotville Village</div>
+            <div class="p-status">Dashboard overhaul in progress</div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-pct" style="background:rgba(167,139,250,.15);color:var(--purple)">40%</div>
+          <div class="project-info">
+            <div class="p-name">Japster Store</div>
+            <div class="p-status">Pipeline &amp; product development</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>\u{1F4DD} Recent Activity</h3>
+        <div id="activityFeed">
+          <div class="activity-item">
+            <span class="activity-time">Just now</span>
+            <span class="activity-text">Dashboard overhaul — taxes moved to Sheets, top nav deployed</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 16</span>
+            <span class="activity-text">Firebase OAuth fix, Discord MCP configured, Firestore live stats</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 15</span>
+            <span class="activity-text">Full data scrub: 30+ stale values fixed across 6 dashboard files</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 14</span>
+            <span class="activity-text">Firestore migration: 2,387 docs uploaded (1,871 txns + 516 unmatched)</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Mar 13</span>
+            <span class="activity-text">VILLAGE_STATE.json created — structured cold start for all identities</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end container -->
+
+  <div class="footer">
+    Realbotville &copy; 2026 &mdash; Don't struggle under. Evolve over.
+  </div>
+
+</div><!-- end dashContent -->
+
+<!-- Scripts -->
+<script>
+  window.FPCS_PAGE = {
+    key: 'home',
+    title: 'Village HQ',
+    access: 'member'
+  };
+  window.FPCS_NAV = {
+    active: 'home'
+  };
+</script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/firestore-db.js"></script>
+<script src="bot-assistant.js"></script>
+
+<script>
+// --- Populate bot roster from village data ---
+var VILLAGE_BOTS = [
+  { name: 'Commander', status: 'active', rank: 'Commander' },
+  { name: 'Jaz', status: 'active', rank: 'Senior Staff' },
+  { name: 'Analyst', status: 'idle', rank: 'Staff' },
+  { name: 'Tax Specialist', status: 'sleeping', rank: 'Specialist' },
+  { name: 'Creative', status: 'idle', rank: 'Staff' },
+  { name: 'Security (SHIELD)', status: 'idle', rank: 'Staff' },
+  { name: 'Critic', status: 'idle', rank: 'Staff' },
+  { name: 'Forge', status: 'idle', rank: 'Seedling' },
+  { name: 'Flux', status: 'idle', rank: 'Seedling' },
+  { name: 'Nexus', status: 'idle', rank: 'Seedling' },
+  { name: 'Trick', status: 'idle', rank: 'Seedling' },
+  { name: 'Trace', status: 'idle', rank: 'Seedling' },
+  { name: 'BIRDBOT', status: 'active', rank: 'Augment' }
+];
+
+function renderBotRoster() {
+  var container = document.getElementById('botRoster');
+  if (!container) return;
+  container.textContent = '';
+  VILLAGE_BOTS.forEach(function(bot) {
+    var row = document.createElement('div');
+    row.className = 'bot-row';
+
+    var dot = document.createElement('span');
+    dot.className = 'bot-dot ' + bot.status;
+
+    var name = document.createElement('span');
+    name.className = 'bot-name';
+    name.textContent = bot.name;
+
+    var rank = document.createElement('span');
+    rank.className = 'bot-rank';
+    rank.textContent = bot.rank;
+
+    row.appendChild(dot);
+    row.appendChild(name);
+    row.appendChild(rank);
+    container.appendChild(row);
+  });
+
+  // Update stat
+  var activeCount = VILLAGE_BOTS.filter(function(b) { return b.status === 'active'; }).length;
+  var statusEl = document.getElementById('statBotStatus');
+  if (statusEl) statusEl.textContent = activeCount + ' active, ' + (VILLAGE_BOTS.length - activeCount) + ' idle/sleeping';
+}
+
+// --- Load live stats from Firestore if available ---
+function loadVillageStats() {
+  if (window.FPCSFirestore && FPCSFirestore.isReady()) {
+    FPCSFirestore.getStats().then(function(stats) {
+      if (stats) {
+        console.log('[Village HQ] Loaded stats from Firestore:', stats);
+      }
+    }).catch(function(e) {
+      console.warn('[Village HQ] Stats load error:', e);
+    });
+  }
+}
+
+// --- Init ---
+document.addEventListener('fpcs-authed', function() {
+  setTimeout(function() {
+    renderBotRoster();
+    loadVillageStats();
+  }, 300);
+});
+setTimeout(function() {
+  if (!document.getElementById('botRoster').firstChild) {
+    renderBotRoster();
+  }
+}, 3000);
+</script>
+
+</body>
+</html>

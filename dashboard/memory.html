@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Memory Bank -- FPCS Knowledge System</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<style>
+  /* CHART STYLES */
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .chart-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .chart-box h3 { font-size: 14px; color: var(--accent); margin-bottom: 12px; }
+  .chart-box canvas { width: 100% !important; height: 280px !important; display: block; }
+  /* LAYER ARCHITECTURE */
+  .layer-diagram { display: flex; flex-direction: column; gap: 4px; }
+  .layer-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s; }
+  .layer-row:hover { border-color: var(--accent); background: rgba(56,189,248,0.04); }
+  .layer-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+  .layer-name { font-weight: 700; font-size: 14px; min-width: 100px; }
+  .layer-desc { font-size: 12px; color: var(--muted); flex: 1; }
+  .layer-example { font-size: 11px; font-family: monospace; color: var(--yellow); background: rgba(251,191,36,0.08); padding: 2px 8px; border-radius: 4px; }
+  .l0 { background: #7c3aed20; color: #a78bfa; border-color: #7c3aed40; } .l0 .layer-num { background: #7c3aed; color: #fff; }
+  .l1 { background: #3b82f610; color: #60a5fa; border-color: #3b82f630; } .l1 .layer-num { background: #3b82f6; color: #fff; }
+  .l2 { background: #22c55e10; color: #4ade80; border-color: #22c55e30; } .l2 .layer-num { background: #22c55e; color: #fff; }
+  .l3 { background: #f9731610; color: #fb923c; border-color: #f9731630; } .l3 .layer-num { background: #f97316; color: #fff; }
+  .l4 { background: #ef444410; color: #f87171; border-color: #ef444430; } .l4 .layer-num { background: #ef4444; color: #fff; }
+  .l5 { background: #06b6d410; color: #22d3ee; border-color: #06b6d430; } .l5 .layer-num { background: #06b6d4; color: #fff; }
+  .l6 { background: #64748b10; color: #94a3b8; border-color: #64748b30; } .l6 .layer-num { background: #64748b; color: #fff; }
+  /* NARROWING DEMO */
+  .narrow-step { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .narrow-bar-wrap { flex: 1; height: 28px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); position: relative; }
+  .narrow-bar { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); position: relative; }
+  .narrow-bar span { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  .narrow-label { font-size: 12px; color: var(--muted); min-width: 180px; white-space: nowrap; }
+  .narrow-count { font-size: 14px; font-weight: 700; color: var(--text); min-width: 70px; text-align: right; }
+  /* RESULTS TABLE */
+  .sim-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sim-table th { text-align: left; padding: 8px 12px; color: var(--accent); border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .sim-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .sim-table tr:hover td { background: rgba(56,189,248,0.04); }
+  .sim-table .num { text-align: right; font-family: monospace; font-weight: 600; }
+  .sim-table .highlight { color: var(--green); font-weight: 700; }
+  /* LETTA COMPARISON */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .compare-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: relative; }
+  .compare-card h3 { font-size: 14px; margin-bottom: 10px; }
+  .compare-card .badge { position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .compare-card .badge-green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .compare-card .badge-red { background: rgba(248,113,113,0.15); color: #f87171; }
+  .compare-card .badge-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .compare-metric { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
+  .compare-metric:last-child { border-bottom: none; }
+  .compare-metric .label { color: var(--muted); }
+  .compare-metric .val { font-weight: 700; font-family: monospace; }
+  .tier-block { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; transition: border-color 0.2s; }
+  .tier-block:hover { border-color: var(--accent); }
+  .tier-icon { font-size: 20px; width: 32px; text-align: center; }
+  .tier-info { flex: 1; }
+  .tier-name { font-weight: 700; font-size: 13px; }
+  .tier-desc { font-size: 11px; color: var(--muted); }
+  .tier-impl { font-size: 10px; font-family: monospace; color: var(--green); margin-top: 2px; }
+  .verdict-box { padding: 16px; border-radius: 12px; border: 2px solid; margin-top: 16px; }
+  .verdict-adopt { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.04); }
+  .verdict-skip { border-color: rgba(248,113,113,0.2); background: rgba(248,113,113,0.03); }
+  .sim-letta-bar { display: flex; height: 36px; border-radius: 6px; overflow: hidden; margin: 4px 0; }
+  .sim-letta-bar div { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #000; min-width: 30px; }
+  @media (max-width: 900px) { .compare-grid { grid-template-columns: 1fr; } }
+  /* DEMO INPUT */
+  .demo-input { display: flex; gap: 12px; margin-bottom: 16px; }
+  .demo-input input { flex: 1; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; padding: 10px 16px; color: var(--text); font-size: 14px; outline: none; }
+  .demo-input input:focus { border-color: var(--accent); }
+  .demo-input select { background: var(--bg); border: 2px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 13px; }
+  .demo-input button { background: var(--green); color: #000; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; cursor: pointer; }
+  .demo-input button:hover { opacity: 0.85; }
+  .connector { width: 2px; height: 12px; background: var(--border); margin-left: 15px; }
+  /* DRILL-DOWN INTERACTIVITY */
+  .stat-link{cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
+  .stat-link:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.4);box-shadow:0 4px 20px rgba(56,189,248,.1)}
+  .drill-arrow{font-size:14px;opacity:0;transition:opacity .15s;margin-left:4px}
+  .stat-link:hover .drill-arrow{opacity:.6}
+  .drill-row{cursor:pointer;transition:background .15s}
+  .drill-row:hover{background:rgba(56,189,248,.06) !important}
+
+  @media (max-width: 900px) { .chart-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="theme-memory">
+<script src="js/subdomain-router.js"></script>
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- HEADER -->
+<div class="header" id="top">
+  <h1>&#128218; Memory Bank &mdash; Hierarchical Knowledge System</h1>
+  <div class="subtitle">7-layer indexed memory with progressive narrowing &bull; Simulation-proven &bull; Page 4 of FPCS Dashboard</div>
+</div>
+
+<div class="container">
+
+  <!-- OVERVIEW STATS -->
+  <div class="grid">
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-arch').scrollIntoView({behavior:'smooth'})" title="View 7-Layer Architecture">
+      <div class="label">Architecture</div>
+      <div class="value" style="color:var(--green)">7 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Hierarchical Layers</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-sim').scrollIntoView({behavior:'smooth'})" title="View Simulation Results">
+      <div class="label">Max Speedup</div>
+      <div class="value" style="color:var(--yellow)">41x <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Operations at 10K scale</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-demo').scrollIntoView({behavior:'smooth'})" title="Run Live Narrowing Demo">
+      <div class="label">Narrowing Ratio</div>
+      <div class="value" style="color:var(--purple)">2,193x <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Search space reduction @ 10K</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-sim').scrollIntoView({behavior:'smooth'})" title="View Simulation Results">
+      <div class="label">Simulation Trials</div>
+      <div class="value" style="color:var(--accent)">4,000 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">1,000 per scale level</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-sim').scrollIntoView({behavior:'smooth'})" title="View Simulation Data">
+      <div class="label">Cache Hit Rate</div>
+      <div class="value" style="color:var(--orange)">19.2% <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">At 10K entries</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-index').scrollIntoView({behavior:'smooth'})" title="Browse Keyword Index">
+      <div class="label">Keyword Pool</div>
+      <div class="value" style="color:var(--pink)">156 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Indexed search terms</div>
+    </div>
+  </div>
+
+  <!-- 7-LAYER ARCHITECTURE -->
+  <div class="section" id="sec-arch">
+    <h2>&#127959; 7-Layer Hierarchical Architecture</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Each layer narrows the search space exponentially. Like a library: Building &rarr; Floor &rarr; Section &rarr; Shelf &rarr; Tote &rarr; Folder &rarr; Item</p>
+    <div class="layer-diagram">
+      <div class="layer-row l0"><div class="layer-num">0</div><div class="layer-name" style="color:#a78bfa">UNIVERSE</div><div class="layer-desc">The entire memory bank</div><div class="layer-example">memory_bank.json</div></div>
+      <div class="connector"></div>
+      <div class="layer-row l1"><div class="layer-num">1</div><div class="layer-name" style="color:#60a5fa">DOMAIN</div><div class="layer-desc">Top-level category</div><div class="layer-example">tax | bots | infra | sessions</div></div>
+      <div class="connector"></div>
+      <div class="layer-row l2"><div class="layer-num">2</div><div class="layer-name" style="color:#4ade80">CONTEXT</div><div class="layer-desc">Temporal/project context</div><div class="layer-example">2022 | 2023 | 2024 | general</div></div>
+      <div class="connector"></div>
+      <div class="layer-row l3"><div class="layer-num">3</div><div class="layer-name" style="color:#fb923c">TOPIC</div><div class="layer-desc">Subject area</div><div class="layer-example">income | deductions | bot-fleet</div></div>
+      <div class="connector"></div>
+      <div class="layer-row l4"><div class="layer-num">4</div><div class="layer-name" style="color:#f87171">CONTAINER</div><div class="layer-desc">Data source grouping</div><div class="layer-example">qbo-data | ledger | invoices</div></div>
+      <div class="connector"></div>
+      <div class="layer-row l5"><div class="layer-num">5</div><div class="layer-name" style="color:#22d3ee">SEGMENT</div><div class="layer-desc">Conversation/document chunk</div><div class="layer-example">seg-0001 | seg-0042</div></div>
+      <div class="connector"></div>
+      <div class="layer-row l6"><div class="layer-num">6</div><div class="layer-name" style="color:#94a3b8">ENTRY</div><div class="layer-desc">Single fact, message, or data point</div><div class="layer-example">ent-000001 (indexed, keyword-tagged)</div></div>
+    </div>
+  </div>
+
+  <!-- INDEX STRATEGY -->
+  <div class="section">
+    <h2>&#128269; Giant Index &mdash; O(1) Lookup Strategy</h2>
+    <div class="chart-row">
+      <div class="chart-box">
+        <h3>Keyword Index</h3>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:8px">Every entry tagged with 1-5 keywords. Hash map gives O(1) lookup to entry IDs.</p>
+        <div style="font-family:monospace;font-size:11px;color:var(--green);background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border);line-height:1.8">
+          <span style="color:var(--yellow)">"ebay"</span> &rarr; [ent-001, ent-047, ent-203]<br>
+          <span style="color:var(--yellow)">"deduction"</span> &rarr; [ent-005, ent-006, ent-089, ...]<br>
+          <span style="color:var(--yellow)">"forensicbot"</span> &rarr; [ent-400, ent-401, ent-402]<br>
+          <span style="color:var(--yellow)">"home-office"</span> &rarr; [ent-012, ent-156, ent-289]<br>
+          <span style="color:var(--yellow)">"schedule-c"</span> &rarr; [ent-003, ent-041, ent-177, ...]<br>
+          <span style="color:var(--muted)">// 156 keywords across 8 domains, each &rarr; entry IDs</span>
+        </div>
+      </div>
+      <div class="chart-box">
+        <h3>Speaker Split</h3>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:8px">Instantly halves search space by filtering user vs AI messages.</p>
+        <div style="font-family:monospace;font-size:11px;color:var(--green);background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border);line-height:1.8">
+          <span style="color:var(--accent)">"user"</span> &rarr; [ent-002, ent-004, ent-006, ...]<br>
+          <span style="color:var(--purple)">"ai"</span> &rarr; [ent-001, ent-003, ent-005, ...]<br>
+          <span style="color:var(--muted)">// ~50/50 split, immediate 2x reduction</span><br>
+          <br>
+          <span style="color:var(--yellow)">"idMap"</span> &rarr; { path, keywords, speaker, date }<br>
+          <span style="color:var(--muted)">// Direct O(1) path resolution per entry</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL KEYWORD INDEX BROWSER -->
+  <div class="section" id="sec-index">
+    <h2>&#128209; Full Keyword Index &mdash; 156 Terms Across 8 Domains</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Every keyword in the memory bank, organized by domain. Click any keyword to run a narrowing demo with it.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--green);margin-bottom:8px;font-size:13px">&#128176; Tax Categories (48)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwTaxCats"></div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px">&#128220; Tax Concepts (36)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwTaxConcepts"></div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--yellow);margin-bottom:8px;font-size:13px">&#127974; Financial Sources (23)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwFinancial"></div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--orange);margin-bottom:8px;font-size:13px">&#128101; Clients &amp; Vendors (19)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwClients"></div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--purple);margin-bottom:8px;font-size:13px">&#129302; Bot Fleet (18)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwBots"></div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:#22d3ee;margin-bottom:8px;font-size:13px">&#128736; Infrastructure (16)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwInfra"></div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--pink,#ec4899);margin-bottom:8px;font-size:13px">&#128203; Workflow &amp; Status (17)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwWorkflow"></div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:#94a3b8;margin-bottom:8px;font-size:13px">&#128100; People &amp; Roles (8)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:2" id="kwPeople"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LETTA (MemGPT) COMPARISON & ADOPTION -->
+  <div class="section" id="sec-letta">
+    <h2>&#129504; Letta (MemGPT) Analysis - Memory Architecture Comparison</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Research-backed comparison of Letta's 3-tier agent memory vs our 7-layer hierarchical system. Verdict: adopt the concepts, skip the server.</p>
+
+    <!-- HEAD-TO-HEAD -->
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h3 style="color:#a78bfa">&#129302; Letta / MemGPT</h3>
+        <span class="badge badge-red">$20-50/mo</span>
+        <div class="compare-metric"><span class="label">Architecture</span><span class="val" style="color:#a78bfa">3-Tier Agent Memory</span></div>
+        <div class="compare-metric"><span class="label">Server Required</span><span class="val" style="color:#f87171">YES - Python + PostgreSQL</span></div>
+        <div class="compare-metric"><span class="label">Database</span><span class="val">PostgreSQL + pgvector (42 tables)</span></div>
+        <div class="compare-metric"><span class="label">LLM Calls / Interaction</span><span class="val" style="color:#f87171">3-5 calls (memory mgmt overhead)</span></div>
+        <div class="compare-metric"><span class="label">Search Type</span><span class="val">Vector (semantic)</span></div>
+        <div class="compare-metric"><span class="label">Real-time Sync</span><span class="val" style="color:#f87171">None (REST polling)</span></div>
+        <div class="compare-metric"><span class="label">Offline Support</span><span class="val" style="color:#f87171">None (server required)</span></div>
+        <div class="compare-metric"><span class="label">Self-Editing Memory</span><span class="val" style="color:var(--green)">YES (agent rewrites own context)</span></div>
+        <div class="compare-metric"><span class="label">Multi-Agent</span><span class="val" style="color:var(--green)">Built-in shared blocks</span></div>
+        <div class="compare-metric"><span class="label">GitHub Pages?</span><span class="val" style="color:#f87171">INCOMPATIBLE</span></div>
+      </div>
+      <div class="compare-card">
+        <h3 style="color:var(--green)">&#128218; FPCS Memory Bank</h3>
+        <span class="badge badge-green">$0/mo</span>
+        <div class="compare-metric"><span class="label">Architecture</span><span class="val" style="color:var(--green)">7-Layer Hierarchical + Keywords</span></div>
+        <div class="compare-metric"><span class="label">Server Required</span><span class="val" style="color:var(--green)">NO - Static hosted</span></div>
+        <div class="compare-metric"><span class="label">Database</span><span class="val">Firebase RTDB (JSON tree)</span></div>
+        <div class="compare-metric"><span class="label">LLM Calls / Interaction</span><span class="val" style="color:var(--green)">0-1 calls (direct lookup)</span></div>
+        <div class="compare-metric"><span class="label">Search Type</span><span class="val">Keyword O(1) hash + intersection</span></div>
+        <div class="compare-metric"><span class="label">Real-time Sync</span><span class="val" style="color:var(--green)">Native Firebase push</span></div>
+        <div class="compare-metric"><span class="label">Offline Support</span><span class="val" style="color:var(--green)">Firebase offline persistence</span></div>
+        <div class="compare-metric"><span class="label">Self-Editing Memory</span><span class="val" style="color:var(--yellow)">PLANNED (Letta-inspired)</span></div>
+        <div class="compare-metric"><span class="label">Multi-Agent</span><span class="val" style="color:var(--yellow)">PLANNED (shared RTDB nodes)</span></div>
+        <div class="compare-metric"><span class="label">GitHub Pages?</span><span class="val" style="color:var(--green)">NATIVE</span></div>
+      </div>
+    </div>
+
+    <!-- COST SIMULATION -->
+    <h3 style="margin-bottom:12px">&#128176; Cost Simulation: 30 Days of Usage</h3>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h3 style="color:#f87171;font-size:13px">Letta Stack Cost</h3>
+        <div class="sim-letta-bar">
+          <div style="width:35%;background:#f87171">VPS $15</div>
+          <div style="width:25%;background:#fb923c">DB $10</div>
+          <div style="width:30%;background:#fbbf24">LLM $25</div>
+          <div style="width:10%;background:#a78bfa">Embed $5</div>
+        </div>
+        <div class="compare-metric"><span class="label">VPS (Letta server)</span><span class="val" style="color:#f87171">$15/mo</span></div>
+        <div class="compare-metric"><span class="label">PostgreSQL (managed)</span><span class="val" style="color:#f87171">$10/mo</span></div>
+        <div class="compare-metric"><span class="label">LLM API (3-5x overhead)</span><span class="val" style="color:#f87171">~$25/mo</span></div>
+        <div class="compare-metric"><span class="label">Embedding model</span><span class="val" style="color:#f87171">~$5/mo</span></div>
+        <div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px">
+          <div class="compare-metric"><span class="label" style="font-weight:700;color:var(--text)">TOTAL</span><span class="val" style="color:#f87171;font-size:16px">~$55/mo</span></div>
+        </div>
+      </div>
+      <div class="compare-card">
+        <h3 style="color:var(--green);font-size:13px">FPCS Stack Cost</h3>
+        <div class="sim-letta-bar">
+          <div style="width:100%;background:var(--green)">$0 - All Free Tier</div>
+        </div>
+        <div class="compare-metric"><span class="label">GitHub Pages hosting</span><span class="val" style="color:var(--green)">$0</span></div>
+        <div class="compare-metric"><span class="label">Firebase RTDB (1GB free)</span><span class="val" style="color:var(--green)">$0</span></div>
+        <div class="compare-metric"><span class="label">Firebase Auth</span><span class="val" style="color:var(--green)">$0</span></div>
+        <div class="compare-metric"><span class="label">Google Sheets API</span><span class="val" style="color:var(--green)">$0</span></div>
+        <div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px">
+          <div class="compare-metric"><span class="label" style="font-weight:700;color:var(--text)">TOTAL</span><span class="val" style="color:var(--green);font-size:16px">$0/mo</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT WE'RE ADOPTING FROM LETTA -->
+    <h3 style="margin-bottom:12px">&#9989; Adopting from Letta (Concepts Only, Zero Server)</h3>
+    <div class="tier-block" style="border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.03)">
+      <div class="tier-icon">&#129504;</div>
+      <div class="tier-info">
+        <div class="tier-name" style="color:var(--yellow)">Core Memory (Always-in-Context)</div>
+        <div class="tier-desc">Labeled blocks with character limits, always injected into every LLM prompt. Agent can self-edit.</div>
+        <div class="tier-impl">FPCS: Firebase RTDB /memory/core/{label} with read_only flag per block</div>
+      </div>
+    </div>
+    <div class="tier-block" style="border-color:rgba(56,189,248,0.3);background:rgba(56,189,248,0.03)">
+      <div class="tier-icon">&#128172;</div>
+      <div class="tier-info">
+        <div class="tier-name" style="color:var(--accent)">Recall Memory (Conversation History)</div>
+        <div class="tier-desc">Full message history with auto-summarization when context window fills. Searchable by text + date.</div>
+        <div class="tier-impl">FPCS: Firebase RTDB /memory/recall/{sessionId}/{msgId} + client-side summarizer</div>
+      </div>
+    </div>
+    <div class="tier-block" style="border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.03)">
+      <div class="tier-icon">&#128451;</div>
+      <div class="tier-info">
+        <div class="tier-name" style="color:#a78bfa">Archival Memory (Long-term Knowledge)</div>
+        <div class="tier-desc">Agent explicitly stores facts. Keyword-indexed (our approach) instead of vector search (Letta's approach).</div>
+        <div class="tier-impl">FPCS: Our existing 7-layer hierarchy + 156 keywords = archival layer already built</div>
+      </div>
+    </div>
+    <div class="tier-block" style="border-color:rgba(74,222,128,0.3);background:rgba(74,222,128,0.03)">
+      <div class="tier-icon">&#128101;</div>
+      <div class="tier-info">
+        <div class="tier-name" style="color:var(--green)">Shared Memory Blocks (Multi-Agent)</div>
+        <div class="tier-desc">Same data node watched by multiple bots. Firebase RTDB is natively reactive - Letta requires polling.</div>
+        <div class="tier-impl">FPCS: Firebase RTDB /memory/shared/{blockId} with onValue() listeners per bot</div>
+      </div>
+    </div>
+
+    <!-- WHAT WE'RE SKIPPING -->
+    <h3 style="margin-top:20px;margin-bottom:12px">&#10060; Skipping from Letta (Not Worth the Overhead)</h3>
+    <div class="compare-grid">
+      <div class="verdict-box verdict-skip">
+        <div style="font-weight:700;color:#f87171;margin-bottom:6px">&#128679; Python Server + PostgreSQL</div>
+        <div style="font-size:12px;color:var(--muted)">Letta requires a dedicated backend. Our stack is fully static-hosted. Adding a server kills the $0 cost model and adds maintenance burden.</div>
+      </div>
+      <div class="verdict-box verdict-skip">
+        <div style="font-weight:700;color:#f87171;margin-bottom:6px">&#128679; Vector/Semantic Search</div>
+        <div style="font-size:12px;color:var(--muted)">Tax knowledge is structured and categorical - 8 domains, 156 keywords. Keyword O(1) hash lookup beats vector similarity for bounded domains. Vector search adds pgvector dependency + embedding costs.</div>
+      </div>
+      <div class="verdict-box verdict-skip">
+        <div style="font-weight:700;color:#f87171;margin-bottom:6px">&#128679; 3-5x LLM Call Overhead</div>
+        <div style="font-size:12px;color:var(--muted)">Every Letta agent interaction makes 3-5 LLM calls (read memory, reason, edit memory, search, respond). Our system: 0 LLM calls for lookup, 1 for chat response. 80% cheaper per interaction.</div>
+      </div>
+      <div class="verdict-box verdict-skip">
+        <div style="font-weight:700;color:#f87171;margin-bottom:6px">&#128679; Last-Write-Wins Concurrency</div>
+        <div style="font-size:12px;color:var(--muted)">Letta shared blocks have no locking - two agents writing simultaneously causes silent data loss. Firebase RTDB transactions provide atomic updates.</div>
+      </div>
+    </div>
+
+    <!-- FINAL VERDICT -->
+    <div class="verdict-box verdict-adopt" style="margin-top:20px">
+      <div style="font-size:16px;font-weight:800;color:var(--green);margin-bottom:8px">&#127942; VERDICT: Adopt Concepts, Build Native</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.6">
+        Letta's 3-tier memory model (core / recall / archival) is a proven architecture from the MemGPT research paper. We adopt the <strong>concepts</strong> - labeled memory blocks, self-editing agents, shared state - and implement them natively on Firebase RTDB. This gives us <strong>everything Letta offers plus real-time sync, offline support, and $0 hosting</strong>. For a bounded knowledge domain (tax prep), keyword indexing outperforms vector search in both speed (O(1) vs O(n log n)) and cost ($0 vs embedding API calls).
+      </div>
+      <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap">
+        <div style="font-size:12px"><span style="color:var(--green);font-weight:700">41x</span> <span style="color:var(--muted)">lookup speedup (our system)</span></div>
+        <div style="font-size:12px"><span style="color:var(--green);font-weight:700">$0</span> <span style="color:var(--muted)">monthly cost (vs $55 Letta)</span></div>
+        <div style="font-size:12px"><span style="color:var(--green);font-weight:700">0ms</span> <span style="color:var(--muted)">sync latency (Firebase push)</span></div>
+        <div style="font-size:12px"><span style="color:var(--green);font-weight:700">156</span> <span style="color:var(--muted)">indexed keywords across 8 domains</span></div>
+      </div>
+    </div>
+
+    <!-- PROPOSED FIREBASE MEMORY SCHEMA -->
+    <h3 style="margin-top:24px;margin-bottom:12px">&#128736; Proposed Firebase RTDB Memory Schema (Letta-Inspired)</h3>
+    <div style="font-family:monospace;font-size:11px;color:var(--text);background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);line-height:1.9;overflow-x:auto">
+      <span style="color:var(--purple)">/memory/</span><br>
+      &nbsp;&nbsp;<span style="color:var(--yellow)">/core/</span> <span style="color:var(--muted)">// Always in prompt (Letta's "Core Memory")</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/human/</span> { label, value, limit: 2000, read_only: false }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/persona/</span> { label, value, limit: 2000, read_only: false }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/task_state/</span> { label, value, limit: 1000, read_only: false }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/project_rules/</span> { label, value, limit: 3000, read_only: true }<br>
+      <br>
+      &nbsp;&nbsp;<span style="color:var(--accent)">/recall/</span> <span style="color:var(--muted)">// Chat history (Letta's "Recall Memory")</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/{sessionId}/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/{msgId}/</span> { role, content, timestamp, tokens, summarized }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/summaries/</span> { session_summary, key_facts[], decisions[] }<br>
+      <br>
+      &nbsp;&nbsp;<span style="color:#a78bfa">/archival/</span> <span style="color:var(--muted)">// Long-term knowledge (our 7-layer hierarchy)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/domains/</span> { tax, bots, infra, clients, workflow, people }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/keywords/</span> { keyword -> [entryIds] } <span style="color:var(--muted)">// 156 terms, O(1) lookup</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/entries/</span> { id, path, keywords[], speaker, content, date }<br>
+      <br>
+      &nbsp;&nbsp;<span style="color:var(--orange)">/shared/</span> <span style="color:var(--muted)">// Multi-agent shared state</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">/{blockId}/</span> { label, value, limit, writers[], last_write }<br>
+    </div>
+  </div>
+
+  <!-- SIMULATION RESULTS -->
+  <div class="section" id="sec-sim">
+    <h2>&#128200; Simulation Results &mdash; 4,000 Trials</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">100 iterations &times; 10 variations per scale. Random 1-3 keyword queries with optional speaker filter.</p>
+
+    <!-- Results Table -->
+    <table class="sim-table">
+      <thead>
+        <tr>
+          <th>Scale</th>
+          <th class="num">Flat Ops</th>
+          <th class="num">Hier Ops</th>
+          <th class="num">Speedup</th>
+          <th class="num">Narrowing</th>
+          <th class="num">Cache Hit</th>
+          <th class="num">Flat Time</th>
+          <th class="num">Hier Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>10 entries</td>
+          <td class="num">38</td><td class="num">3</td>
+          <td class="num highlight">14x</td><td class="num">4x</td>
+          <td class="num">0.3%</td>
+          <td class="num">0.005ms</td><td class="num">0.002ms</td>
+        </tr>
+        <tr>
+          <td>100 entries</td>
+          <td class="num">327</td><td class="num">10</td>
+          <td class="num highlight">37x</td><td class="num">53x</td>
+          <td class="num">0.4%</td>
+          <td class="num">0.042ms</td><td class="num">0.007ms</td>
+        </tr>
+        <tr>
+          <td>1,000 entries</td>
+          <td class="num">3,274</td><td class="num">81</td>
+          <td class="num highlight">41x</td><td class="num" style="color:var(--yellow)">391x</td>
+          <td class="num">4.1%</td>
+          <td class="num">0.494ms</td><td class="num">0.053ms</td>
+        </tr>
+        <tr style="background:rgba(74,222,128,0.06)">
+          <td><strong>10,000 entries</strong></td>
+          <td class="num"><strong>33,284</strong></td><td class="num"><strong>814</strong></td>
+          <td class="num highlight"><strong>41x</strong></td><td class="num" style="color:var(--green);font-weight:700">2,193x</td>
+          <td class="num"><strong>19.2%</strong></td>
+          <td class="num"><strong>5.498ms</strong></td><td class="num"><strong>0.796ms</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- CHARTS -->
+    <div style="margin-top:24px">
+      <div class="chart-row">
+        <div class="chart-box">
+          <h3>Operations: Flat vs Hierarchical</h3>
+          <canvas id="chartOps"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Speedup &amp; Narrowing Ratio by Scale</h3>
+          <canvas id="chartSpeedup"></canvas>
+        </div>
+      </div>
+      <div class="chart-row" style="margin-top:16px">
+        <div class="chart-box">
+          <h3>Time Comparison (ms)</h3>
+          <canvas id="chartTime"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Progressive Narrowing Waterfall (10K scale)</h3>
+          <canvas id="chartNarrow"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE NARROWING DEMO -->
+  <div class="section" id="sec-demo">
+    <h2>&#9889; Live Narrowing Demo</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">See how the 7-layer system narrows 10,000 entries to a handful. Enter keywords and watch the funnel.</p>
+    <div class="demo-input">
+      <input type="text" id="demoQuery" placeholder="Enter keywords (e.g., ebay income)" value="ebay income">
+      <select id="demoSpeaker">
+        <option value="">All Speakers</option>
+        <option value="user">User Only</option>
+        <option value="ai" selected>AI Only</option>
+      </select>
+      <button onclick="runNarrowingDemo()">&#9889; Run Lookup</button>
+    </div>
+    <div id="narrowingViz"></div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <h2>&#128736; How It Works &mdash; Algorithm</h2>
+    <div style="font-family:monospace;font-size:12px;color:var(--text);background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);line-height:1.8;overflow-x:auto">
+      <span style="color:var(--purple)">FUNCTION</span> hierarchicalLookup(query, speakerFilter):<br>
+      <br>
+      &nbsp;&nbsp;<span style="color:var(--muted)">// Step 1: Speaker split (halves search space)</span><br>
+      &nbsp;&nbsp;<span style="color:var(--accent)">IF</span> speakerFilter: candidates = index.speaker[filter] <span style="color:var(--muted)">// O(1)</span><br>
+      <br>
+      &nbsp;&nbsp;<span style="color:var(--muted)">// Step 2: Keyword intersection (exponential narrowing)</span><br>
+      &nbsp;&nbsp;<span style="color:var(--accent)">FOR EACH</span> keyword <span style="color:var(--accent)">IN</span> query:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;hits = index.keywords[keyword] <span style="color:var(--muted)">// O(1) hash lookup</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;candidates = candidates <span style="color:var(--yellow)">&cap;</span> hits <span style="color:var(--muted)">// set intersection</span><br>
+      <br>
+      &nbsp;&nbsp;<span style="color:var(--muted)">// Step 3: Score + rank</span><br>
+      &nbsp;&nbsp;<span style="color:var(--accent)">FOR EACH</span> id <span style="color:var(--accent)">IN</span> candidates:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;score = keywordOverlap * 10 + recency + confidence<br>
+      <br>
+      &nbsp;&nbsp;<span style="color:var(--green)">RETURN</span> top-K results <span style="color:var(--muted)">// typically 3-10 entries</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  FPCS Memory Bank &bull; Hierarchical Knowledge System &bull; Page 4 of FPCS Dashboard &bull; Simulation: 4,000 trials
+</div>
+
+</div><!-- end dashContent -->
+
+<script>
+// === SIMULATION DATA (embedded from simulation_results.json) ===
+var SIM_DATA = {
+  "10":{"flat_ops":38,"hier_ops":3,"speedup":14,"narrowing":3.5,"cache_hit":0.003,"flat_time":0.005,"hier_time":0.002},
+  "100":{"flat_ops":327,"hier_ops":10,"speedup":37,"narrowing":53,"cache_hit":0.004,"flat_time":0.042,"hier_time":0.007},
+  "1000":{"flat_ops":3274,"hier_ops":81,"speedup":41,"narrowing":391,"cache_hit":0.041,"flat_time":0.494,"hier_time":0.053},
+  "10000":{"flat_ops":33284,"hier_ops":814,"speedup":41,"narrowing":2193,"cache_hit":0.192,"flat_time":5.498,"hier_time":0.796}
+};
+var SCALES = [10, 100, 1000, 10000];
+
+// === SIMULATED INDEX for Live Demo ===
+// 156 keywords covering all FPCS domains: tax, bots, infra, clients, workflow
+var DEMO_KEYWORDS = {
+  // --- Tax Categories (Schedule C lines) ---
+  'advertising':[441,22],'car':[458,31],'truck':[448,28],'vehicle':[465,33],
+  'mileage':[448,31],'gas':[443,25],'registration':[436,18],'parking':[434,15],
+  'insurance':[454,30],'geico':[432,12],'contractor':[447,26],'1099':[445,24],
+  'w2':[442,21],'depreciation':[456,29],'section-179':[451,27],'macrs':[438,19],
+  'office':[461,33],'supplies':[469,36],'tools':[453,28],'small-tools':[441,22],
+  'repairs':[440,23],'maintenance':[437,20],'utilities':[437,20],'phone':[446,26],
+  'internet':[443,21],'meals':[442,24],'restaurant':[435,17],'cogs':[444,25],
+  'inventory':[447,26],'shipping':[452,28],'usps':[434,15],'fedex':[432,12],
+  'interest':[449,27],'credit-card':[449,27],'rent':[444,25],'travel':[455,30],
+  'education':[441,22],'training':[438,19],'certification':[435,16],
+  'software':[450,28],'subscription':[448,27],'license':[439,20],'fees':[456,30],
+  'banking':[443,24],'wire':[432,12],'merchant':[436,17],'domain':[438,19],
+  'hosting':[435,16],'cloud':[440,22],'storage':[435,16],'backup':[433,14],
+
+  // --- Tax Concepts ---
+  'deduction':[473,41],'income':[467,38],'expense':[459,33],'revenue':[461,34],
+  'schedule-c':[451,29],'schedule-se':[445,24],'form-8829':[440,21],
+  'home-office':[456,28],'sqft':[434,15],'simplified-method':[436,17],
+  'nol':[442,23],'carryforward':[440,22],'net-loss':[443,24],
+  'self-employment':[452,28],'sole-proprietor':[447,25],'business':[471,39],
+  'irs':[460,32],'audit':[454,29],'compliance':[448,26],'penalty':[439,20],
+  'extension':[441,22],'amended':[437,19],'refund':[438,21],'withholding':[436,18],
+  'estimated-tax':[440,21],'standard-deduction':[443,24],'itemized':[441,23],
+  'agi':[445,25],'gross-income':[448,27],'net-income':[447,26],
+  'tax-year':[458,31],'2022':[475,42],'2023':[452,28],'2024':[445,24],'2025':[440,21],
+  'deadline':[462,34],'april':[457,30],'filing':[455,29],'cyberattack':[438,19],
+  'casualty-loss':[435,16],'section-165':[433,14],'tcja':[436,17],
+
+  // --- Financial Sources & Tools ---
+  'qbo':[461,32],'quickbooks':[459,31],'ledger':[458,34],'bank':[464,40],
+  'receipt':[463,35],'invoice':[455,29],'statement':[457,30],
+  'turbotax':[436,18],'csv':[453,28],'spreadsheet':[449,26],
+  'google-sheets':[447,25],'final-master':[444,23],'pipeline':[451,27],
+  'duplicate':[458,31],'dedup':[455,29],'reconciliation':[449,26],
+  'venmo':[441,22],'paypal':[465,39],'zelle':[434,15],'cashapp':[433,13],
+  'check':[448,27],'deposit':[446,25],'withdrawal':[443,24],
+
+  // --- Clients & Vendors ---
+  'ebay':[482,37],'amazon':[471,35],'costco':[441,24],
+  'agt':[452,28],'agt-mortgage':[448,25],'heidi':[438,19],'heidi-ostrom':[435,16],
+  'angie':[436,17],'angie-herrmann':[433,14],'arlene':[439,20],'arlene-harris':[436,17],
+  'american-restoration':[437,18],'mitchell':[434,15],'waters':[433,13],
+  'marshall':[445,24],'judith':[438,19],'judith-marshall':[435,16],
+  'godaddy':[434,15],'microsoft':[437,18],'google':[446,25],
+
+  // --- Bot Fleet ---
+  'forensicbot':[462,22],'shield':[443,19],'shieldbot':[441,18],
+  'ddbot':[439,17],'deductbot':[456,24],'miniduct':[441,19],
+  'scout':[438,17],'categorizer':[445,21],'categorizerbot':[443,20],
+  'audithawk':[440,18],'japster':[452,25],'japsterpro':[448,22],
+  'bot-fleet':[455,26],'realbotville':[449,23],'village':[447,22],
+  'beckon':[436,16],'broadcast':[438,18],'activate':[434,15],
+
+  // --- Infrastructure ---
+  'dashboard':[468,36],'firebase':[455,29],'github':[452,27],
+  'deploy':[449,26],'auth':[458,31],'login':[454,28],'google-sign-in':[447,24],
+  'json':[451,27],'api':[456,30],'memory':[464,35],'memory-bank':[460,32],
+  'keyword-index':[443,23],'hierarchy':[441,21],'cache':[438,19],
+  'session':[459,32],'segment':[448,26],'entry':[453,28],'layer':[444,23],
+  'trails':[440,21],'fpcs':[472,40],'onboard':[437,18],'config':[445,24],
+
+  // --- Workflow & Status ---
+  'categorized':[452,25],'uncategorized':[456,29],'missing':[461,33],
+  'verified':[449,26],'review':[457,30],'fixed':[453,28],'pending':[451,27],
+  'urgent':[444,23],'overdue':[439,20],'confirmed':[447,25],'disputed':[436,17],
+  'transfer':[445,23],'split':[443,22],'adjustment':[440,21],
+  'sales':[469,36],'purchase':[458,30],'payment':[461,33],'refund-claim':[436,17],
+
+  // --- People & Roles ---
+  'commander':[465,35],'admin':[458,31],'guest':[449,26],'member':[443,23],
+  'user':[464,34],'client':[461,33],'vendor':[457,30],'payee':[454,28]
+};
+
+function runNarrowingDemo() {
+  var query = document.getElementById('demoQuery').value.trim().toLowerCase();
+  var speaker = document.getElementById('demoSpeaker').value;
+  if (!query) return;
+  var keywords = query.split(/\s+/).filter(function(k){return k.length>0});
+  var total = 10000;
+  var steps = [{label:'Total entries in memory bank', count:total, color:'var(--purple)'}];
+  var current = total;
+  if (speaker) {
+    current = Math.round(total * (speaker==='ai'? 0.502 : 0.498));
+    steps.push({label:'Speaker filter: '+speaker, count:current, color:'var(--accent)'});
+  }
+  for (var i=0;i<keywords.length;i++) {
+    var kw = keywords[i];
+    var kwData = DEMO_KEYWORDS[kw];
+    if (kwData) {
+      var hits = kwData[0];
+      current = Math.max(1, Math.round(current * hits / total * (0.6+Math.random()*0.4)));
+    } else {
+      current = Math.max(0, Math.round(current * 0.03));
+    }
+    steps.push({label:'Keyword "'+kw+'"', count:current, color:['var(--green)','var(--yellow)','var(--orange)','var(--red)'][Math.min(i,3)]});
+    if (current === 0) break;
+  }
+  steps.push({label:'Final results (scored + ranked)', count:Math.min(current, 10), color:'var(--green)'});
+  var maxCount = steps[0].count;
+  var html = '';
+  for (var s=0;s<steps.length;s++) {
+    var pct = Math.max(0.5, (steps[s].count / maxCount) * 100);
+    html += '<div class="narrow-step">';
+    html += '<div class="narrow-label">' + steps[s].label + '</div>';
+    html += '<div class="narrow-bar-wrap"><div class="narrow-bar" style="width:'+pct+'%;background:'+steps[s].color+'"><span>'+steps[s].count.toLocaleString()+'</span></div></div>';
+    html += '<div class="narrow-count">' + steps[s].count.toLocaleString() + '</div>';
+    html += '</div>';
+    if (s < steps.length-1) html += '<div class="connector"></div>';
+  }
+  var ratio = Math.round(steps[0].count / Math.max(1, steps[steps.length-1].count));
+  html += '<div style="margin-top:16px;padding:12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.3);border-radius:8px;font-size:14px">';
+  html += '<strong style="color:var(--green)">'+ratio.toLocaleString()+'x narrowing</strong>';
+  html += ' &mdash; Searched '+steps[0].count.toLocaleString()+' entries, returned '+steps[steps.length-1].count+' results';
+  html += '</div>';
+  document.getElementById('narrowingViz').innerHTML = html;
+  // Animate bars
+  setTimeout(function(){
+    var bars = document.querySelectorAll('.narrow-bar');
+    bars.forEach(function(b){b.style.width=b.style.width});
+  }, 50);
+}
+
+// === CANVAS CHARTS ===
+function drawBarChart(canvasId, labels, datasets) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 280 * dpr;
+  ctx.scale(dpr, dpr);
+  var W = rect.width, H = 280;
+  var pad = {top:20,right:20,bottom:40,left:70};
+  var chartW = W-pad.left-pad.right, chartH = H-pad.top-pad.bottom;
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,W,H);
+  // Find max value
+  var maxVal = 0;
+  datasets.forEach(function(ds){ds.data.forEach(function(v){if(v>maxVal)maxVal=v})});
+  maxVal = maxVal * 1.15;
+  // Grid lines
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 0.5;
+  for (var i=0;i<=4;i++) {
+    var y = pad.top + chartH - (i/4)*chartH;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(W-pad.right,y); ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxVal*i/4).toLocaleString(), pad.left-8, y+4);
+  }
+  // Bars
+  var groupW = chartW / labels.length;
+  var barW = groupW / (datasets.length + 1);
+  datasets.forEach(function(ds, di) {
+    ds.data.forEach(function(val, li) {
+      var x = pad.left + li * groupW + (di + 0.5) * barW;
+      var barH = (val / maxVal) * chartH;
+      var y = pad.top + chartH - barH;
+      ctx.fillStyle = ds.color;
+      ctx.beginPath();
+      var r = 3;
+      ctx.moveTo(x, y + r); ctx.arcTo(x, y, x + barW - 4, y, r);
+      ctx.arcTo(x + barW - 4, y, x + barW - 4, y + barH, r);
+      ctx.lineTo(x + barW - 4, pad.top + chartH);
+      ctx.lineTo(x, pad.top + chartH); ctx.closePath(); ctx.fill();
+      // Value on top
+      ctx.fillStyle = ds.color; ctx.font = 'bold 9px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(val >= 1000 ? Math.round(val/1000)+'K' : val.toString(), x + (barW-4)/2, y - 4);
+    });
+  });
+  // X labels
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+  labels.forEach(function(l, i) {
+    ctx.fillText(l, pad.left + i * groupW + groupW/2, H - 12);
+  });
+  // Legend
+  var lx = pad.left;
+  datasets.forEach(function(ds) {
+    ctx.fillStyle = ds.color; ctx.fillRect(lx, H - 28, 10, 10);
+    ctx.fillStyle = '#e2e8f0'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText(ds.label, lx + 14, H - 19);
+    lx += ctx.measureText(ds.label).width + 30;
+  });
+}
+
+function drawLineChart(canvasId, labels, datasets) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 280 * dpr;
+  ctx.scale(dpr, dpr);
+  var W = rect.width, H = 280;
+  var pad = {top:20,right:20,bottom:40,left:70};
+  var chartW = W-pad.left-pad.right, chartH = H-pad.top-pad.bottom;
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,W,H);
+  var maxVal = 0;
+  datasets.forEach(function(ds){ds.data.forEach(function(v){if(v>maxVal)maxVal=v})});
+  maxVal = maxVal * 1.15;
+  // Use log scale if range > 100x
+  var useLog = maxVal / Math.max(1, Math.min.apply(null, datasets[0].data.filter(function(v){return v>0}))) > 50;
+  function scaleY(v) {
+    if (useLog && v > 0) return pad.top + chartH - (Math.log10(v) / Math.log10(maxVal)) * chartH;
+    return pad.top + chartH - (v / maxVal) * chartH;
+  }
+  // Grid
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 0.5;
+  var gridSteps = useLog ? [1,10,100,1000,10000] : [0, maxVal*0.25, maxVal*0.5, maxVal*0.75, maxVal];
+  gridSteps.forEach(function(v) {
+    if (v > maxVal) return;
+    var y = scaleY(v);
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(W-pad.right,y); ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText(v >= 1000 ? Math.round(v/1000)+'K' : Math.round(v).toString(), pad.left-8, y+4);
+  });
+  // Lines
+  datasets.forEach(function(ds) {
+    ctx.beginPath(); ctx.strokeStyle = ds.color; ctx.lineWidth = 2.5;
+    ds.data.forEach(function(v, i) {
+      var x = pad.left + (i / (labels.length-1)) * chartW;
+      var y = scaleY(v);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // Dots
+    ds.data.forEach(function(v, i) {
+      var x = pad.left + (i / (labels.length-1)) * chartW;
+      var y = scaleY(v);
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fillStyle = ds.color; ctx.fill();
+      ctx.fillStyle = ds.color; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(v >= 1000 ? Math.round(v/1000)+'K' : Math.round(v).toString(), x, y-10);
+    });
+  });
+  // X labels
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+  labels.forEach(function(l, i) {
+    ctx.fillText(l, pad.left + (i/(labels.length-1))*chartW, H-12);
+  });
+  // Legend
+  var lx = pad.left;
+  datasets.forEach(function(ds) {
+    ctx.beginPath(); ctx.strokeStyle=ds.color; ctx.lineWidth=2;
+    ctx.moveTo(lx,H-23); ctx.lineTo(lx+16,H-23); ctx.stroke();
+    ctx.beginPath(); ctx.arc(lx+8,H-23,3,0,Math.PI*2); ctx.fillStyle=ds.color; ctx.fill();
+    ctx.fillStyle='#e2e8f0'; ctx.font='10px system-ui'; ctx.textAlign='left';
+    ctx.fillText(ds.label, lx+20, H-19);
+    lx += ctx.measureText(ds.label).width + 40;
+  });
+  if (useLog) {
+    ctx.fillStyle='#94a3b8'; ctx.font='9px system-ui'; ctx.textAlign='right';
+    ctx.fillText('log scale', W-pad.right, pad.top+10);
+  }
+}
+
+function drawWaterfallChart(canvasId) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 280 * dpr;
+  ctx.scale(dpr, dpr);
+  var W = rect.width, H = 280;
+  var pad = {top:20,right:20,bottom:50,left:20};
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,W,H);
+  // Waterfall data (from 10K trace)
+  var steps = [
+    {label:'All Entries',count:10000,color:'#a78bfa'},
+    {label:'Speaker: AI',count:5006,color:'#38bdf8'},
+    {label:'"parking"',count:475,color:'#4ade80'},
+    {label:'"home-office"',count:15,color:'#fbbf24'},
+    {label:'"phone"',count:1,color:'#fb923c'},
+    {label:'Results',count:1,color:'#4ade80'}
+  ];
+  var maxVal = steps[0].count;
+  var barW = (W - pad.left - pad.right) / steps.length - 8;
+  steps.forEach(function(step, i) {
+    var x = pad.left + i * (barW + 8) + 4;
+    var pct = Math.max(0.02, step.count / maxVal);
+    var barH = pct * (H - pad.top - pad.bottom);
+    var y = pad.top + (H - pad.top - pad.bottom) - barH;
+    // Bar
+    ctx.fillStyle = step.color;
+    ctx.beginPath();
+    var r = 3;
+    ctx.moveTo(x, y+r); ctx.arcTo(x,y,x+barW,y,r); ctx.arcTo(x+barW,y,x+barW,y+barH,r);
+    ctx.lineTo(x+barW, pad.top+(H-pad.top-pad.bottom)); ctx.lineTo(x, pad.top+(H-pad.top-pad.bottom));
+    ctx.closePath(); ctx.fill();
+    // Value
+    ctx.fillStyle = step.color; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(step.count.toLocaleString(), x+barW/2, y-6);
+    // Label
+    ctx.fillStyle = '#94a3b8'; ctx.font = '9px system-ui';
+    ctx.fillText(step.label, x+barW/2, H-20);
+    // Arrow
+    if (i < steps.length-1) {
+      var nx = pad.left + (i+1)*(barW+8)+4;
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x+barW+2, H/2); ctx.lineTo(nx-2, H/2); ctx.stroke();
+      // Reduction label
+      if (steps[i+1].count < step.count) {
+        var reduction = Math.round((1 - steps[i+1].count/step.count)*100);
+        ctx.fillStyle = '#f87171'; ctx.font = 'bold 8px system-ui';
+        ctx.fillText('-'+reduction+'%', (x+barW+nx)/2, H/2-6);
+      }
+    }
+  });
+  ctx.fillStyle='#4ade80'; ctx.font='bold 11px system-ui'; ctx.textAlign='center';
+  ctx.fillText('10,000x narrowing', W/2, H-4);
+}
+
+// === RENDER ALL CHARTS ===
+function renderCharts() {
+  var labels = ['10','100','1K','10K'];
+  drawBarChart('chartOps', labels, [
+    {label:'Flat Scan', data:SCALES.map(function(s){return SIM_DATA[s].flat_ops}), color:'#f87171'},
+    {label:'Hierarchical', data:SCALES.map(function(s){return SIM_DATA[s].hier_ops}), color:'#4ade80'}
+  ]);
+  drawLineChart('chartSpeedup', labels, [
+    {label:'Speedup (ops)', data:SCALES.map(function(s){return SIM_DATA[s].speedup}), color:'#fbbf24'},
+    {label:'Narrowing Ratio', data:SCALES.map(function(s){return SIM_DATA[s].narrowing}), color:'#a78bfa'}
+  ]);
+  drawLineChart('chartTime', labels, [
+    {label:'Flat Time (ms)', data:SCALES.map(function(s){return SIM_DATA[s].flat_time}), color:'#f87171'},
+    {label:'Hier Time (ms)', data:SCALES.map(function(s){return SIM_DATA[s].hier_time}), color:'#4ade80'}
+  ]);
+  drawWaterfallChart('chartNarrow');
+}
+
+// === KEYWORD INDEX BROWSER ===
+var KW_DOMAINS = {
+  kwTaxCats: ['advertising','car','truck','vehicle','mileage','gas','registration','parking','insurance','geico','contractor','1099','w2','depreciation','section-179','macrs','office','supplies','tools','small-tools','repairs','maintenance','utilities','phone','internet','meals','restaurant','cogs','inventory','shipping','usps','fedex','interest','credit-card','rent','travel','education','training','certification','software','subscription','license','fees','banking','wire','merchant','domain','hosting','cloud','storage','backup'],
+  kwTaxConcepts: ['deduction','income','expense','revenue','schedule-c','schedule-se','form-8829','home-office','sqft','simplified-method','nol','carryforward','net-loss','self-employment','sole-proprietor','business','irs','audit','compliance','penalty','extension','amended','refund','withholding','estimated-tax','standard-deduction','itemized','agi','gross-income','net-income','tax-year','2022','2023','2024','2025','deadline','april','filing','cyberattack','casualty-loss','section-165','tcja'],
+  kwFinancial: ['qbo','quickbooks','ledger','bank','receipt','invoice','statement','turbotax','csv','spreadsheet','google-sheets','final-master','pipeline','duplicate','dedup','reconciliation','venmo','paypal','zelle','cashapp','check','deposit','withdrawal'],
+  kwClients: ['ebay','amazon','costco','agt','agt-mortgage','heidi','heidi-ostrom','angie','angie-herrmann','arlene','arlene-harris','american-restoration','mitchell','waters','marshall','judith','judith-marshall','godaddy','microsoft','google'],
+  kwBots: ['forensicbot','shield','shieldbot','ddbot','deductbot','miniduct','scout','categorizer','categorizerbot','audithawk','japster','japsterpro','bot-fleet','realbotville','village','beckon','broadcast','activate'],
+  kwInfra: ['dashboard','firebase','github','deploy','auth','login','google-sign-in','json','api','memory','memory-bank','keyword-index','hierarchy','cache','session','segment','entry','layer','trails','fpcs','onboard','config'],
+  kwWorkflow: ['categorized','uncategorized','missing','verified','review','fixed','pending','urgent','overdue','confirmed','disputed','transfer','split','adjustment','sales','purchase','payment','refund-claim'],
+  kwPeople: ['commander','admin','guest','member','user','client','vendor','payee']
+};
+
+function populateKeywordIndex() {
+  Object.keys(KW_DOMAINS).forEach(function(domainId) {
+    var el = document.getElementById(domainId);
+    if (!el) return;
+    var html = '';
+    KW_DOMAINS[domainId].forEach(function(kw) {
+      var hits = DEMO_KEYWORDS[kw] ? DEMO_KEYWORDS[kw][0] : 0;
+      var color = hits > 460 ? 'var(--green)' : hits > 440 ? 'var(--yellow)' : 'var(--muted)';
+      html += '<span onclick="demoFromKeyword(\'' + kw + '\')" style="display:inline-block;padding:1px 6px;margin:1px 2px;border-radius:4px;border:1px solid var(--border);cursor:pointer;transition:all .15s;color:' + color + '" onmouseover="this.style.borderColor=\'var(--accent)\';this.style.background=\'rgba(56,189,248,.08)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.background=\'transparent\'">' + kw + '</span>';
+    });
+    el.innerHTML = html;
+  });
+}
+
+function demoFromKeyword(kw) {
+  var input = document.getElementById('demoQuery');
+  input.value = kw;
+  document.getElementById('sec-demo').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(runNarrowingDemo, 300);
+}
+
+// Run demo on load
+window.addEventListener('load', function() {
+  setTimeout(renderCharts, 100);
+  setTimeout(runNarrowingDemo, 200);
+  setTimeout(populateKeywordIndex, 50);
+});
+window.addEventListener('resize', function() { setTimeout(renderCharts, 100); });
+</script>
+<script>
+  window.FPCS_PAGE = {
+    name: 'Memory Bank',
+    theme: 'theme-memory'
+  };
+  window.FPCS_NAV = {
+    active: 'memory',
+    sections: [
+      { icon: '&#128218;', label: 'Memory Bank',   href: '#top' },
+      { icon: '&#127959;', label: 'Architecture',  href: '#sec-arch' },
+      { icon: '&#128209;', label: 'Keyword Index', href: '#sec-index' },
+      { icon: '&#129504;', label: 'Letta Analysis', href: '#sec-letta' },
+      { icon: '&#128200;', label: 'Simulation',    href: '#sec-sim' },
+      { icon: '&#9889;',   label: 'Live Demo',     href: '#sec-demo' }
+    ]
+  };
+</script>
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

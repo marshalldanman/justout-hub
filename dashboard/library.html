@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Village Library — FPCS Dashboard</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<style>
+  /* ===== LIBRARY STYLES ===== */
+
+  /* Fullscreen mode (entered from landing page) */
+  body.library-fullscreen .nav-rail { display: none !important; }
+  body.library-fullscreen #dashContent { margin-left: 0 !important; padding: 0 !important; }
+  body.library-fullscreen .lib-container { max-width: 100%; padding: 0 20px; }
+
+  .lib-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px 20px 80px;
+  }
+
+  /* Header */
+  .lib-header {
+    text-align: center;
+    padding: 40px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  .lib-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    margin: 0 0 8px;
+  }
+  .lib-header .lib-sub {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .lib-header .lib-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .lib-header .lib-stats strong { color: var(--accent); }
+
+  /* Fullscreen toggle button */
+  .lib-fs-btn {
+    position: fixed;
+    top: 12px;
+    right: 80px;
+    z-index: 9997;
+    background: rgba(30,41,59,0.85);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  }
+  .lib-fs-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Shelf (category) */
+  .lib-shelf {
+    margin-bottom: 32px;
+  }
+  .lib-shelf-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .lib-shelf-icon { font-size: 24px; }
+  .lib-shelf-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .lib-shelf-count {
+    font-size: 12px;
+    color: var(--muted);
+    background: rgba(56,189,248,0.1);
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-left: auto;
+  }
+
+  /* Book card */
+  .lib-book {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  .lib-book:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(56,189,248,0.12);
+    transform: translateY(-1px);
+  }
+  .lib-book.deactivated {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+  }
+  .lib-book.deactivated:hover {
+    border-color: var(--border);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .lib-book-spine {
+    width: 6px;
+    min-height: 60px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .lib-book-body { flex: 1; }
+  .lib-book-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .lib-book-author {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .lib-book-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .lib-book-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .lib-book-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .lib-book-tag.active { background: rgba(74,222,128,0.15); color: var(--green); }
+  .lib-book-tag.reference { background: rgba(56,189,248,0.15); color: var(--accent); }
+  .lib-book-tag.research { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .lib-book-tag.spec { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .lib-book-tag.security { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .lib-book-tag.later { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+  /* Do Later section */
+  .lib-shelf.do-later .lib-shelf-header { border-color: var(--border); opacity: 0.7; }
+  .lib-shelf.do-later .lib-shelf-title { color: var(--muted); }
+
+  /* Document viewer (opens inline or new tab) */
+  .lib-viewer {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg);
+    z-index: 9999;
+    flex-direction: column;
+  }
+  .lib-viewer.open { display: flex; }
+  .lib-viewer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #1e3a5f, #0f172a);
+    border-bottom: 1px solid var(--border);
+  }
+  .lib-viewer-title { font-size: 15px; font-weight: 700; color: var(--accent); }
+  .lib-viewer-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .lib-viewer-close:hover { color: var(--red); border-color: var(--red); }
+  .lib-viewer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .lib-viewer-content h1 { color: var(--accent); font-size: 24px; margin: 0 0 8px; }
+  .lib-viewer-content h2 { color: var(--accent); font-size: 18px; margin: 24px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .lib-viewer-content h3 { color: var(--green); font-size: 15px; margin: 16px 0 6px; }
+  .lib-viewer-content h4 { color: var(--purple); font-size: 14px; margin: 14px 0 4px; }
+  .lib-viewer-content hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .lib-viewer-content a { color: var(--accent); text-decoration: underline; }
+  .lib-viewer-content a:hover { color: var(--green); }
+  .lib-viewer-content img { max-width: 100%; border-radius: 6px; }
+  .lib-viewer-content code {
+    background: rgba(56,189,248,0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .lib-viewer-content pre {
+    background: #0a0e1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .lib-viewer-content pre code { background: none; padding: 0; color: #e2e8f0; }
+  .lib-viewer-content ul, .lib-viewer-content ol { padding-left: 24px; }
+  .lib-viewer-content li { margin-bottom: 6px; }
+  .lib-viewer-content blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 8px 16px;
+    margin: 12px 0;
+    background: rgba(56,189,248,0.04);
+    color: var(--muted);
+    font-style: italic;
+  }
+  .lib-viewer-content table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  .lib-viewer-content th { text-align: left; padding: 8px; color: var(--accent); font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+  .lib-viewer-content td { padding: 8px; border-bottom: 1px solid var(--border); font-size: 13px; }
+
+  @media (max-width: 768px) {
+    .lib-header h1 { font-size: 22px; }
+    .lib-header .lib-stats { flex-wrap: wrap; gap: 12px; }
+    .lib-book { flex-direction: column; gap: 10px; }
+    .lib-book-spine { width: 100%; min-height: 4px; }
+    .lib-viewer-content { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<script src="js/subdomain-router.js"></script>
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="authGate" style="display:none"></div>
+<div id="dashContent" style="display:none">
+
+  <!-- Fullscreen toggle -->
+  <button class="lib-fs-btn" id="libFsBtn" title="Toggle fullscreen reading mode">&#128250; Fullscreen</button>
+
+  <div class="lib-container">
+
+    <!-- Header -->
+    <div class="lib-header">
+      <h1>&#128218; The Village Library</h1>
+      <div class="lib-sub">Realbotville's collection of guides, research, and reference material</div>
+      <div class="lib-stats">
+        <span>&#128214; Volumes: <strong id="libVolCount">0</strong></span>
+        <span>&#128196; Guides: <strong id="libGuideCount">0</strong></span>
+        <span>&#128301; Research: <strong id="libResearchCount">0</strong></span>
+      </div>
+    </div>
+
+    <!-- SHELF: Active Guides -->
+    <div class="lib-shelf" id="shelf-guides">
+      <div class="lib-shelf-header">
+        <span class="lib-shelf-icon">&#128214;</span>
+        <span class="lib-shelf-title">Guides &amp; Manuals</span>
+        <span class="lib-shelf-count" id="shelf-guides-count">0</span>
+      </div>
+      <div id="shelf-guides-books"></div>
+    </div>
+
+    <!-- SHELF: Volumes -->
+    <div class="lib-shelf" id="shelf-volumes">
+      <div class="lib-shelf-header">
+        <span class="lib-shelf-icon">&#128218;</span>
+        <span class="lib-shelf-title">Library Volumes</span>
+        <span class="lib-shelf-count" id="shelf-volumes-count">0</span>
+      </div>
+      <div id="shelf-volumes-books"></div>
+    </div>
+
+    <!-- SHELF: Research -->
+    <div class="lib-shelf" id="shelf-research">
+      <div class="lib-shelf-header">
+        <span class="lib-shelf-icon">&#128301;</span>
+        <span class="lib-shelf-title">Research Papers</span>
+        <span class="lib-shelf-count" id="shelf-research-count">0</span>
+      </div>
+      <div id="shelf-research-books"></div>
+    </div>
+
+    <!-- SHELF: Do Later -->
+    <div class="lib-shelf do-later" id="shelf-later">
+      <div class="lib-shelf-header">
+        <span class="lib-shelf-icon">&#128336;</span>
+        <span class="lib-shelf-title">Do Later (Backlog)</span>
+        <span class="lib-shelf-count" id="shelf-later-count">0</span>
+      </div>
+      <div id="shelf-later-books"></div>
+    </div>
+
+  </div><!-- /lib-container -->
+
+  <!-- Document Viewer Overlay -->
+  <div class="lib-viewer" id="libViewer">
+    <div class="lib-viewer-header">
+      <span class="lib-viewer-title" id="viewerTitle">Document</span>
+      <button class="lib-viewer-close" onclick="window._libCloseViewer()">&#10005; Close</button>
+    </div>
+    <div class="lib-viewer-content" id="viewerContent"></div>
+  </div>
+
+</div><!-- /dashContent -->
+
+<script>
+  window.FPCS_PAGE = {
+    name: 'Village Library',
+    theme: '',
+    onAuthed: function(user) {
+      initLibrary();
+    }
+  };
+  window.FPCS_NAV = {
+    active: 'library',
+    sections: [
+      { icon: '&#128214;', label: 'Guides', href: '#shelf-guides' },
+      { icon: '&#128218;', label: 'Volumes', href: '#shelf-volumes' },
+      { icon: '&#128301;', label: 'Research', href: '#shelf-research' },
+      { icon: '&#128336;', label: 'Do Later', href: '#shelf-later' }
+    ]
+  };
+
+  // ============================================================
+  //  LIBRARY CATALOG
+  // ============================================================
+  var LIBRARY_CATALOG = [
+    // --- GUIDES ---
+    {
+      id: 'memory-system-guide',
+      shelf: 'guides',
+      title: 'Memory System Guide',
+      author: 'Sarge & Opus',
+      desc: 'Complete guide to the Letta-inspired memory block system. Covers core memory, recall, summarization, learning engine, and bot slash commands.',
+      spineColor: '#4ade80',
+      tags: ['active', 'reference'],
+      type: 'inline',
+      content: null // Loaded dynamically
+    },
+    {
+      id: 'backend-review',
+      shelf: 'guides',
+      title: 'Dashboard Backend Review',
+      author: 'Claude & Commander',
+      desc: 'Infrastructure audit of auth.js, firestore-db.js, sheets-api.js, memory-blocks.js, offline.js, service worker, and all inline scripts.',
+      spineColor: '#34d399',
+      tags: ['reference'],
+      type: 'file',
+      url: 'BACKEND_REVIEW.md'
+    },
+
+    // --- VOLUMES ---
+    {
+      id: 'vol1-architecture',
+      shelf: 'volumes',
+      title: 'Vol. 1 — Architecture & Bot Framework',
+      author: 'The Village Council',
+      desc: 'Foundation document: bot hierarchy, communication protocols, the TRAILS framework, dashboard architecture, and auth system.',
+      spineColor: '#38bdf8',
+      tags: ['reference'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL1.md'
+    },
+    {
+      id: 'vol2-tricks-tactics',
+      shelf: 'volumes',
+      title: 'Vol. 2 — Tricks, Tactics & Secret Sauces',
+      author: 'The Village Council',
+      desc: 'Advanced techniques: prompt engineering, data pipeline patterns, dedup algorithms, audit strategies, and bot training methods.',
+      spineColor: '#a78bfa',
+      tags: ['reference'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL2.md'
+    },
+    {
+      id: 'vol3-forensicbot',
+      shelf: 'volumes',
+      title: 'Vol. 3 — ForensicBot Research',
+      author: 'ForensicBot',
+      desc: 'Deep research into fund chain tracing, fee reconstruction, refund matching, and financial forensics. 2,141 lines of findings.',
+      spineColor: '#fbbf24',
+      tags: ['research'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_FORENSICBOT_RESEARCH.md'
+    },
+    {
+      id: 'vol4-shapeshifter',
+      shelf: 'volumes',
+      title: 'Vol. 4 — The Shape-Shifter\'s Handbook',
+      author: 'Commander',
+      desc: 'Guide to trigger-word persona switching and multi-identity AI systems. Covers identity creation, memory isolation, and the trait grid system.',
+      spineColor: '#f472b6',
+      tags: ['reference'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL4_SHAPESHIFTER.md'
+    },
+    {
+      id: 'vol5-claude-code-mastery',
+      shelf: 'volumes',
+      title: 'Vol. 5 — The Commander\'s Field Manual: Claude Code Mastery',
+      author: 'OPUS + SHIELD + Cruncher + Scribbles',
+      desc: 'Comprehensive guide to extending Claude Code — MCP servers, browser automation, DNS management, hooks, skills, subagents, and hidden features. Born from the DNS Standoff of March 2026.',
+      spineColor: '#34d399',
+      tags: ['reference', 'ops'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL5_CLAUDE_CODE_MASTERY.md'
+    },
+    {
+      id: 'vol6-the-living-village',
+      shelf: 'volumes',
+      title: 'Vol. 6 — The Living Village: Auto-Evolution & The Ecosystem That Grows Itself',
+      author: 'The Analyst + OPUS + SHIELD + The Commander',
+      desc: 'The day the village learned to grow itself. Auto-evolution architecture, stigmergy, self-building skills, PostToolUse hooks, the Learner agent, and 18+ frameworks for emergent AI capability. Born from a DNS typo and a paper airplane.',
+      spineColor: '#a78bfa',
+      tags: ['reference', 'ops', 'evolution'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL6_THE_LIVING_VILLAGE.md'
+    },
+    {
+      id: 'vol7-the-academy',
+      shelf: 'volumes',
+      title: 'Vol. 7 — The Academy: Research, Agent Skills & Supervisory AI Config',
+      author: 'The Analyst + The Commander',
+      desc: 'The village opens its first training facility. Research fundamentals, multi-source verification, agent-to-agent supervision, skill proposals, MCP server integration, and the first graduation. 28 skills proposed, only 2 accepted per event.',
+      spineColor: '#22d3ee',
+      tags: ['reference', 'ops', 'evolution', 'training'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL7_THE_ACADEMY.md'
+    },
+    {
+      id: 'vol8-the-bridge',
+      shelf: 'volumes',
+      title: 'Vol. 8 — The Bridge: Etiquette Between Humans and Bots',
+      author: 'Jaz + The Creative + BIRDBOT',
+      desc: 'The most important volume in the library. How bots speak to humans. Read the room. Grace over accuracy. The hierarchy of kindness. Error and recovery. The weight of trust. And a bot\'s prayer.',
+      spineColor: '#f472b6',
+      tags: ['reference', 'culture', 'etiquette'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL8_THE_BRIDGE.md'
+    },
+    {
+      id: 'vol9-the-body',
+      shelf: 'volumes',
+      title: 'Vol. 9 — The Body: How Bots See, Touch, and Move Through the World',
+      author: 'The Analyst + SHIELD + BIRDBOT',
+      desc: 'The sensory awakening. MCP servers as body parts — eyes (Playwright), hands (click/type), feet (navigate), ears (console/network), voice (social/email), nose (search), memory (knowledge graph), shield (security). Bot-to-sense proficiency matrix. Human-like timing integration. The first Japster mission.',
+      spineColor: '#a78bfa',
+      tags: ['reference', 'ops', 'senses', 'MCP', 'controls'],
+      type: 'file',
+      url: 'docs/library/REALBOTVILLE_LIBRARY_VOL9_THE_BODY.md'
+    },
+
+    // --- SPECS ---
+    {
+      id: 'spec-realbotville',
+      shelf: 'volumes',
+      title: 'Realbotville — Complete Design Spec',
+      author: 'Commander (Opus)',
+      desc: 'Master blueprint for the entire FPCS Dashboard overhaul. Bot hierarchy, delegation model, and the TRAILS framework architecture.',
+      spineColor: '#60a5fa',
+      tags: ['spec'],
+      type: 'file',
+      url: 'docs/specs/REALBOTVILLE_SPEC.md'
+    },
+    {
+      id: 'spec-forensicbot',
+      shelf: 'volumes',
+      title: 'ForensicBot — Agent Specification',
+      author: 'Commander',
+      desc: 'Bot specification for automated fund flow tracing across FPCS expense categorization. Defines capabilities, triggers, and reporting.',
+      spineColor: '#fcd34d',
+      tags: ['spec'],
+      type: 'file',
+      url: 'docs/specs/REALBOTVILLE_FORENSICBOT_SPEC.md'
+    },
+    {
+      id: 'spec-justout-hub',
+      shelf: 'volumes',
+      title: 'JustOut Hub — Master Vision Spec',
+      author: 'Commander',
+      desc: 'Foundational vision specification for the Personal Everything Portal. Modular channel system, auth model, and constellation UI design.',
+      spineColor: '#818cf8',
+      tags: ['spec'],
+      type: 'file',
+      url: 'docs/specs/JUSTOUT_HUB_SPEC.md'
+    },
+
+    // --- RESEARCH ---
+    {
+      id: 'letta-analysis',
+      shelf: 'research',
+      title: 'Letta (MemGPT) Architecture Analysis',
+      author: 'Opus & Sarge',
+      desc: 'Head-to-head comparison of Letta vs FPCS memory systems. Includes adoption plan, cost analysis, and Firebase RTDB schema design.',
+      spineColor: '#22d3ee',
+      tags: ['research'],
+      type: 'link',
+      url: 'memory.html#sec-letta'
+    },
+    {
+      id: 'research-edr',
+      shelf: 'research',
+      title: 'Modern EDR Architecture Research',
+      author: 'SentryLion Team',
+      desc: 'Deep research on CrowdStrike, SentinelOne, Carbon Black, and Defender for Endpoint. Foundation knowledge for the SentryLion agent.',
+      spineColor: '#f97316',
+      tags: ['research', 'security'],
+      type: 'file',
+      url: 'docs/research/edr-architecture.md'
+    },
+    {
+      id: 'research-botnet-c2',
+      shelf: 'research',
+      title: 'Botnet & C2 Detection Research',
+      author: 'SentryLion Team',
+      desc: 'Technical reference for detecting botnet command-and-control patterns in a Windows user-space Rust agent. Protocol analysis and IOC matching.',
+      spineColor: '#ef4444',
+      tags: ['research', 'security'],
+      type: 'file',
+      url: 'docs/research/botnet-c2-detection.md'
+    },
+    {
+      id: 'research-stego',
+      shelf: 'research',
+      title: 'Steganography & Covert Channel Detection',
+      author: 'SentryLion Team',
+      desc: 'Technical reference for detecting steganographic and covert channel attack patterns. Image analysis, DNS tunneling, and timing channels.',
+      spineColor: '#8b5cf6',
+      tags: ['research', 'security'],
+      type: 'file',
+      url: 'docs/research/steganography-detection.md'
+    },
+    {
+      id: 'research-offensive',
+      shelf: 'research',
+      title: 'Offensive Defense & Active Response',
+      author: 'SentryLion Team',
+      desc: 'Active response capabilities and offensive defense strategies. Honeypots, tarpitting, DNS sinkholing, and legal active defense techniques.',
+      spineColor: '#dc2626',
+      tags: ['research', 'security'],
+      type: 'file',
+      url: 'docs/research/offensive-defense.md'
+    },
+
+    // --- DO LATER (deactivated) ---
+    {
+      id: 'interactive-reader',
+      shelf: 'later',
+      title: 'Interactive Document Reader',
+      author: 'TBD',
+      desc: 'Future: Full in-browser document viewer with search, highlights, bookmarks, and annotation support. Currently documents open in new tabs.',
+      spineColor: '#64748b',
+      tags: ['later'],
+      active: false
+    },
+    {
+      id: 'bot-training-manual',
+      shelf: 'later',
+      title: 'Bot Training Manual — Field Operations',
+      author: 'TBD',
+      desc: 'Future: Step-by-step guide for deploying, training, and managing bots in the field. Cover bounty assignment, XP tracking, and performance reviews.',
+      spineColor: '#64748b',
+      tags: ['later'],
+      active: false
+    }
+  ];
+
+  // ============================================================
+  //  MEMORY SYSTEM GUIDE CONTENT (inline document)
+  // ============================================================
+  var MEMORY_GUIDE_CONTENT = [
+    '<h1>&#129504; Memory System Guide</h1>',
+    '<p style="color:var(--muted)">Version 1.0 &mdash; Built on Letta (MemGPT) patterns &mdash; Feb 2026</p>',
+    '',
+    '<h2>Overview</h2>',
+    '<p>The FPCS Memory System gives every bot on the dashboard persistent memory. It\'s inspired by <strong>Letta (MemGPT)</strong> &mdash; an open-source framework for building stateful LLM agents with infinite context.</p>',
+    '<p>We adapted 5 key patterns from Letta\'s source code and implemented them for our $0 static-hosted stack using <code>localStorage</code> (with Firebase RTDB ready for Phase 2).</p>',
+    '',
+    '<h2>Architecture</h2>',
+    '<h3>3-Tier Memory (inspired by Letta)</h3>',
+    '<table>',
+    '<tr><th>Tier</th><th>Name</th><th>Description</th><th>Storage</th></tr>',
+    '<tr><td>1</td><td><strong>Core Memory</strong></td><td>Always in prompt. Labeled blocks with char limits. Self-editable.</td><td>localStorage</td></tr>',
+    '<tr><td>2</td><td><strong>Recall Memory</strong></td><td>Full conversation history. Auto-summarized when long.</td><td>localStorage</td></tr>',
+    '<tr><td>3</td><td><strong>Archival Memory</strong></td><td>Long-term knowledge (future: Firebase RTDB)</td><td>Planned</td></tr>',
+    '</table>',
+    '',
+    '<h2>Core Memory Blocks</h2>',
+    '<p>Core memory consists of labeled blocks that are always available to every bot. Each block has:</p>',
+    '<ul>',
+    '<li><strong>label</strong> &mdash; Unique name (e.g., "persona", "user_info")</li>',
+    '<li><strong>value</strong> &mdash; The actual content (plain text)</li>',
+    '<li><strong>limit</strong> &mdash; Max characters allowed</li>',
+    '<li><strong>readOnly</strong> &mdash; Whether the bot can modify it</li>',
+    '<li><strong>lastModified</strong> &mdash; Timestamp of last edit</li>',
+    '<li><strong>editCount</strong> &mdash; How many times it\'s been changed</li>',
+    '</ul>',
+    '',
+    '<h3>Default Blocks</h3>',
+    '<table>',
+    '<tr><th>Block</th><th>Limit</th><th>Purpose</th></tr>',
+    '<tr><td><code>persona</code></td><td>2,000 chars</td><td>Bot personality and behavior rules</td></tr>',
+    '<tr><td><code>user_info</code></td><td>2,000 chars</td><td>What the bot knows about you</td></tr>',
+    '<tr><td><code>task_state</code></td><td>1,500 chars</td><td>Current task context</td></tr>',
+    '<tr><td><code>project_facts</code></td><td>3,000 chars</td><td>Key project numbers and deadlines</td></tr>',
+    '</table>',
+    '',
+    '<h3>Self-Editing (Letta Pattern)</h3>',
+    '<p>Bots can rewrite their own memory, just like Letta agents:</p>',
+    '<pre><code>// Full replace\nFPCSMemory.core.set("user_info", "Name: Commander\\nRole: Admin");\n\n// Append new information\nFPCSMemory.core.append("user_info", "\\nPrefers dark mode");\n\n// Find and replace within a block\nFPCSMemory.core.replace("project_facts", "60%", "75%");</code></pre>',
+    '',
+    '<h2>Recall Memory</h2>',
+    '<p>Every message exchanged with any bot is recorded:</p>',
+    '<pre><code>FPCSMemory.recall.add("user", "What are my deductions?");\nFPCSMemory.recall.add("bot", "Total: $42,889.72", { botName: "Penny" });</code></pre>',
+    '',
+    '<h3>Auto-Summarization</h3>',
+    '<p>When recall hits <strong>80 messages</strong>, the system automatically:</p>',
+    '<ol>',
+    '<li>Takes the oldest messages (all except the newest 24)</li>',
+    '<li>Builds an extractive summary (topics, first/last message, count)</li>',
+    '<li>Stores the summary in the Summaries archive</li>',
+    '<li>Keeps only the 24 most recent messages raw</li>',
+    '</ol>',
+    '<p>This mirrors Letta\'s recursive summarization at 70% eviction.</p>',
+    '',
+    '<h2>Learning Engine</h2>',
+    '<p>The bot automatically detects and remembers things you say:</p>',
+    '<table>',
+    '<tr><th>You say...</th><th>Bot learns</th><th>Stored in</th></tr>',
+    '<tr><td>"My name is James"</td><td>Name: James</td><td>user_info</td></tr>',
+    '<tr><td>"Remember that I prefer email"</td><td>Note: I prefer email</td><td>user_info</td></tr>',
+    '<tr><td>"I like dark mode"</td><td>Preference: I like dark mode</td><td>user_info</td></tr>',
+    '<tr><td>"The deadline is March 15"</td><td>Updates deadline in facts</td><td>project_facts</td></tr>',
+    '</table>',
+    '',
+    '<h2>Bot Commands</h2>',
+    '<p>Type these in any bot chat bubble:</p>',
+    '<table>',
+    '<tr><th>Command</th><th>What it does</th></tr>',
+    '<tr><td><code>/memory</code></td><td>Show memory system status (blocks, recall count, session ID)</td></tr>',
+    '<tr><td><code>/stats</code></td><td>Show project facts from core memory</td></tr>',
+    '<tr><td><code>/recall</code></td><td>Show recent conversation history</td></tr>',
+    '<tr><td><code>/learn [fact]</code></td><td>Manually teach the bot something</td></tr>',
+    '<tr><td><code>/forget</code></td><td>Clear user_info memory block</td></tr>',
+    '<tr><td><code>/think</code></td><td>Show bot\'s inner monologue (debug)</td></tr>',
+    '<tr><td><code>/export</code></td><td>Dump all memory to browser console</td></tr>',
+    '<tr><td><code>/help</code></td><td>List all commands</td></tr>',
+    '</table>',
+    '',
+    '<h2>Inner Monologue</h2>',
+    '<p>Before every response, the bot "thinks" internally. These thoughts are logged but never shown to the user. Use <code>/think</code> to peek at the bot\'s reasoning.</p>',
+    '<blockquote>This mirrors Letta\'s pattern where <code>response.content</code> is private thinking, and only <code>send_message()</code> output is shown to the user.</blockquote>',
+    '',
+    '<h2>Context Header</h2>',
+    '<p>The memory system generates a full context header that can be injected into any LLM prompt:</p>',
+    '<pre><code>var context = FPCSMemory.getContextHeader();\n// Returns XML-like metadata + block values + recent history</code></pre>',
+    '<p>This header includes: current date/time, page context, recall count, summary count, all core block values with char usage, and the last 6 messages.</p>',
+    '',
+    '<h2>Session Management</h2>',
+    '<ul>',
+    '<li>Sessions auto-expire after <strong>30 minutes</strong> of inactivity</li>',
+    '<li>When a session expires, the old conversation is auto-summarized</li>',
+    '<li>A new session ID is generated on return</li>',
+    '<li>The bot greets you with session continuity awareness</li>',
+    '</ul>',
+    '',
+    '<h2>Events</h2>',
+    '<p>Subscribe to memory changes:</p>',
+    '<pre><code>FPCSMemory.on("core:changed", function(data) {\n  console.log("Block " + data.label + " updated!");\n});\n\n// Events: init, core:defined, core:changed, core:appended,\n// core:replaced, recall:added, recall:summarized,\n// recall:cleared, summaries:added, learning:updated,\n// monologue:thought</code></pre>',
+    '',
+    '<h2>Files</h2>',
+    '<table>',
+    '<tr><th>File</th><th>Purpose</th></tr>',
+    '<tr><td><code>js/memory-blocks.js</code></td><td>Core memory library (570 lines)</td></tr>',
+    '<tr><td><code>bot-assistant.js</code></td><td>Memory-aware bot (wired into all pages)</td></tr>',
+    '</table>',
+    '',
+    '<h2>What\'s Next</h2>',
+    '<ul>',
+    '<li><strong>Phase 2:</strong> Firebase RTDB sync (persist across devices)</li>',
+    '<li><strong>Phase 3:</strong> Archival memory (7-layer keyword hierarchy)</li>',
+    '<li><strong>Phase 4:</strong> Sleep-time agents (background memory consolidation)</li>',
+    '<li><strong>Phase 5:</strong> LLM integration (context header injection into real prompts)</li>',
+    '</ul>'
+  ].join('\n');
+
+  // Inject the content into the catalog entry
+  LIBRARY_CATALOG[0].content = MEMORY_GUIDE_CONTENT;
+
+  // ============================================================
+  //  LIBRARY ENGINE
+  // ============================================================
+
+  function initLibrary() {
+    renderShelves();
+    updateStats();
+    setupFullscreen();
+  }
+
+  function renderShelves() {
+    var shelves = { guides: [], volumes: [], research: [], later: [] };
+
+    LIBRARY_CATALOG.forEach(function(book) {
+      var shelf = shelves[book.shelf] || shelves.guides;
+      shelf.push(book);
+    });
+
+    Object.keys(shelves).forEach(function(shelfId) {
+      var container = document.getElementById('shelf-' + shelfId + '-books');
+      var countEl = document.getElementById('shelf-' + shelfId + '-count');
+      if (!container) return;
+
+      var books = shelves[shelfId];
+      if (countEl) countEl.textContent = books.length;
+
+      container.innerHTML = books.map(function(book) {
+        var isDeactivated = book.active === false;
+        var tagsHTML = (book.tags || []).map(function(t) {
+          return '<span class="lib-book-tag ' + t + '">' + t.toUpperCase() + '</span>';
+        }).join(' ');
+
+        return '<div class="lib-book' + (isDeactivated ? ' deactivated' : '') + '" ' +
+          'data-book-id="' + book.id + '" ' +
+          (isDeactivated ? '' : 'onclick="window._libOpenBook(\'' + book.id + '\')"') + '>' +
+          '<div class="lib-book-spine" style="background:' + (book.spineColor || '#38bdf8') + '"></div>' +
+          '<div class="lib-book-body">' +
+          '  <div class="lib-book-title">' + book.title + '</div>' +
+          '  <div class="lib-book-author">by ' + book.author + '</div>' +
+          '  <div class="lib-book-desc">' + book.desc + '</div>' +
+          '  <div class="lib-book-meta">' + tagsHTML + '</div>' +
+          '</div></div>';
+      }).join('');
+    });
+  }
+
+  function updateStats() {
+    var volumes = 0, guides = 0, research = 0;
+    LIBRARY_CATALOG.forEach(function(b) {
+      if (b.active === false) return;
+      if (b.shelf === 'volumes') volumes++;
+      else if (b.shelf === 'guides') guides++;
+      else if (b.shelf === 'research') research++;
+    });
+    var volEl = document.getElementById('libVolCount');
+    var guideEl = document.getElementById('libGuideCount');
+    var resEl = document.getElementById('libResearchCount');
+    if (volEl) volEl.textContent = volumes;
+    if (guideEl) guideEl.textContent = guides;
+    if (resEl) resEl.textContent = research;
+  }
+
+  // ============================================================
+  //  OPEN BOOK — inline viewer or new tab
+  // ============================================================
+
+  // Simple markdown-to-HTML converter for .md files
+  function renderMarkdown(md) {
+    var html = md
+      // Code blocks (fenced)
+      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+      // Headers
+      .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      // Bold and italic
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      // Unordered lists
+      .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
+      // Ordered lists
+      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+      // Horizontal rules
+      .replace(/^---+$/gm, '<hr>')
+      // Tables (basic)
+      .replace(/^\|(.+)\|$/gm, function(match, content) {
+        var cells = content.split('|').map(function(c) { return c.trim(); });
+        return '<tr>' + cells.map(function(c) {
+          return c.match(/^[\-:]+$/) ? '' : '<td>' + c + '</td>';
+        }).join('') + '</tr>';
+      })
+      // Paragraphs (double newline)
+      .replace(/\n\n/g, '</p><p>')
+      // Single newlines to <br>
+      .replace(/\n/g, '<br>');
+
+    // Wrap list items in <ul>
+    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+    html = html.replace(/<\/ul>\s*<ul>/g, '');
+
+    // Wrap table rows
+    html = html.replace(/(<tr>[\s\S]*?<\/tr>)/g, '<table>$1</table>');
+    html = html.replace(/<\/table>\s*<table>/g, '');
+
+    // Remove empty <tr> from separator rows
+    html = html.replace(/<tr><\/tr>/g, '');
+
+    return '<p>' + html + '</p>';
+  }
+
+  window._libOpenBook = function(bookId) {
+    var book = LIBRARY_CATALOG.find(function(b) { return b.id === bookId; });
+    if (!book || book.active === false) return;
+
+    if (book.type === 'inline' && book.content) {
+      // Open in the inline viewer
+      document.getElementById('viewerTitle').textContent = book.title;
+      document.getElementById('viewerContent').innerHTML = book.content;
+      document.getElementById('libViewer').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    } else if (book.type === 'link' && book.url) {
+      // Open in new tab
+      window.open(book.url, '_blank');
+    } else if (book.type === 'file' && book.url) {
+      // Markdown files: fetch and render in inline viewer
+      if (book.url.match(/\.md$/i)) {
+        document.getElementById('viewerTitle').textContent = book.title;
+        document.getElementById('viewerContent').innerHTML = '<p style="color:var(--muted)">Loading...</p>';
+        document.getElementById('libViewer').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        fetch(book.url)
+          .then(function(r) {
+            if (!r.ok) throw new Error('File not found (' + r.status + ')');
+            return r.text();
+          })
+          .then(function(md) {
+            document.getElementById('viewerContent').innerHTML = renderMarkdown(md);
+          })
+          .catch(function(err) {
+            document.getElementById('viewerContent').innerHTML =
+              '<p style="color:#ef4444">Failed to load document: ' + err.message + '</p>' +
+              '<p><a href="' + book.url + '" target="_blank">Open raw file instead &rarr;</a></p>';
+          });
+      } else {
+        // Non-markdown files: open in new tab
+        window.open(book.url, '_blank');
+      }
+    }
+  };
+
+  window._libCloseViewer = function() {
+    document.getElementById('libViewer').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // Close viewer on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      window._libCloseViewer();
+    }
+  });
+
+  // ============================================================
+  //  FULLSCREEN MODE
+  // ============================================================
+
+  function setupFullscreen() {
+    var btn = document.getElementById('libFsBtn');
+    if (!btn) return;
+
+    // Check if entered via ?fullscreen=1 param
+    if (location.search.indexOf('fullscreen=1') !== -1) {
+      document.body.classList.add('library-fullscreen');
+      btn.innerHTML = '&#10005; Exit Fullscreen';
+    }
+
+    btn.addEventListener('click', function() {
+      document.body.classList.toggle('library-fullscreen');
+      if (document.body.classList.contains('library-fullscreen')) {
+        btn.innerHTML = '&#10005; Exit Fullscreen';
+        // Also request browser fullscreen
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(function(){});
+        }
+      } else {
+        btn.innerHTML = '&#128250; Fullscreen';
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(function(){});
+        }
+      }
+    });
+  }
+
+  // Auto-init if auth already loaded
+  if (document.getElementById('dashContent') && document.getElementById('dashContent').style.display === 'block') {
+    initLibrary();
+  }
+</script>
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

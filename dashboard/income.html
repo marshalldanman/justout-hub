@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>FPCS Income Drill-Down — 2022 Tax Prep</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<style>
+  /* FILTER BAR */
+  .filter-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .filter-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-size:13px;transition:all .15s}
+  .filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,.08)}
+  .filter-btn.f-green.active{border-color:var(--green);color:var(--green);background:rgba(74,222,128,.08)}
+  .filter-btn.f-yellow.active{border-color:var(--yellow);color:var(--yellow);background:rgba(251,191,36,.08)}
+  .filter-btn.f-red.active{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
+  .search-input{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;flex:1;min-width:200px}
+  .search-input::placeholder{color:var(--muted)}
+
+  /* ACCORDION */
+  .client-group{margin-bottom:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .client-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:rgba(15,23,42,.6);cursor:pointer;transition:all .15s;gap:12px}
+  .client-header:hover{background:rgba(56,189,248,.05)}
+  .client-header .name{font-weight:600;font-size:15px;display:flex;align-items:center;gap:10px}
+  .client-header .amount{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+  .client-header .meta{font-size:12px;color:var(--muted);display:flex;gap:12px;align-items:center}
+  .client-header .chevron{transition:transform .2s;font-size:14px;color:var(--muted)}
+  .client-header.open .chevron{transform:rotate(90deg)}
+  .client-body{max-height:0;overflow:hidden;transition:max-height .3s ease-out}
+  .client-body.open{max-height:2000px;transition:max-height .5s ease-in}
+  .tx-table{width:100%;border-collapse:collapse;font-size:13px}
+  .tx-table th{text-align:left;padding:8px 14px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;background:rgba(15,23,42,.4);border-bottom:1px solid var(--border)}
+  .tx-table td{padding:10px 14px;border-bottom:1px solid rgba(51,65,85,.4)}
+  .tx-table tr:last-child td{border-bottom:none}
+  .tx-table tr:hover td{background:rgba(56,189,248,.03)}
+
+  /* STATUS BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;letter-spacing:.5px}
+  .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+  .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+  .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+  .badge-blue{background:rgba(56,189,248,.15);color:var(--accent)}
+  .badge-purple{background:rgba(167,139,250,.15);color:var(--purple)}
+  .badge-muted{background:rgba(148,163,184,.1);color:var(--muted)}
+
+  /* RECONCILIATION MATRIX */
+  .recon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:16px}
+  .recon-card{background:var(--bg);border-radius:10px;padding:16px;border:1px solid var(--border)}
+  .recon-card h4{font-size:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .recon-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid rgba(51,65,85,.3)}
+  .recon-row:last-child{border-bottom:none}
+  .recon-source{color:var(--muted)}
+
+  /* TIMELINE */
+  .timeline{position:relative;padding:20px 0 20px 30px}
+  .timeline::before{content:'';position:absolute;left:14px;top:0;bottom:0;width:2px;background:var(--border)}
+  .tl-item{position:relative;margin-bottom:16px;padding-left:20px}
+  .tl-item::before{content:'';position:absolute;left:-22px;top:6px;width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:var(--card)}
+  .tl-item.tl-green::before{border-color:var(--green);background:rgba(74,222,128,.2)}
+  .tl-item.tl-yellow::before{border-color:var(--yellow);background:rgba(251,191,36,.2)}
+  .tl-item.tl-red::before{border-color:var(--red);background:rgba(248,113,113,.2)}
+  .tl-item.tl-blue::before{border-color:var(--accent);background:rgba(56,189,248,.2)}
+  .tl-date{font-size:12px;color:var(--muted);font-weight:600}
+  .tl-content{font-size:14px;margin-top:4px}
+  .tl-amount{font-weight:700;color:var(--green);font-variant-numeric:tabular-nums}
+  .tl-amount.missing{color:var(--yellow)}
+
+  /* SUMMARY TABLE */
+  .sum-table{width:100%;border-collapse:collapse;font-size:14px}
+  .sum-table th{text-align:left;padding:10px 14px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:2px solid var(--border)}
+  .sum-table td{padding:10px 14px;border-bottom:1px solid rgba(51,65,85,.3)}
+  .sum-table tr:last-child td{border-bottom:none}
+  .sum-table .total-row td{border-top:2px solid var(--accent);font-weight:700;font-size:15px}
+  .sum-table .subtotal-row td{border-top:1px solid var(--border);font-weight:600;color:var(--muted)}
+
+  /* ALL RECORDS TABLE */
+  .records-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .records-count{font-size:12px;color:var(--muted);margin-left:auto}
+  .loading-indicator{display:flex;align-items:center;gap:8px;padding:24px;color:var(--muted);font-size:14px}
+  .loading-spinner{width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .records-table{width:100%;border-collapse:collapse;font-size:12px}
+  .records-table th{text-align:left;padding:8px 10px;color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:1px;background:rgba(15,23,42,.6);border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+  .records-table th:hover{color:var(--text)}
+  .records-table th .sort-arrow{margin-left:4px;font-size:8px;opacity:0.4}
+  .records-table th.sorted .sort-arrow{opacity:1;color:var(--accent)}
+  .records-table td{padding:6px 10px;border-bottom:1px solid rgba(51,65,85,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+  .records-table td.wrap{white-space:normal;max-width:300px}
+  .records-table tr:hover td{background:rgba(56,189,248,.03)}
+  .records-table .income-row{color:var(--green)}
+  .records-table .expense-row{color:var(--text)}
+  .records-pager{display:flex;gap:6px;margin-top:12px;align-items:center;justify-content:center}
+  .records-pager button{padding:4px 12px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px}
+  .records-pager button:hover{border-color:var(--accent);color:var(--accent)}
+  .records-pager button.active{background:rgba(56,189,248,.1);color:var(--accent);border-color:var(--accent)}
+  .records-pager button:disabled{opacity:0.3;cursor:default}
+  .records-pager .page-info{font-size:12px;color:var(--muted)}
+
+  /* === CLIENT DETAIL MODAL === */
+  .inc-detail-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);z-index:9980;display:none;align-items:center;justify-content:center;padding:24px;animation:incFadeIn .2s ease}
+  .inc-detail-overlay.open{display:flex}
+  @keyframes incFadeIn{from{opacity:0}to{opacity:1}}
+  .inc-detail-modal{background:#0f172a;border:1px solid var(--border);border-radius:16px;width:100%;max-width:900px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.6);animation:incSlideUp .25s ease}
+  @keyframes incSlideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .inc-detail-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .inc-detail-header h3{flex:1;font-size:16px;font-weight:700;color:var(--green);margin:0}
+  .inc-detail-header .inc-detail-total{font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:var(--green)}
+  .inc-detail-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;transition:color .15s}
+  .inc-detail-close:hover{color:var(--text)}
+  .inc-detail-body{flex:1;overflow-y:auto;padding:0}
+  .inc-detail-table{width:100%;border-collapse:collapse;font-size:13px}
+  .inc-detail-table th{text-align:left;padding:10px 16px;color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;background:rgba(15,23,42,.6);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
+  .inc-detail-table td{padding:8px 16px;border-bottom:1px solid rgba(51,65,85,.2)}
+  .inc-detail-table tr:hover td{background:rgba(56,189,248,.03)}
+  .inc-detail-note{padding:12px 16px;font-size:12px;color:var(--muted);background:rgba(15,23,42,.3);border-top:1px solid var(--border)}
+  .inc-detail-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+  .inc-detail-footer .detail-meta{flex:1;font-size:12px;color:var(--muted)}
+  .inc-detail-footer button{padding:8px 16px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;transition:transform .1s,background .15s}
+  .inc-detail-footer button:hover{transform:translateY(-1px)}
+  .inc-detail-footer .btn-sheets{background:rgba(74,222,128,.1);color:var(--green);border-color:rgba(74,222,128,.3)}
+  .inc-detail-footer .btn-sheets:hover{background:rgba(74,222,128,.2)}
+  .inc-detail-footer .btn-export{background:rgba(56,189,248,.1);color:var(--accent);border-color:rgba(56,189,248,.3)}
+  .inc-detail-footer .btn-export:hover{background:rgba(56,189,248,.2)}
+  .client-header .amount{cursor:pointer;transition:color .15s,text-shadow .15s}
+  .client-header .amount:hover{text-shadow:0 0 8px rgba(74,222,128,.3)}
+  @media(max-width:640px){
+    .inc-detail-modal{max-height:95vh;border-radius:12px}
+    .inc-detail-header{padding:14px 16px}
+    .inc-detail-table th,.inc-detail-table td{padding:6px 10px;font-size:11px}
+    .inc-detail-footer{padding:12px 16px}
+    .inc-detail-footer button{padding:6px 12px;font-size:11px}
+  }
+</style>
+</head>
+<body class="theme-income">
+<script src="js/subdomain-router.js"></script>
+
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- HEADER -->
+<div class="header" id="top">
+  <h1>&#128176; Income Drill-Down &mdash; 2022 <span class="page-badge">PAGE 7</span></h1>
+  <div class="subtitle">Interactive income reconciliation &bull; All sources cross-referenced &bull; Cash-basis accounting</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+
+<!-- ===== SUMMARY STATS ===== -->
+<div class="stats-grid" id="sec-summary">
+  <div class="stat-card green" onclick="scrollToSection('sec-clients')">
+    <div class="label">Confirmed in QBO</div>
+    <div class="value">$3,046.50</div>
+    <div class="sub">4 payments verified in bank + QBO</div>
+  </div>
+  <div class="stat-card yellow" onclick="scrollToSection('sec-missing')">
+    <div class="label">Missing from QBO</div>
+    <div class="value">$870.00</div>
+    <div class="sub">3 Arlene Harris jobs &mdash; paid but not in books</div>
+  </div>
+  <div class="stat-card red">
+    <div class="label">Unpaid / Outstanding</div>
+    <div class="value">$730.00</div>
+    <div class="sub">American Restoration &mdash; not income (never collected)</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="label">2023 Income (Not 2022)</div>
+    <div class="value">$529.98</div>
+    <div class="sub">Arlene Harris #221405 &mdash; cash received 1/31/2023</div>
+  </div>
+  <div class="stat-card accent" onclick="scrollToSection('sec-timeline')">
+    <div class="label">Total 2022 Gross (Email Clients)</div>
+    <div class="value">$3,916.50</div>
+    <div class="sub">$3,046.50 in QBO + $870 missing = all email-sourced 2022 income</div>
+  </div>
+</div>
+
+<!-- ===== CLIENT DRILL-DOWN ===== -->
+<div class="section" id="sec-clients">
+  <h2>&#128101; Income by Client &mdash; Drill-Down</h2>
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterClients('all',this)">All</button>
+    <button class="filter-btn f-green" onclick="filterClients('confirmed',this)">&#9989; In QBO</button>
+    <button class="filter-btn f-yellow" onclick="filterClients('missing',this)">&#9888; Missing</button>
+    <button class="filter-btn f-red" onclick="filterClients('unpaid',this)">&#10060; Unpaid</button>
+    <input type="text" class="search-input" placeholder="Search clients, invoices, amounts..." oninput="searchClients(this.value)">
+  </div>
+
+  <!-- AGT MORTGAGE -->
+  <div class="client-group" data-status="confirmed" data-client="agt mortgage access gt david roth">
+    <div class="client-header" onclick="toggleClient(this)">
+      <div>
+        <div class="name"><span class="badge badge-green">&#9989; IN QBO</span> Access GT Mortgage (David Roth)</div>
+        <div class="meta"><span>Invoice #221406</span><span>Hacker Incident &mdash; Cyber Security</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="amount" style="color:var(--green)" onclick="openIncomeDetail(this,event)" title="Click to view details">$2,000.00 &#8599;</div>
+        <div class="meta">received 12/11/2022</div>
+      </div>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="client-body">
+      <table class="tx-table">
+        <tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Source</th><th>Status</th></tr>
+        <tr>
+          <td>12/11/2022</td><td>Invoice</td>
+          <td>Onsite Tech Support &mdash; Cyber Security and Tech Support (work done before Dec 2022, $32K value discounted to $12K)</td>
+          <td style="color:var(--muted)">$12,000.00</td><td>QBO A/R</td>
+          <td><span class="badge badge-blue">INVOICED</span></td>
+        </tr>
+        <tr>
+          <td>12/11/2022</td><td>Payment</td>
+          <td>First payment &mdash; confirmed in Chase Checkings (9896)</td>
+          <td style="color:var(--green);font-weight:700">$2,000.00</td><td>Chase Bank</td>
+          <td><span class="badge badge-green">&#9989; CONFIRMED</span></td>
+        </tr>
+        <tr>
+          <td>2023 (various)</td><td>Payments</td>
+          <td>Remaining $10,000+ collected across 5+ QBO payments (May&ndash;Nov 2023) &mdash; 2023 tax year</td>
+          <td style="color:var(--purple)">$10,924+</td><td>QBO Payments</td>
+          <td><span class="badge badge-purple">2023 INCOME</span></td>
+        </tr>
+      </table>
+      <div style="padding:12px 14px;font-size:12px;color:var(--muted);background:rgba(15,23,42,.3)">
+        <strong>Cross-ref note:</strong> Tech work ledger (Job 1406) says "paid 2/9/2023" but Chase bank shows deposit 12/11/2022. Bank record is authoritative.
+        $2,500 "AGT Mortgage" entry on 4/28/2022 is a credit card bill payment transfer (Chase&#8594;Costco Visa), NOT income.
+      </div>
+    </div>
+  </div>
+
+  <!-- HEIDI OSTROM -->
+  <div class="client-group" data-status="confirmed" data-client="heidi ostrom bob silvercreek">
+    <div class="client-header" onclick="toggleClient(this)">
+      <div>
+        <div class="name"><span class="badge badge-green">&#9989; IN QBO</span> Heidi Ostrom</div>
+        <div class="meta"><span>Invoices #221398, #221399</span><span>Tech Support &amp; Computer Sale</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="amount" style="color:var(--green)" onclick="openIncomeDetail(this,event)" title="Click to view details">$916.50 &#8599;</div>
+        <div class="meta">2 payments in 2022</div>
+      </div>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="client-body">
+      <table class="tx-table">
+        <tr><th>Date</th><th>Invoice</th><th>Description</th><th>Gross</th><th>Source</th><th>Status</th></tr>
+        <tr>
+          <td>9/16/2022</td><td>#221398</td>
+          <td>Tech support &mdash; Doorbell Cam and maintenance (details in PDF, 909 KB)</td>
+          <td style="color:var(--green);font-weight:700">$435.00</td><td>QBO + Chase</td>
+          <td><span class="badge badge-green">&#9989; PAID</span></td>
+        </tr>
+        <tr>
+          <td>11/22/2022</td><td>#221399</td>
+          <td>HP Elitebook 850 G4 purchase + setup + file migration + iPad update</td>
+          <td style="color:var(--green);font-weight:700">$481.50</td><td>QBO (FPCS-0130)</td>
+          <td><span class="badge badge-green">&#9989; PAID</span></td>
+        </tr>
+      </table>
+      <div style="padding:12px 14px;font-size:12px;color:var(--muted);background:rgba(15,23,42,.3)">
+        <strong>Correction:</strong> #221399 was initially flagged as "possibly unpaid" in email analysis (no QBO payment notification email found). Cross-reference with FINAL_MASTER confirmed payment on 11/22/2022.
+        Also has earlier 2022 work: $235 virus repair (3/19) &mdash; in tech ledger as paid.
+      </div>
+    </div>
+  </div>
+
+  <!-- ANGIE HERRMANN -->
+  <div class="client-group" data-status="confirmed" data-client="angie herrmann benson broker group">
+    <div class="client-header" onclick="toggleClient(this)">
+      <div>
+        <div class="name"><span class="badge badge-green">&#9989; IN QBO</span> Angie Herrmann (Benson Broker Group)</div>
+        <div class="meta"><span>Invoice #221395</span><span>Laptop screen fix &mdash; Lenovo Yoga Book</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="amount" style="color:var(--green)" onclick="openIncomeDetail(this,event)" title="Click to view details">$130.00 &#8599;</div>
+        <div class="meta">paid 7/11/2022</div>
+      </div>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="client-body">
+      <table class="tx-table">
+        <tr><th>Date</th><th>Invoice</th><th>Description</th><th>Gross</th><th>Source</th><th>Status</th></tr>
+        <tr>
+          <td>7/10/2022</td><td>#221395</td>
+          <td>Laptop screen fix &mdash; white screen issue, video cable repair (2 hrs in shop)</td>
+          <td style="color:var(--green);font-weight:700">$130.00</td><td>QBO + Chase</td>
+          <td><span class="badge badge-green">&#9989; PAID</span></td>
+        </tr>
+      </table>
+      <div style="padding:12px 14px;font-size:12px;color:var(--muted);background:rgba(15,23,42,.3)">
+        Tech ledger shows $120 gross (with $25 discount + $5 fee line in QBO = $130 invoiced). CC'd to <span data-e="bXlmcmllbmRseXBjc3VwcG9ydEBnbWFpbC5jb20="></span>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ARLENE HARRIS - MISSING -->
+  <div class="client-group" data-status="missing" data-client="arlene harris camera security optiplex">
+    <div class="client-header" onclick="toggleClient(this)">
+      <div>
+        <div class="name"><span class="badge badge-yellow">&#9888; MISSING FROM QBO</span> Arlene Harris</div>
+        <div class="meta"><span>3 paid jobs NOT in QuickBooks</span><span>Likely paid by personal check</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="amount" style="color:var(--yellow)" onclick="openIncomeDetail(this,event)" title="Click to view details">$870.00 &#8599;</div>
+        <div class="meta">gross / $385.00 net labor</div>
+      </div>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="client-body">
+      <table class="tx-table">
+        <tr><th>Date Paid</th><th>Job #</th><th>Description</th><th>Gross</th><th>Parts</th><th>Net Labor</th><th>Status</th></tr>
+        <tr>
+          <td>6/13/2022</td><td>1389</td>
+          <td>Remote diagnoses &mdash; "I didn't even bill her and she sent me a check"</td>
+          <td>$90.00</td><td>$20.00</td><td style="color:var(--yellow);font-weight:700">$70.00</td>
+          <td><span class="badge badge-yellow">&#9888; NOT IN QBO</span></td>
+        </tr>
+        <tr>
+          <td>6/18/2022</td><td>1390</td>
+          <td>New Computer purchase &mdash; Optiplex 7040 ($300 cost, $120 advance received)</td>
+          <td>$400.00</td><td>$300.00</td><td style="color:var(--yellow);font-weight:700">$100.00</td>
+          <td><span class="badge badge-yellow">&#9888; NOT IN QBO</span></td>
+        </tr>
+        <tr>
+          <td>8/31/2022</td><td>1397</td>
+          <td>Tech support + smart security camera setup &mdash; half rate $40/hr ($165 camera parts, $1,600 advance noted)</td>
+          <td>$380.00</td><td>$165.00</td><td style="color:var(--yellow);font-weight:700">$215.00</td>
+          <td><span class="badge badge-yellow">&#9888; NOT IN QBO</span></td>
+        </tr>
+        <tr style="background:rgba(251,191,36,.05)">
+          <td colspan="3" style="font-weight:700">TOTAL MISSING 2022 INCOME</td>
+          <td style="font-weight:700;color:var(--yellow)">$870.00</td>
+          <td style="font-weight:700">$485.00</td>
+          <td style="font-weight:700;color:var(--yellow)">$385.00</td>
+          <td></td>
+        </tr>
+      </table>
+      <div style="padding:12px 14px;font-size:12px;color:var(--muted);background:rgba(15,23,42,.3)">
+        <strong>Action required:</strong> These appear in tech_work_ledger.csv as PAID but are completely absent from QBO FINAL_MASTER.
+        Check deposits likely appear as generic "DEPOSIT" or "MOBILE DEPOSIT" in Chase Checkings.
+        Also has Invoice #221405 ($529.98) paid 1/31/2023 = 2023 income (not shown here).
+        Long-time client since 12/17/2016 (Job 1174, Microsoft scam repair).
+      </div>
+    </div>
+  </div>
+
+  <!-- AMERICAN RESTORATION - UNPAID -->
+  <div class="client-group" data-status="unpaid" data-client="american restoration john stoddard homes salem">
+    <div class="client-header" onclick="toggleClient(this)">
+      <div>
+        <div class="name"><span class="badge badge-red">&#10060; UNPAID</span> American Restoration (John Stoddard)</div>
+        <div class="meta"><span>Invoices #1399, #1385, #1372</span><span>Reminder sent 10/16/2023 &mdash; still outstanding</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="amount" style="color:var(--red)" onclick="openIncomeDetail(this,event)" title="Click to view details">$730.00 &#8599;</div>
+        <div class="meta">NOT income (never collected)</div>
+      </div>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="client-body">
+      <table class="tx-table">
+        <tr><th>Date</th><th>Job #</th><th>Description</th><th>Amount</th><th>Status</th></tr>
+        <tr>
+          <td>8/16/2021</td><td>1372</td><td>Wi-Fi Issues</td><td>$80.00</td>
+          <td><span class="badge badge-red">UNPAID</span></td>
+        </tr>
+        <tr>
+          <td>11/19/2021</td><td>1385</td><td>Chris' laptop hard drive file loss ($60 parts)</td><td>$360.00</td>
+          <td><span class="badge badge-red">UNPAID</span></td>
+        </tr>
+        <tr>
+          <td>6/23/2022</td><td>1399</td><td>Chris' Keyboard</td><td>$240.00</td>
+          <td><span class="badge badge-red">UNPAID</span></td>
+        </tr>
+      </table>
+      <div style="padding:12px 14px;font-size:12px;color:var(--muted);background:rgba(15,23,42,.3)">
+        Address: 3646 Candlewood CT NE. "Able to pay yet?" reminder sent to <span data-e="YW1lcmljYW5yZXN0b3JhdGlvbkBnbWFpbC5jb20="></span> on 10/16/2023.
+        Cash basis: No income recognized until payment received. This is NOT 2022 income.
+        Potential bad debt write-off if uncollectable (must have been previously reported as income to deduct).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MISSING INCOME TRACKER ===== -->
+<div class="section" id="sec-missing">
+  <h2>&#9888; Missing Income Tracker &mdash; Not in QBO</h2>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:16px">These income entries exist in the tech work ledger or Trello but are NOT in QuickBooks. They need to be added to the books before filing.</p>
+
+  <h3>From Email Cross-Reference (Arlene Harris)</h3>
+  <div class="recon-grid">
+    <div class="recon-card" style="border-color:var(--yellow)">
+      <h4>Job 1389 &mdash; Remote Diagnoses <span class="badge badge-yellow">$90</span></h4>
+      <div class="recon-row"><span>Date Paid</span><span>6/13/2022</span></div>
+      <div class="recon-row"><span>Parts Cost</span><span>$20.00</span></div>
+      <div class="recon-row"><span>Net Labor</span><span style="color:var(--yellow);font-weight:700">$70.00</span></div>
+      <div class="recon-row"><span>Payment Method</span><span>Personal check (unsolicited)</span></div>
+      <div class="recon-row"><span>In QBO?</span><span style="color:var(--red)">&#10060; No</span></div>
+      <div class="recon-row"><span>In Tech Ledger?</span><span style="color:var(--green)">&#9989; Yes</span></div>
+      <div class="recon-row"><span>In Bank Records?</span><span style="color:var(--muted)">&#10067; Unknown (generic deposit)</span></div>
+    </div>
+    <div class="recon-card" style="border-color:var(--yellow)">
+      <h4>Job 1390 &mdash; Computer Sale <span class="badge badge-yellow">$400</span></h4>
+      <div class="recon-row"><span>Date Paid</span><span>6/18/2022</span></div>
+      <div class="recon-row"><span>Parts Cost</span><span>$300.00 (Optiplex 7040)</span></div>
+      <div class="recon-row"><span>Net Labor</span><span style="color:var(--yellow);font-weight:700">$100.00</span></div>
+      <div class="recon-row"><span>Payment Method</span><span>Check or cash ($120 advance)</span></div>
+      <div class="recon-row"><span>In QBO?</span><span style="color:var(--red)">&#10060; No</span></div>
+      <div class="recon-row"><span>In Tech Ledger?</span><span style="color:var(--green)">&#9989; Yes</span></div>
+      <div class="recon-row"><span>In Bank Records?</span><span style="color:var(--muted)">&#10067; Unknown</span></div>
+    </div>
+    <div class="recon-card" style="border-color:var(--yellow)">
+      <h4>Job 1397 &mdash; Camera Setup <span class="badge badge-yellow">$380</span></h4>
+      <div class="recon-row"><span>Date Paid</span><span>8/31/2022</span></div>
+      <div class="recon-row"><span>Parts Cost</span><span>$165.00 (security cameras)</span></div>
+      <div class="recon-row"><span>Net Labor</span><span style="color:var(--yellow);font-weight:700">$215.00</span></div>
+      <div class="recon-row"><span>Payment Method</span><span>Check ($40/hr half rate)</span></div>
+      <div class="recon-row"><span>In QBO?</span><span style="color:var(--red)">&#10060; No</span></div>
+      <div class="recon-row"><span>In Tech Ledger?</span><span style="color:var(--green)">&#9989; Yes</span></div>
+      <div class="recon-row"><span>In Outlook?</span><span style="color:var(--green)">&#9989; Invoice sent 8/27</span></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">From Trello Missing Entries (2022 Only)</h3>
+  <div class="recon-grid">
+    <div class="recon-card" style="border-color:var(--orange)">
+      <h4>Kelley Haganauer <span class="badge badge-yellow">$280</span></h4>
+      <div class="recon-row"><span>Date</span><span>Dec 22, 2022</span></div>
+      <div class="recon-row"><span>Source</span><span>Trello board (confirmed missing)</span></div>
+      <div class="recon-row"><span>In QBO?</span><span style="color:var(--red)">&#10060; No</span></div>
+      <div class="recon-row"><span>Note</span><span>Only 2022 entry from 12 Trello missing</span></div>
+    </div>
+  </div>
+
+  <!-- MISSING TOTALS -->
+  <div style="margin-top:20px;padding:16px;background:rgba(251,191,36,.08);border:1px solid var(--yellow);border-radius:10px">
+    <table class="sum-table">
+      <tr><th>Source</th><th>Entries</th><th>Gross</th><th>Parts</th><th>Net Labor</th></tr>
+      <tr><td>Arlene Harris (email cross-ref)</td><td>3</td><td>$870.00</td><td>$485.00</td><td>$385.00</td></tr>
+      <tr><td>Kelley Haganauer (Trello)</td><td>1</td><td>$280.00</td><td>&mdash;</td><td>$280.00</td></tr>
+      <tr class="total-row"><td>TOTAL MISSING 2022 INCOME</td><td>4</td><td style="color:var(--yellow)">$1,150.00</td><td>$485.00</td><td style="color:var(--yellow)">$665.00</td></tr>
+    </table>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px">
+      &#9888; Full tech_work_ledger-to-QBO reconciliation may reveal additional gaps. This only covers email-sourced and Trello-sourced findings.
+    </div>
+  </div>
+</div>
+
+<!-- ===== RECONCILIATION MATRIX ===== -->
+<div class="section" id="sec-recon">
+  <h2>&#128269; Cross-Reference Reconciliation Matrix</h2>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Shows which data sources confirm each income item. Green = verified, Red = absent.</p>
+
+  <table class="tx-table">
+    <tr>
+      <th>Client</th><th>Amount</th><th>Outlook Email</th><th>QBO FINAL_MASTER</th><th>Tech Ledger</th><th>Chase Bank</th><th>A/R CSV</th><th>Verdict</th>
+    </tr>
+    <tr>
+      <td>Angie Herrmann</td><td>$130</td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-muted">&#8211;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">TRACKED</span></td>
+    </tr>
+    <tr>
+      <td>Heidi Ostrom ($435)</td><td>$435</td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-muted">&#8211;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">TRACKED</span></td>
+    </tr>
+    <tr>
+      <td>Heidi Ostrom ($481.50)</td><td>$481.50</td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-muted">&#8211;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">TRACKED</span></td>
+    </tr>
+    <tr>
+      <td>AGT Mortgage</td><td>$2,000</td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-green">TRACKED</span></td>
+    </tr>
+    <tr style="background:rgba(251,191,36,.05)">
+      <td>Arlene Harris ($90)</td><td>$90</td>
+      <td><span class="badge badge-muted">&#8211;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-muted">&#10067;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-yellow">MISSING</span></td>
+    </tr>
+    <tr style="background:rgba(251,191,36,.05)">
+      <td>Arlene Harris ($400)</td><td>$400</td>
+      <td><span class="badge badge-muted">&#8211;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-muted">&#10067;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-yellow">MISSING</span></td>
+    </tr>
+    <tr style="background:rgba(251,191,36,.05)">
+      <td>Arlene Harris ($380)</td><td>$380</td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-muted">&#10067;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-yellow">MISSING</span></td>
+    </tr>
+    <tr style="background:rgba(248,113,113,.05)">
+      <td>American Restoration</td><td>$730</td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-green">&#9989;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-red">&#10060;</span></td>
+      <td><span class="badge badge-red">UNPAID</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ===== TIMELINE ===== -->
+<div class="section" id="sec-timeline">
+  <h2>&#128197; 2022 Income Timeline &mdash; Full Ledger (22 Jobs + 1 Unpaid)</h2>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:16px">All tech service invoices from the FPCS Work Ledger. Sorted by date paid. <span style="color:var(--green)">&#9679;</span> In QBO &nbsp; <span style="color:var(--yellow)">&#9679;</span> NOT in QBO &nbsp; <span style="color:var(--accent)">&#9679;</span> Year-gap &nbsp; <span style="color:var(--red)">&#9679;</span> Unpaid</p>
+
+  <div class="timeline">
+    <!-- 2021 work, 2022 pay -->
+    <div class="tl-item tl-blue">
+      <div class="tl-date">Jan 21, 2022</div>
+      <div class="tl-content">&#128260; Inv#1374 Accounting Applications Inc &mdash; Surface Pro setup, Tracy's laptop, WiFi extender <span class="tl-amount">$304.72</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Parts: $104.72 | Discount: $180 | Net: $200 | <em>2021 work &rarr; 2022 pay</em></div>
+      </div>
+    </div>
+    <!-- March 2022 -->
+    <div class="tl-item tl-green">
+      <div class="tl-date">Mar 1, 2022</div>
+      <div class="tl-content">&#9989; Inv#1384 Heather (Dawn's daughter) &mdash; Virus removal/cleanup, fan repair <span class="tl-amount" style="color:var(--muted)">$0.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $200 (free work) | Net: $0</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Mar 1, 2022</div>
+      <div class="tl-content">&#9989; Inv#1385 Melissa Phillips &mdash; Hard drive recovery + Dell Latitude 7470 purchase <span class="tl-amount">$340.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $200 | Net: $340</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Mar 1, 2022</div>
+      <div class="tl-content">&#9989; Inv#1386 Preston Cary &mdash; Diagnostic fee for failing hard drive <span class="tl-amount">$25.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $60 | Net: $25</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Mar 21, 2022</div>
+      <div class="tl-content">&#9989; Inv#1387 Bob &amp; Heidi Ostrom &mdash; Virus repair and maintenance <span class="tl-amount">$235.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Contract: $20 | Net: $215</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Mar 31, 2022</div>
+      <div class="tl-content">&#9989; Inv#1388 Deb Lentz &mdash; New laptop file transfer <span class="tl-amount">$75.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Net: $75</div>
+      </div>
+    </div>
+    <!-- April 2022 -->
+    <div class="tl-item tl-green">
+      <div class="tl-date">Apr 25, 2022</div>
+      <div class="tl-content">&#9989; Inv#1384 Trey Profili &mdash; Windows 10 downgrade to fix slowness <span class="tl-amount" style="color:var(--muted)">$0.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Parts: $60 | Discount: $240 | Net: -$60</div>
+      </div>
+    </div>
+    <!-- June 2022 -->
+    <div class="tl-item tl-green">
+      <div class="tl-date">Jun 8, 2022</div>
+      <div class="tl-content">&#9989; Inv#1386.2 Alice Gibbs &mdash; iPad factory reset + MP3 player setup <span class="tl-amount">$80.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $120 | Net: $80</div>
+      </div>
+    </div>
+    <div class="tl-item tl-yellow">
+      <div class="tl-date">Jun 13, 2022</div>
+      <div class="tl-content">&#9888; Inv#1389 Arlene Harris &mdash; Remote diagnoses (unsolicited check) <span class="tl-amount missing">$90.00</span>
+        <div style="font-size:11px;color:var(--red);margin-top:2px">&#10060; NOT IN QBO | Contract: $20 | Net: $70</div>
+      </div>
+    </div>
+    <div class="tl-item tl-yellow">
+      <div class="tl-date">Jun 18, 2022</div>
+      <div class="tl-content">&#9888; Inv#1390 Arlene Harris &mdash; Optiplex 7040 computer sale <span class="tl-amount missing">$400.00</span>
+        <div style="font-size:11px;color:var(--red);margin-top:2px">&#10060; NOT IN QBO | Parts: $300 (COGS resale) | Discount: $120 | Net: $100</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Jun 22, 2022</div>
+      <div class="tl-content">&#9989; Inv#1391 Anthony Shefeld &mdash; Optiplex 7050 setup + tip <span class="tl-amount">$174.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Net: $174 (includes tip)</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Jun 27, 2022</div>
+      <div class="tl-content">&#9989; Inv#1394 Paul Beutler &mdash; SSD replacement <span class="tl-amount">$100.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Parts: $30 | Discount: $5 | Net: $70</div>
+      </div>
+    </div>
+    <!-- July 2022 -->
+    <div class="tl-item tl-green">
+      <div class="tl-date">Jul 14, 2022</div>
+      <div class="tl-content">&#9989; Inv#1395 Angie Herrmann &mdash; Laptop screen flicker, cable reseat <span class="tl-amount">$120.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $1,019 | Net: $120</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Jul 29, 2022</div>
+      <div class="tl-content">&#9989; Inv#1396 Patti Beutler &mdash; MacBook file transfer (+ $10 tip) <span class="tl-amount">$70.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Net: $70</div>
+      </div>
+    </div>
+    <!-- August 2022 -->
+    <div class="tl-item tl-yellow">
+      <div class="tl-date">Aug 31, 2022</div>
+      <div class="tl-content">&#9888; Inv#1397 Arlene Harris &mdash; Security camera system setup <span class="tl-amount missing">$380.00</span>
+        <div style="font-size:11px;color:var(--red);margin-top:2px">&#10060; NOT IN QBO | Parts: $165 | Discount: $1,600 | Net: $215</div>
+      </div>
+    </div>
+    <!-- September 2022 -->
+    <div class="tl-item tl-green">
+      <div class="tl-date">Sep 19, 2022</div>
+      <div class="tl-content">&#9989; Inv#1398 Bob &amp; Heidi Ostrom &mdash; Doorbell cam + tech support <span class="tl-amount">$420.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Parts: $140 | Discount: $80 | Net: $280</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Sep 21, 2022</div>
+      <div class="tl-content">&#9989; Inv#1400 Kris Slivkoff &mdash; Laptop reinstall, faulty keyboard replacement <span class="tl-amount">$60.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $400 | Net: $60</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Sep 24, 2022</div>
+      <div class="tl-content">&#9989; Inv#1401 Siroj &mdash; Brother printer WiFi connection <span class="tl-amount">$60.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $20 | Net: $60</div>
+      </div>
+    </div>
+    <!-- November 2022 -->
+    <div class="tl-item tl-green">
+      <div class="tl-date">Nov 14, 2022</div>
+      <div class="tl-content">&#9989; Inv#1403 Kris Slivkoff &mdash; Touchpad replacement (donated 7480 laptop) <span class="tl-amount">$70.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $400 | Net: $70</div>
+      </div>
+    </div>
+    <!-- December 2022 -->
+    <div class="tl-item tl-green">
+      <div class="tl-date">Dec 11, 2022</div>
+      <div class="tl-content">&#9989; Inv#1404 Lisa Bader &mdash; Memory + hard drive upgrade &amp; maintenance <span class="tl-amount">$170.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Discount: $25 | Net: $170</div>
+      </div>
+    </div>
+    <div class="tl-item tl-green">
+      <div class="tl-date">Dec 11, 2022</div>
+      <div class="tl-content">&#9989; AGT Mortgage &mdash; First payment on $12K hacker incident <span class="tl-amount">$2,000.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Via QBO/Chase deposit</div>
+      </div>
+    </div>
+    <div class="tl-item tl-blue">
+      <div class="tl-date">Dec 22, 2022</div>
+      <div class="tl-content">&#9888; Kelley Haganauer &mdash; Trello confirmed missing entry <span class="tl-amount missing">$280.00</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Source: Trello board (not in ledger)</div>
+      </div>
+    </div>
+    <!-- UNPAID -->
+    <div class="tl-item" style="border-color:var(--red)">
+      <div class="tl-date" style="color:var(--red)">Unpaid</div>
+      <div class="tl-content">&#10060; Inv#1399 American Restoration &mdash; Chris' keyboard <span class="tl-amount" style="color:var(--red)">$240.00</span>
+        <div style="font-size:11px;color:var(--red);margin-top:2px">INVOICED, NOT PAID | Discount: $210</div>
+      </div>
+    </div>
+    <!-- 2022 work, 2023 pay -->
+    <div class="tl-item tl-blue">
+      <div class="tl-date">Jan 31, 2023</div>
+      <div class="tl-content">&#128260; Inv#1405 Arlene Harris &mdash; Email hacked, cameras, printer <span class="tl-amount" style="color:var(--accent)">$529.98</span>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px">2022 work &rarr; 2023 pay | Parts: $129.98 (deductible 2022) | Net: $400 | &#10060; NOT IN QBO</div>
+      </div>
+    </div>
+    <div class="tl-item tl-blue">
+      <div class="tl-date">Feb 9, 2023</div>
+      <div class="tl-content">&#128260; Inv#1406 AGT Mortgage &mdash; Hacker incident continued payment <span class="tl-amount" style="color:var(--accent)">$2,000.00</span>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px">2022 work &rarr; 2023 pay | Income is 2023</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary bar -->
+  <div style="margin-top:20px;padding:16px;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:12px;font-size:13px">
+    <strong>Ledger Totals (2022 paid):</strong> 20 paid jobs | Gross: $3,173.72 | Parts: $524.98 | Contract: $40.00 | Discounts: $4,699.00<br>
+    <strong style="color:var(--red)">Missing from QBO:</strong> 3 Arlene Harris jobs ($870.00 gross, $465.00 parts)<br>
+    <strong style="color:var(--accent)">Year-gap (2022 work &rarr; 2023 pay):</strong> 2 jobs ($2,529.98) &mdash; income is 2023, but $129.98 parts deductible on 2022
+  </div>
+</div>
+
+<!-- ===== ALL RECORDS FROM SHEETS ===== -->
+<div class="section" id="sec-allrecords">
+  <h2>&#128202; All Income Records &mdash; Live from Google Sheets</h2>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Every income transaction from FINAL_MASTER. Loaded live from the Google Sheet database. Click column headers to sort.</p>
+
+  <!-- Live income summary (populated after data load) -->
+  <div id="incLiveSummary" style="display:none;margin-bottom:16px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:130px;padding:12px;background:var(--bg);border-radius:8px;text-align:center;border:1px solid var(--border)">
+        <div style="font-size:18px;font-weight:700;font-family:'Courier New',monospace;color:var(--green)" id="incLiveGross">--</div>
+        <div style="font-size:10px;text-transform:uppercase;color:var(--muted);margin-top:4px">Total Gross Income</div>
+      </div>
+      <div style="flex:1;min-width:130px;padding:12px;background:var(--bg);border-radius:8px;text-align:center;border:1px solid var(--border)">
+        <div style="font-size:18px;font-weight:700;font-family:'Courier New',monospace;color:var(--red)" id="incLiveExpense">--</div>
+        <div style="font-size:10px;text-transform:uppercase;color:var(--muted);margin-top:4px">Total Expenses</div>
+      </div>
+      <div style="flex:1;min-width:130px;padding:12px;background:var(--bg);border-radius:8px;text-align:center;border:1px solid var(--border)">
+        <div style="font-size:18px;font-weight:700;font-family:'Courier New',monospace;color:var(--accent)" id="incLiveCount">--</div>
+        <div style="font-size:10px;text-transform:uppercase;color:var(--muted);margin-top:4px">Total Records</div>
+      </div>
+      <div style="flex:1;min-width:130px;padding:12px;background:var(--bg);border-radius:8px;text-align:center;border:1px solid rgba(251,191,36,.3)">
+        <div style="font-size:18px;font-weight:700;font-family:'Courier New',monospace;color:var(--yellow)" id="incLiveMissing">$870</div>
+        <div style="font-size:10px;text-transform:uppercase;color:var(--yellow);margin-top:4px">Missing from QBO</div>
+      </div>
+    </div>
+  </div>
+  <!-- Data freshness -->
+  <div id="incDataFreshness" style="display:none;font-size:11px;color:var(--muted);margin-bottom:12px;align-items:center;gap:6px">
+    <span id="incFreshnessIcon" style="color:var(--green)">&#9679;</span>
+    <span id="incFreshnessText">Data loaded just now</span>
+  </div>
+
+  <div class="records-controls">
+    <button class="filter-btn active" onclick="filterRecords('all',this)">All</button>
+    <button class="filter-btn f-green" onclick="filterRecords('income',this)">Income</button>
+    <button class="filter-btn f-red" onclick="filterRecords('expense',this)">Expense</button>
+    <button class="filter-btn f-yellow" onclick="filterRecords('transfer',this)">Transfer</button>
+    <input type="text" class="search-input" placeholder="Search all records..." oninput="searchRecords(this.value)" style="max-width:260px">
+    <span class="records-count" id="recordsCount">Loading...</span>
+  </div>
+
+  <div id="recordsLoading" class="loading-indicator">
+    <div class="loading-spinner"></div>
+    <span>Loading income records...</span>
+  </div>
+
+  <div id="recordsContainer" style="display:none;overflow-x:auto">
+    <table class="records-table">
+      <thead>
+        <tr id="recordsHeader"></tr>
+      </thead>
+      <tbody id="recordsBody"></tbody>
+    </table>
+    <div class="records-pager" id="recordsPager"></div>
+  </div>
+
+  <div id="recordsError" style="display:none;padding:24px;color:var(--yellow);font-size:14px;text-align:center">
+    <p>&#9888; Google Sheets not connected &mdash; data will load from Firestore once configured.</p>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px">Income records require a data source. Connect Sheets or enable Firestore to view records. <button onclick="window._sheetsRetryCount=0;loadAllRecords()" style="color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline">Retry Sheets</button></p>
+  </div>
+</div>
+
+<!-- ===== OPEN QUESTIONS ===== -->
+<div class="section">
+  <h2>&#10067; Open Questions for Commander</h2>
+  <div style="display:grid;gap:12px">
+    <div class="recon-card">
+      <h4>1. Arlene Harris Check Deposits</h4>
+      <p style="font-size:13px;color:var(--muted)">Did you deposit Arlene's checks into Chase Checkings? They'd appear as generic "DEPOSIT" or "MOBILE DEPOSIT" &mdash; can you identify which deposits correspond to $90 (June), $400 (June), and $380 (Aug)?</p>
+    </div>
+    <div class="recon-card">
+      <h4>2. AGT Mortgage $2,000 Timing</h4>
+      <p style="font-size:13px;color:var(--muted)">Tech work ledger says AGT paid on 2/9/2023, but Chase shows $2,000 on 12/11/2022. Was there perhaps TWO $2,000 payments? Or is the ledger date wrong?</p>
+    </div>
+    <div class="recon-card">
+      <h4>3. Full Ledger Reconciliation</h4>
+      <p style="font-size:13px;color:var(--muted)">The tech_work_ledger has 22 verified 2022 entries totaling $5,464.98 gross. Want me to cross-reference ALL of them against QBO to find every missing entry?</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+</div><!-- /dashContent -->
+
+<script>
+// === INTERACTIVE FUNCTIONS ===
+function toggleClient(header) {
+  header.classList.toggle('open');
+  var body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function filterClients(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.client-group').forEach(function(g){
+    if(status === 'all') { g.style.display = ''; return; }
+    g.style.display = g.dataset.status === status ? '' : 'none';
+  });
+}
+
+function searchClients(query) {
+  var q = query.toLowerCase();
+  document.querySelectorAll('.client-group').forEach(function(g){
+    if(!q) { g.style.display = ''; return; }
+    var text = g.dataset.client + ' ' + g.textContent.toLowerCase();
+    g.style.display = text.indexOf(q) !== -1 ? '' : 'none';
+  });
+}
+
+function scrollToSection(id) {
+  var el = document.getElementById(id);
+  if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+<script>
+  window.FPCS_PAGE = {
+    name: 'Income Drill-Down',
+    theme: 'theme-income'
+  };
+  window.FPCS_NAV = {
+    active: 'income',
+    sections: [
+      { icon: '&#128200;', label: 'Summary',        href: '#sec-summary' },
+      { icon: '&#128101;', label: 'By Client',      href: '#sec-clients' },
+      { icon: '&#9888;',   label: 'Missing Income', href: '#sec-missing' },
+      { icon: '&#128269;', label: 'Reconciliation',  href: '#sec-recon' },
+      { icon: '&#128197;', label: 'Timeline',       href: '#sec-timeline' },
+      { icon: '&#128202;', label: 'All Records',    href: '#sec-allrecords' }
+    ]
+  };
+</script>
+<script>
+// === LIVE DATA FROM GOOGLE SHEETS ===
+var allRecords = [];
+var filteredRecords = [];
+var currentPage = 0;
+var pageSize = 50;
+var sortCol = -1;
+var sortDir = 1;
+var activeFilter = 'all';
+var searchQuery = '';
+
+// Column config — map sheet columns to display
+var displayCols = [
+  { key: 0, label: 'Date', width: '80px' },
+  { key: 1, label: 'Type', width: '70px' },
+  { key: 2, label: 'Num', width: '60px' },
+  { key: 3, label: 'Name', width: '150px', wrap: true },
+  { key: 4, label: 'Memo/Description', width: '200px', wrap: true },
+  { key: 5, label: 'Account', width: '120px' },
+  { key: 6, label: 'Amount', width: '90px', numeric: true }
+];
+
+function loadAllRecords() {
+  var loading = document.getElementById('recordsLoading');
+  var container = document.getElementById('recordsContainer');
+  var errorDiv = document.getElementById('recordsError');
+
+  loading.style.display = 'flex';
+  container.style.display = 'none';
+  errorDiv.style.display = 'none';
+
+  // === PRIORITY 1: Firestore (primary database) ===
+  if (window.FPCSFirestore && FPCSFirestore.isReady()) {
+    console.log('[Income] Loading from Firestore...');
+    FPCSFirestore.getTransactions({}).then(function(docs) {
+      if (!docs || docs.length === 0) {
+        console.log('[Income] Firestore returned empty, trying Sheets...');
+        loadAllRecordsFromSheets();
+        return;
+      }
+
+      loading.style.display = 'none';
+
+      // Build synthetic headers and column map matching existing rendering
+      var headers = ['Date', 'Type', 'Num', 'Description', 'Notes', 'Category', 'Amount'];
+      var colMap = { date: 0, type: 1, num: 2, name: 3, memo: 4, account: 5, amount: 6 };
+
+      // Map Firestore objects → row arrays
+      var dataRows = docs.map(function(d) {
+        var row = [];
+        row[0] = d.date || '';
+        row[1] = d.data_type || d.type || '';
+        row[2] = d.invoice || d.id || '';
+        row[3] = d.description || d.customer || '';
+        row[4] = d.notes || '';
+        row[5] = d.tax_category || d.category || '';
+        var amt = parseFloat(String(d.amount || '0').replace(/[$,]/g, '')) || 0;
+        // Income = positive, Expense = negative (for display consistency)
+        if ((d.direction === 'Expense' || d.direction === 'expense') && amt > 0) amt = -amt;
+        row[6] = String(amt);
+        return row;
+      });
+
+      // Build display columns
+      displayCols = [];
+      var colOrder = ['date', 'type', 'num', 'name', 'memo', 'account', 'amount'];
+      colOrder.forEach(function(key) {
+        if (colMap[key] !== undefined) {
+          var isWrap = key === 'name' || key === 'memo';
+          var isNum = key === 'amount';
+          displayCols.push({ key: colMap[key], label: headers[colMap[key]], wrap: isWrap, numeric: isNum });
+        }
+      });
+
+      console.log('[Income] Loaded ' + dataRows.length + ' records from Firestore');
+
+      allRecords = dataRows;
+      applyFilters();
+      renderRecordsHeader();
+      container.style.display = 'block';
+      updateLiveStats(dataRows, colMap);
+
+    }).catch(function(err) {
+      console.warn('[Income] Firestore load error, falling back to Sheets:', err.message || err);
+      loadAllRecordsFromSheets();
+    });
+    return;
+  }
+
+  // === PRIORITY 2: Google Sheets (legacy fallback) ===
+  loadAllRecordsFromSheets();
+}
+
+function loadAllRecordsFromSheets() {
+  var loading = document.getElementById('recordsLoading');
+  var container = document.getElementById('recordsContainer');
+  var errorDiv = document.getElementById('recordsError');
+
+  if (!window._sheetsRetryCount) window._sheetsRetryCount = 0;
+  if (!window.FPCSSheets || !window.FPCSSheets.isReady()) {
+    window._sheetsRetryCount++;
+    if (window._sheetsRetryCount > 3) {
+      loading.style.display = 'none';
+      errorDiv.style.display = 'block';
+      console.warn('[Income] Sheets not available after 3 retries');
+      return;
+    }
+    var delay = Math.min(500 * Math.pow(2, window._sheetsRetryCount - 1), 4000);
+    setTimeout(loadAllRecordsFromSheets, delay);
+    return;
+  }
+  window._sheetsRetryCount = 0;
+
+  var TAB_NAMES = ['FINAL_MASTER', 'FPCS 2022 Master', 'Sheet1'];
+  var tabIdx = 0;
+
+  function tryNextTab() {
+    if (tabIdx >= TAB_NAMES.length) {
+      if (window.FPCSSheets.getSheetNames) {
+        return window.FPCSSheets.getSheetNames('TAX_MASTER').then(function(names) {
+          if (names && names.length > 0) {
+            console.log('[Income] Discovered tabs:', names);
+            return window.FPCSSheets.read('TAX_MASTER', names[0] + '!A1:Z');
+          }
+          return null;
+        });
+      }
+      return Promise.resolve(null);
+    }
+    var tabName = TAB_NAMES[tabIdx++];
+    return window.FPCSSheets.read('TAX_MASTER', tabName + '!A1:Z').then(function(rows) {
+      if (rows && rows.length >= 2) return rows;
+      return tryNextTab();
+    }).catch(function() {
+      return tryNextTab();
+    });
+  }
+
+  tryNextTab().then(function(rows) {
+    loading.style.display = 'none';
+
+    if (!rows || rows.length < 2) {
+      errorDiv.style.display = 'block';
+      errorDiv.querySelector('p').innerHTML = '&#9888; Sheet returned no data. Tried tabs: ' + TAB_NAMES.join(', ') + '. Check that the Google Sheet is shared (anyone with link).';
+      return;
+    }
+
+    var headers = rows[0];
+    var dataRows = rows.slice(1);
+
+    var colMap = {};
+    headers.forEach(function(h, i) {
+      var hl = (h || '').toLowerCase().trim();
+      if (hl.match(/date/)) colMap.date = i;
+      if (hl.match(/^type$|transaction.type/)) colMap.type = i;
+      if (hl.match(/^num$|number|ref|doc/)) colMap.num = i;
+      if (hl.match(/name|vendor|client|payee/)) colMap.name = i;
+      if (hl.match(/memo|desc|detail/)) colMap.memo = i;
+      if (hl.match(/account|category|class/)) colMap.account = i;
+      if (hl.match(/amount|total|sum/)) colMap.amount = i;
+      if (hl.match(/split/)) colMap.split = i;
+      if (hl.match(/deductible|deduct/)) colMap.deductible = i;
+    });
+
+    displayCols = [];
+    var colOrder = ['date', 'type', 'num', 'name', 'memo', 'account', 'amount'];
+    colOrder.forEach(function(key) {
+      if (colMap[key] !== undefined) {
+        var isWrap = key === 'name' || key === 'memo';
+        var isNum = key === 'amount';
+        displayCols.push({ key: colMap[key], label: headers[colMap[key]], wrap: isWrap, numeric: isNum });
+      }
+    });
+
+    headers.forEach(function(h, i) {
+      var alreadyMapped = false;
+      displayCols.forEach(function(dc) { if (dc.key === i) alreadyMapped = true; });
+      if (!alreadyMapped && h && h.trim()) {
+        displayCols.push({ key: i, label: h, wrap: false, numeric: false });
+      }
+    });
+
+    allRecords = dataRows;
+    applyFilters();
+    renderRecordsHeader();
+    container.style.display = 'block';
+    updateLiveStats(dataRows, colMap);
+
+  }).catch(function(err) {
+    loading.style.display = 'none';
+    errorDiv.style.display = 'block';
+    console.warn('[Income] Sheets load error:', err);
+  });
+}
+
+function updateLiveStats(rows, colMap) {
+  if (!colMap.amount) return;
+  var totalIncome = 0;
+  var totalExpense = 0;
+  var count = rows.length;
+
+  rows.forEach(function(row) {
+    var amt = parseFloat((row[colMap.amount] || '0').replace(/[$,]/g, ''));
+    if (!isNaN(amt)) {
+      if (amt > 0) totalIncome += amt;
+      else totalExpense += Math.abs(amt);
+    }
+  });
+
+  // Update stat card for total if it exists
+  var summaryStats = document.getElementById('sec-summary');
+  if (summaryStats) {
+    var liveCard = document.getElementById('liveDataCard');
+    if (!liveCard) {
+      liveCard = document.createElement('div');
+      liveCard.id = 'liveDataCard';
+      liveCard.className = 'stat-card accent';
+      liveCard.onclick = function() { scrollToSection('sec-allrecords'); };
+      summaryStats.appendChild(liveCard);
+    }
+    var dataSourceLabel = (window.FPCSFirestore && FPCSFirestore.isReady()) ? 'Firestore' : 'Google Sheets';
+    liveCard.innerHTML = '<div class="label">Live Data (All Records)</div>' +
+      '<div class="value" style="font-size:18px">' + count + ' rows</div>' +
+      '<div class="sub">From ' + dataSourceLabel + ' &bull; Click to view all</div>';
+  }
+
+  // Populate live summary cards
+  var liveSummary = document.getElementById('incLiveSummary');
+  if (liveSummary) {
+    liveSummary.style.display = 'block';
+    var elGross = document.getElementById('incLiveGross');
+    var elExpense = document.getElementById('incLiveExpense');
+    var elCount = document.getElementById('incLiveCount');
+    if (elGross) elGross.textContent = '$' + totalIncome.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    if (elExpense) elExpense.textContent = '$' + totalExpense.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    if (elCount) elCount.textContent = count;
+  }
+
+  // Data freshness indicator
+  var freshness = document.getElementById('incDataFreshness');
+  if (freshness) {
+    freshness.style.display = 'flex';
+    var iconEl = document.getElementById('incFreshnessIcon');
+    var textEl = document.getElementById('incFreshnessText');
+    var now = new Date();
+    var timeStr = now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+    if (textEl) textEl.textContent = 'Data loaded at ' + timeStr;
+    if (iconEl) iconEl.style.color = 'var(--green)';
+    setTimeout(function() {
+      if (iconEl) iconEl.style.color = 'var(--yellow)';
+      if (textEl) textEl.textContent = 'Data may be stale \u2014 loaded at ' + timeStr;
+    }, 120000);
+  }
+}
+
+function applyFilters() {
+  filteredRecords = allRecords.filter(function(row) {
+    // Type filter
+    if (activeFilter !== 'all') {
+      var type = (row[displayCols[1] ? displayCols[1].key : 1] || '').toLowerCase();
+      var amt = parseFloat((row[displayCols[displayCols.length > 6 ? 6 : displayCols.length - 1] ? row[displayCols[displayCols.length > 6 ? 6 : displayCols.length - 1].key] : '0').replace(/[$,]/g, ''));
+      if (activeFilter === 'income' && amt <= 0) return false;
+      if (activeFilter === 'expense' && amt >= 0) return false;
+      if (activeFilter === 'transfer' && !type.match(/transfer|xfer/i)) return false;
+    }
+    // Search filter
+    if (searchQuery) {
+      var text = row.join(' ').toLowerCase();
+      if (text.indexOf(searchQuery) === -1) return false;
+    }
+    return true;
+  });
+
+  // Sort if needed
+  if (sortCol >= 0 && sortCol < displayCols.length) {
+    var colKey = displayCols[sortCol].key;
+    var isNum = displayCols[sortCol].numeric;
+    filteredRecords.sort(function(a, b) {
+      var va = a[colKey] || '';
+      var vb = b[colKey] || '';
+      if (isNum) {
+        va = parseFloat(va.replace(/[$,]/g, '')) || 0;
+        vb = parseFloat(vb.replace(/[$,]/g, '')) || 0;
+      }
+      if (va < vb) return -1 * sortDir;
+      if (va > vb) return 1 * sortDir;
+      return 0;
+    });
+  }
+
+  currentPage = 0;
+  renderRecords();
+  document.getElementById('recordsCount').textContent = filteredRecords.length + ' of ' + allRecords.length + ' records';
+}
+
+function renderRecordsHeader() {
+  var thead = document.getElementById('recordsHeader');
+  var html = '';
+  displayCols.forEach(function(col, i) {
+    var arrow = sortCol === i ? (sortDir === 1 ? '\u25b2' : '\u25bc') : '\u25b2';
+    var sorted = sortCol === i ? ' sorted' : '';
+    html += '<th class="' + sorted + '" onclick="sortRecords(' + i + ')">' + col.label + ' <span class="sort-arrow">' + arrow + '</span></th>';
+  });
+  thead.innerHTML = html;
+}
+
+function renderRecords() {
+  var tbody = document.getElementById('recordsBody');
+  var start = currentPage * pageSize;
+  var end = Math.min(start + pageSize, filteredRecords.length);
+  var html = '';
+
+  for (var i = start; i < end; i++) {
+    var row = filteredRecords[i];
+    html += '<tr>';
+    displayCols.forEach(function(col) {
+      var val = row[col.key] || '';
+      var cls = col.wrap ? ' class="wrap"' : '';
+      var style = '';
+      if (col.numeric) {
+        var num = parseFloat(val.replace(/[$,]/g, ''));
+        if (!isNaN(num)) {
+          style = ' style="text-align:right;font-weight:600;color:' + (num >= 0 ? 'var(--green)' : 'var(--red)') + ';font-variant-numeric:tabular-nums"';
+          val = (num >= 0 ? '' : '-') + '$' + Math.abs(num).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+        }
+      }
+      html += '<td' + cls + style + '>' + escHtml(val) + '</td>';
+    });
+    html += '</tr>';
+  }
+
+  if (filteredRecords.length === 0) {
+    html = '<tr><td colspan="' + displayCols.length + '" style="text-align:center;padding:24px;color:var(--muted)">No matching records found</td></tr>';
+  }
+
+  tbody.innerHTML = html;
+  renderPager();
+}
+
+function renderPager() {
+  var pager = document.getElementById('recordsPager');
+  var totalPages = Math.ceil(filteredRecords.length / pageSize);
+  if (totalPages <= 1) { pager.innerHTML = ''; return; }
+
+  var html = '<button ' + (currentPage === 0 ? 'disabled' : '') + ' onclick="changePage(' + (currentPage - 1) + ')">&laquo; Prev</button>';
+  html += '<span class="page-info">Page ' + (currentPage + 1) + ' of ' + totalPages + '</span>';
+  html += '<button ' + (currentPage >= totalPages - 1 ? 'disabled' : '') + ' onclick="changePage(' + (currentPage + 1) + ')">&raquo; Next</button>';
+  pager.innerHTML = html;
+}
+
+function changePage(page) {
+  currentPage = page;
+  renderRecords();
+  document.getElementById('sec-allrecords').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function sortRecords(colIndex) {
+  if (sortCol === colIndex) {
+    sortDir *= -1;
+  } else {
+    sortCol = colIndex;
+    sortDir = 1;
+  }
+  renderRecordsHeader();
+  applyFilters();
+}
+
+function filterRecords(filter, btn) {
+  document.querySelectorAll('#sec-allrecords .filter-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  activeFilter = filter;
+  applyFilters();
+}
+
+function searchRecords(query) {
+  searchQuery = query.toLowerCase();
+  applyFilters();
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// Auto-load when auth completes
+document.addEventListener('fpcs-authed', function() {
+  setTimeout(loadAllRecords, 300);
+});
+// Fallback
+setTimeout(function() {
+  if (allRecords.length === 0) loadAllRecords();
+}, 4000);
+</script>
+<!-- Client Detail Modal -->
+<div class="inc-detail-overlay" id="incDetailOverlay" onclick="if(event.target===this)closeIncomeDetail()">
+  <div class="inc-detail-modal">
+    <div class="inc-detail-header">
+      <h3 id="incDetailTitle">Client</h3>
+      <span class="inc-detail-total" id="incDetailTotal">$0.00</span>
+      <button class="inc-detail-close" onclick="closeIncomeDetail()" title="Close">&times;</button>
+    </div>
+    <div class="inc-detail-body" id="incDetailBody"></div>
+    <div class="inc-detail-footer">
+      <span class="detail-meta" id="incDetailMeta"></span>
+      <button class="btn-sheets" onclick="openIncomeInSheets()" title="Open in Google Sheets">&#128196; View in Sheets</button>
+      <button class="btn-export" onclick="exportIncomeCSV()" title="Download as CSV">&#128229; Export CSV</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CLIENT DETAIL MODAL — Income drill-down per client
+// ============================================================
+var _incDetailClientEl = null;
+
+function openIncomeDetail(amountEl, event) {
+  if (event) event.stopPropagation();
+
+  var headerEl = amountEl.closest('.client-header');
+  var groupEl = headerEl.closest('.client-group');
+  _incDetailClientEl = groupEl;
+
+  // Extract client name
+  var nameEl = headerEl.querySelector('.name');
+  var clientName = nameEl ? nameEl.textContent.replace(/[^\x20-\x7E]/g, '').trim() : 'Client';
+  // Clean badge text from name
+  clientName = clientName.replace(/IN QBO|MISSING.*|UNPAID.*|NOT IN QBO/gi, '').trim();
+
+  // Extract amount
+  var amountText = amountEl.textContent.trim();
+
+  document.getElementById('incDetailTitle').textContent = clientName;
+  document.getElementById('incDetailTotal').textContent = amountText;
+
+  // Extract the table from client-body
+  var bodyEl = groupEl.querySelector('.client-body');
+  var tableEl = bodyEl ? bodyEl.querySelector('.tx-table') : null;
+  var noteEl = bodyEl ? bodyEl.querySelector('div[style*="background"]') : null;
+
+  var html = '';
+  if (tableEl) {
+    html += '<table class="inc-detail-table">';
+    // Copy the table contents
+    var rows = tableEl.querySelectorAll('tr');
+    rows.forEach(function(row, idx) {
+      if (idx === 0) {
+        html += '<thead><tr>';
+        row.querySelectorAll('th').forEach(function(th) {
+          html += '<th>' + th.innerHTML + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+      } else {
+        html += '<tr>';
+        row.querySelectorAll('td').forEach(function(td) {
+          html += '<td style="' + (td.getAttribute('style') || '') + '">' + td.innerHTML + '</td>';
+        });
+        html += '</tr>';
+      }
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="padding:24px;text-align:center;color:var(--muted)">No transaction details available for this client.</div>';
+  }
+
+  // Cross-ref note
+  if (noteEl) {
+    html += '<div class="inc-detail-note">' + noteEl.innerHTML + '</div>';
+  }
+
+  document.getElementById('incDetailBody').innerHTML = html;
+
+  // Meta
+  var status = groupEl.dataset.status || 'unknown';
+  var statusLabel = status === 'confirmed' ? 'In QBO' : (status === 'missing' ? 'Missing from QBO' : (status === 'unpaid' ? 'Unpaid' : status));
+  var statusColor = status === 'confirmed' ? 'var(--green)' : (status === 'missing' ? 'var(--yellow)' : (status === 'unpaid' ? 'var(--red)' : 'var(--muted)'));
+  document.getElementById('incDetailMeta').innerHTML = 'Status: <span style="color:' + statusColor + ';font-weight:600">' + statusLabel.toUpperCase() + '</span>';
+
+  // Show
+  document.getElementById('incDetailOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeIncomeDetail() {
+  document.getElementById('incDetailOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  _incDetailClientEl = null;
+}
+
+function openIncomeInSheets() {
+  if (!window.FPCSSheets || !window.FPCSSheets.isReady()) {
+    alert('Sheets module not ready. Please wait for data to load.');
+    return;
+  }
+  var sheetId = window.FPCSSheets.SHEETS ? window.FPCSSheets.SHEETS.TAX_MASTER : '';
+  if (sheetId) {
+    window.open('https://docs.google.com/spreadsheets/d/' + sheetId + '/edit', '_blank');
+  } else {
+    alert('Sheet ID not found. Cannot open Google Sheets.');
+  }
+}
+
+function exportIncomeCSV() {
+  if (!_incDetailClientEl) return;
+
+  var bodyEl = _incDetailClientEl.querySelector('.client-body');
+  var tableEl = bodyEl ? bodyEl.querySelector('.tx-table') : null;
+  if (!tableEl) return;
+
+  var csvRows = [];
+  var rows = tableEl.querySelectorAll('tr');
+  rows.forEach(function(row) {
+    var cells = row.querySelectorAll('th, td');
+    var csvCols = [];
+    cells.forEach(function(cell) {
+      var text = cell.textContent.replace(/"/g, '""').trim();
+      csvCols.push('"' + text + '"');
+    });
+    csvRows.push(csvCols.join(','));
+  });
+
+  var clientName = (document.getElementById('incDetailTitle').textContent || 'income').trim();
+  var blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'income-' + clientName.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('incDetailOverlay').classList.contains('open')) {
+    closeIncomeDetail();
+  }
+});
+</script>
+
+<!-- Email obfuscation decoder (prevents scraping from public repo) -->
+<script>document.querySelectorAll('[data-e]').forEach(function(el){el.textContent=atob(el.getAttribute('data-e'))});</script>
+
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/firestore-db.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>

@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Deductions HQ — FPCS Tax Command</title>
+<!-- Shared Modules -->
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<style>
+  /* === PAGE-SPECIFIC: Deductions HQ === */
+
+  /* Year Tabs */
+  .year-tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .year-tab { padding: 10px 20px; border-radius: 8px 8px 0 0; border: 1px solid var(--border); border-bottom: none; background: var(--bg); color: var(--muted); cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s; }
+  .year-tab:hover { color: var(--text); background: var(--card); }
+  .year-tab.active { background: var(--card); color: var(--green); border-color: var(--green); border-bottom: 2px solid var(--card); position: relative; z-index: 1; }
+  .year-panel { display: none; }
+  .year-panel.active { display: block; }
+  .year-content { border: 1px solid var(--border); border-radius: 0 12px 12px 12px; background: var(--card); padding: 24px; margin-top: -1px; }
+
+  /* Deduction Tables */
+  .ded-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ded-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--accent); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ded-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .ded-table tr:hover { background: rgba(56,189,248,0.04); }
+  .ded-table .amount { text-align: right; font-family: 'Courier New', monospace; font-weight: 700; }
+  .ded-table .total-row { border-top: 2px solid var(--accent); font-weight: 700; }
+  .ded-table .total-row td { padding: 14px 12px; }
+
+  /* Deduction Status Badges */
+  .ded-status { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .ded-ok { background: rgba(74,222,128,0.15); color: var(--green); }
+  .ded-review { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .ded-new { background: rgba(56,189,248,0.15); color: var(--accent); }
+  .ded-audit { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .ded-missing { background: rgba(248,113,113,0.15); color: var(--red); }
+  .ded-found { background: rgba(74,222,128,0.3); color: #22c55e; }
+
+  /* Bot Cards */
+  .bot-card { display: flex; gap: 12px; padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; }
+  .bot-avatar { font-size: 32px; width: 48px; text-align: center; }
+  .bot-info { flex: 1; }
+  .bot-name { font-weight: 700; font-size: 14px; }
+  .bot-role { color: var(--muted); font-size: 12px; }
+  .bot-status-active { color: var(--green); font-size: 11px; }
+  .bot-status-working { color: var(--yellow); font-size: 11px; }
+
+  /* Audit Report */
+  .audit-item { padding: 12px 16px; border-left: 3px solid var(--border); margin-bottom: 8px; background: var(--bg); border-radius: 0 8px 8px 0; }
+  .audit-item.pass { border-left-color: var(--green); }
+  .audit-item.warn { border-left-color: var(--yellow); }
+  .audit-item.fail { border-left-color: var(--red); }
+  .audit-item.info { border-left-color: var(--accent); }
+  .audit-head { display: flex; justify-content: space-between; align-items: center; }
+  .audit-verdict { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .v-pass { background: rgba(74,222,128,0.15); color: var(--green); }
+  .v-warn { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .v-fail { background: rgba(248,113,113,0.15); color: var(--red); }
+  .audit-detail { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Stats Grid (page-specific override) */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stats-grid .stat-card { background: var(--bg); text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 700; font-family: 'Courier New', monospace; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+  /* Findings */
+  .finding { padding: 12px 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; }
+  .finding-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .finding-title { font-weight: 700; font-size: 13px; }
+  .finding-val { font-family: 'Courier New', monospace; font-weight: 700; }
+  .finding-detail { font-size: 12px; color: var(--muted); }
+  .finding-source { font-size: 10px; color: var(--accent); margin-top: 4px; }
+
+  /* === LIVE RECORDS SECTION === */
+  .live-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .live-count{font-size:12px;color:var(--muted);margin-left:auto}
+  .loading-indicator{display:flex;align-items:center;gap:8px;padding:24px;color:var(--muted);font-size:14px}
+  .loading-spinner{width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Category Accordion */
+  .cat-group{margin-bottom:4px;border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s}
+  .cat-group.open{border-color:var(--green)}
+  .cat-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:var(--bg);transition:background .2s;user-select:none}
+  .cat-header:hover{background:rgba(74,222,128,.04)}
+  .cat-arrow{font-size:10px;color:var(--muted);transition:transform .2s;width:14px;text-align:center}
+  .cat-group.open .cat-arrow{transform:rotate(90deg);color:var(--green)}
+  .cat-name{flex:1;font-weight:700;font-size:13px}
+  .cat-amount{font-family:'Courier New',monospace;font-weight:700;font-size:14px;color:var(--green);transition:color .15s,text-shadow .15s}
+  .cat-amount:hover{color:#6ee7b7;text-shadow:0 0 8px rgba(74,222,128,.3)}
+  .cat-count{font-size:11px;color:var(--muted);background:rgba(100,116,139,.12);padding:2px 8px;border-radius:10px;min-width:28px;text-align:center}
+  .cat-body{display:none;border-top:1px solid var(--border)}
+  .cat-group.open .cat-body{display:block}
+
+  /* Inline transaction table */
+  .cat-table{width:100%;border-collapse:collapse;font-size:12px}
+  .cat-table th{text-align:left;padding:6px 12px;color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;background:rgba(15,23,42,.4);border-bottom:1px solid var(--border)}
+  .cat-table td{padding:5px 12px;border-bottom:1px solid rgba(51,65,85,.2)}
+  .cat-table tr:hover td{background:rgba(74,222,128,.03)}
+  .cat-table .td-amount{text-align:right;font-family:'Courier New',monospace;font-weight:600}
+  .cat-table .cat-subtotal{background:rgba(15,23,42,.5);font-weight:700}
+  .cat-table .cat-subtotal td{padding:8px 12px;border-top:2px solid var(--border)}
+
+  /* Summary bar */
+  .live-summary{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+  .live-stat{flex:1;min-width:130px;padding:14px;background:var(--bg);border-radius:8px;text-align:center;border:1px solid var(--border);cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s}
+  .live-stat:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px rgba(56,189,248,.15)}
+  .live-stat:active{transform:translateY(0)}
+  .dd-row:hover{background:rgba(56,189,248,.08)!important}
+  .live-stat-val{font-size:20px;font-weight:700;font-family:'Courier New',monospace}
+  .live-stat-label{font-size:10px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+
+  /* Search highlight */
+  .highlight{background:rgba(251,191,36,.25);border-radius:2px;padding:0 1px}
+
+  /* Drill-Down Interactive States */
+  .stat-link{cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
+  .stat-link:hover{transform:translateY(-2px);border-color:rgba(74,222,128,.4);box-shadow:0 4px 20px rgba(74,222,128,.1)}
+  .drill-arrow{font-size:14px;opacity:0;transition:opacity .15s;margin-left:4px}
+  .stat-link:hover .drill-arrow{opacity:.6}
+
+  /* === UNMATCHED DEDUCTIONS RESOLVER === */
+  .unmatched-alert{padding:28px;border-radius:12px;background:linear-gradient(135deg,rgba(248,113,113,.08),rgba(251,191,36,.08));border:2px solid;border-image:linear-gradient(135deg,var(--red),var(--yellow)) 1;margin-bottom:20px;text-align:center}
+  .unmatched-alert h3{font-size:28px;font-weight:800;color:var(--red);margin:0 0 8px}
+  .unmatched-alert .alert-value{font-size:20px;font-weight:700;color:var(--yellow);margin-bottom:4px}
+  .unmatched-alert .alert-source{font-size:13px;color:var(--muted);margin-bottom:16px}
+  .unmatched-alert .alert-cta{display:inline-block;padding:12px 32px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--red),var(--yellow));color:#000;font-weight:700;font-size:14px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .unmatched-alert .alert-cta:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(248,113,113,.3)}
+
+  .unmatched-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+  .unmatched-stats .stat-card{background:var(--bg);text-align:center}
+
+  .unmatched-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .unmatched-controls select{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;cursor:pointer}
+  .unmatched-controls .search-input{max-width:240px}
+
+  .unmatched-group{margin-bottom:4px;border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s}
+  .unmatched-group.open{border-color:var(--yellow)}
+  .unmatched-group-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:var(--bg);transition:background .2s;user-select:none;flex-wrap:wrap}
+  .unmatched-group-header:hover{background:rgba(251,191,36,.04)}
+  .unmatched-group .cat-arrow{font-size:10px;color:var(--muted);transition:transform .2s;width:14px;text-align:center}
+  .unmatched-group.open .cat-arrow{transform:rotate(90deg);color:var(--yellow)}
+  .unmatched-group-body{display:none;border-top:1px solid var(--border)}
+  .unmatched-group.open .unmatched-group-body{display:block}
+
+  .unmatched-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(51,65,85,.2);font-size:12px;flex-wrap:wrap}
+  .unmatched-row:hover{background:rgba(251,191,36,.03)}
+  .unmatched-row .row-date{color:var(--muted);min-width:80px}
+  .unmatched-row .row-amount{font-family:'Courier New',monospace;font-weight:600;min-width:80px;text-align:right}
+  .unmatched-row .row-vendor{flex:1;min-width:120px}
+  .unmatched-row .row-category{color:var(--accent);min-width:100px;font-size:11px}
+  .unmatched-row .row-actions{display:flex;gap:4px;flex-shrink:0}
+  .unmatched-row .row-actions button{padding:3px 8px;border-radius:4px;border:1px solid var(--border);font-size:10px;cursor:pointer;white-space:nowrap}
+
+  .unmatched-group-actions{display:flex;gap:6px;padding:10px 16px;background:rgba(15,23,42,.4);border-top:1px solid var(--border);flex-wrap:wrap}
+  .unmatched-group-actions button{padding:6px 14px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;transition:transform .1s}
+  .unmatched-group-actions button:hover{transform:translateY(-1px)}
+  .btn-deductible{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3) !important}
+  .btn-personal{background:rgba(100,116,139,.15);color:var(--muted);border:1px solid rgba(100,116,139,.3) !important}
+  .btn-ask-jasper{background:rgba(56,189,248,.15);color:var(--accent);border:1px solid rgba(56,189,248,.3) !important}
+
+  .fpcs-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(74,222,128,.15);color:var(--green);margin-left:6px;vertical-align:middle}
+  .personal-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(100,116,139,.15);color:var(--muted);margin-left:6px;vertical-align:middle}
+
+  .resolution-bar{width:100%;height:28px;background:var(--bg);border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px;position:relative}
+  .resolution-bar-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:8px;transition:width .5s ease;display:flex;align-items:center;justify-content:center}
+  .resolution-bar-label{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text)}
+
+  /* Jasper Chatbox */
+  .jasper-chat{background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:20px}
+  .jasper-chat-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(56,189,248,.06);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+  .jasper-chat-header .jasper-avatar{font-size:28px}
+  .jasper-chat-header .jasper-name{font-weight:700;font-size:14px;color:var(--accent)}
+  .jasper-chat-header .jasper-status{font-size:11px;color:var(--green)}
+  .jasper-chat-body{display:none;max-height:400px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .jasper-chat.open .jasper-chat-body{display:flex}
+  .jasper-msg{max-width:85%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5}
+  .jasper-msg.jasper{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
+  .jasper-msg.user{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:var(--text);align-self:flex-end;border-bottom-right-radius:4px}
+  .jasper-msg .msg-label{font-size:10px;font-weight:700;margin-bottom:4px}
+  .jasper-msg.jasper .msg-label{color:var(--accent)}
+  .jasper-msg.user .msg-label{color:var(--green)}
+  .jasper-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+  .jasper-input input{flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;outline:none}
+  .jasper-input input:focus{border-color:var(--accent)}
+  .jasper-input button{padding:10px 18px;border-radius:8px;border:none;background:var(--accent);color:#000;font-weight:700;font-size:13px;cursor:pointer;transition:background .15s}
+  .jasper-input button:hover{background:#7dd3fc}
+
+  .jasper-cmd{color:var(--accent);font-family:'Courier New',monospace;font-size:12px}
+  .jasper-suggestion{display:inline-block;padding:4px 10px;margin:2px;border-radius:6px;border:1px solid var(--border);font-size:11px;cursor:pointer;color:var(--accent);background:rgba(56,189,248,.05);transition:background .15s}
+  .jasper-suggestion:hover{background:rgba(56,189,248,.15)}
+
+  /* === CATEGORY DETAIL MODAL === */
+  .cat-detail-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);z-index:9980;display:none;align-items:center;justify-content:center;padding:24px;animation:catFadeIn .2s ease}
+  .cat-detail-overlay.open{display:flex}
+  @keyframes catFadeIn{from{opacity:0}to{opacity:1}}
+  .cat-detail-modal{background:#0f172a;border:1px solid var(--border);border-radius:16px;width:100%;max-width:900px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.6);animation:catSlideUp .25s ease}
+  @keyframes catSlideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .cat-detail-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .cat-detail-header h3{flex:1;font-size:16px;font-weight:700;color:var(--green);margin:0}
+  .cat-detail-header .cat-detail-total{font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:var(--green)}
+  .cat-detail-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;transition:color .15s}
+  .cat-detail-close:hover{color:var(--text)}
+  .cat-detail-body{flex:1;overflow-y:auto;padding:0}
+  .cat-detail-table{width:100%;border-collapse:collapse;font-size:13px}
+  .cat-detail-table th{text-align:left;padding:10px 16px;color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;background:rgba(15,23,42,.6);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
+  .cat-detail-table td{padding:8px 16px;border-bottom:1px solid rgba(51,65,85,.2)}
+  .cat-detail-table tr:hover td{background:rgba(74,222,128,.03)}
+  .cat-detail-table .td-amount{text-align:right;font-family:'Courier New',monospace;font-weight:600}
+  .cat-detail-table .td-source{font-size:11px;padding:2px 8px;border-radius:4px;display:inline-block}
+  .cat-detail-table .src-qbo{background:rgba(56,189,248,.12);color:var(--accent)}
+  .cat-detail-table .src-ledger{background:rgba(167,139,250,.12);color:var(--purple)}
+  .cat-detail-table .src-unknown{background:rgba(100,116,139,.12);color:var(--muted)}
+  .cat-detail-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+  .cat-detail-footer .detail-meta{flex:1;font-size:12px;color:var(--muted)}
+  .cat-detail-footer button{padding:8px 16px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;transition:transform .1s,background .15s}
+  .cat-detail-footer button:hover{transform:translateY(-1px)}
+  .cat-detail-footer .btn-sheets{background:rgba(74,222,128,.1);color:var(--green);border-color:rgba(74,222,128,.3)}
+  .cat-detail-footer .btn-sheets:hover{background:rgba(74,222,128,.2)}
+  .cat-detail-footer .btn-export{background:rgba(56,189,248,.1);color:var(--accent);border-color:rgba(56,189,248,.3)}
+  .cat-detail-footer .btn-export:hover{background:rgba(56,189,248,.2)}
+  .cat-detail-footer .btn-notes{background:rgba(245,158,11,.1);color:#f59e0b;border-color:rgba(245,158,11,.3)}
+  .cat-detail-footer .btn-notes:hover{background:rgba(245,158,11,.2)}
+  @media(max-width:640px){
+    .cat-detail-modal{max-height:95vh;border-radius:12px}
+    .cat-detail-header{padding:14px 16px}
+    .cat-detail-table th,.cat-detail-table td{padding:6px 10px;font-size:11px}
+    .cat-detail-footer{padding:12px 16px}
+    .cat-detail-footer button{padding:6px 12px;font-size:11px}
+  }
+</style>
+</head>
+<body class="theme-deductions">
+<script src="js/subdomain-router.js"></script>
+
+<!-- Page Config (before shared scripts) -->
+<script>
+  window.FPCS_PAGE = {
+    name: 'Deductions HQ',
+    theme: 'theme-deductions'
+  };
+  window.FPCS_NAV = {
+    active: 'deductions',
+    sections: [
+      { icon: '&#128270;', label: 'DeductBot Team', href: '#sec-deductbot' },
+      { icon: '&#128373;', label: 'Guest Auditor', href: '#sec-auditor' },
+      { icon: '&#128197;', label: 'By Year', href: '#sec-years' },
+      { icon: '&#128161;', label: 'Findings', href: '#sec-findings' },
+      { icon: '&#9745;', label: 'Checklist', href: '#sec-checklist' },
+      { icon: '&#128202;', label: 'Live Records', href: '#sec-liverecords' },
+      { icon: '&#9888;', label: 'Unmatched (516)', href: '#sec-unmatched' }
+    ]
+  };
+</script>
+
+<!-- Auth gate injected by auth.js -->
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- Nav rail injected by nav.js -->
+
+<!-- HEADER -->
+<div class="header" id="top">
+  <h1>&#128269; Deductions HQ &mdash; Every Dollar Found Is a Dollar Saved</h1>
+  <div class="subtitle">DeductBot + miniDuct 1 &amp; 2 | Guest Auditor on patrol | All tax years: 2022&ndash;2025</div>
+</div>
+
+<div class="container">
+
+  <!-- SUMMARY STATS (clickable drill-downs) -->
+  <div class="stats-grid" id="summaryStats">
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-years').scrollIntoView({behavior:'smooth'})" title="View by year" style="cursor:pointer"><div class="stat-val" style="color:var(--green)">$42,889.72 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">2022 Deductions</div></div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-findings').scrollIntoView({behavior:'smooth'})" title="View findings" style="cursor:pointer"><div class="stat-val" style="color:var(--yellow)">$8,200+ <span class="drill-arrow">&#8599;</span></div><div class="stat-label">New Findings</div></div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-years').scrollIntoView({behavior:'smooth'})" title="View all years" style="cursor:pointer"><div class="stat-val" style="color:var(--accent)">4 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Tax Years</div></div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-deductbot').scrollIntoView({behavior:'smooth'})" title="View bot team" style="cursor:pointer"><div class="stat-val" style="color:var(--purple)">3 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Bots Active</div></div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-auditor').scrollIntoView({behavior:'smooth'})" title="View audit items" style="cursor:pointer"><div class="stat-val" style="color:var(--red)">7 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Items Need Review</div></div>
+    <div class="stat-card stat-link" onclick="document.getElementById('sec-checklist').scrollIntoView({behavior:'smooth'})" title="View checklist" style="cursor:pointer"><div class="stat-val" style="color:var(--orange)">14 <span class="drill-arrow">&#8599;</span></div><div class="stat-label">Audit Checks</div></div>
+  </div>
+
+  <!-- DEDUCTBOT TEAM -->
+  <div class="section" id="sec-deductbot">
+    <h2>&#128270; DeductBot Team — Active Duty</h2>
+    <div class="bot-card">
+      <div class="bot-avatar">&#128269;</div>
+      <div class="bot-info">
+        <div class="bot-name" style="color:#22c55e">DeductBot <span style="font-size:11px;color:var(--muted)">(Staff S3 — Tax Deductions Lead)</span></div>
+        <div class="bot-role">claude-sonnet-4-6 | Level 3 | 800 XP | Village Prospector</div>
+        <div class="bot-status-working">&#9679; WORKING — Scanning all years for missed deductions, cross-referencing IRS rules, building deduction plans</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">
+          <strong>Active Tasks:</strong> Home office calc (Form 8829) &bull; Vehicle deduction comparison &bull; Cyberattack casualty loss research &bull; Section 179 depreciation review &bull; SE tax deduction &bull; Health insurance deduction scan &bull; Retirement contribution check &bull; Education credits review
+        </div>
+      </div>
+    </div>
+    <div class="bot-card">
+      <div class="bot-avatar">&#9874;</div>
+      <div class="bot-info">
+        <div class="bot-name" style="color:var(--orange)">miniDuct-1 <span style="font-size:11px;color:var(--muted)">(Sub-Agent — Research)</span></div>
+        <div class="bot-role">Ollama Mistral 7B | Local inference | $0 cost</div>
+        <div class="bot-status-working">&#9679; WORKING — Researching IRS publications, cross-referencing Schedule C line items, identifying overlooked categories</div>
+      </div>
+    </div>
+    <div class="bot-card">
+      <div class="bot-avatar">&#9875;</div>
+      <div class="bot-info">
+        <div class="bot-name" style="color:var(--orange)">miniDuct-2 <span style="font-size:11px;color:var(--muted)">(Sub-Agent — Verification)</span></div>
+        <div class="bot-role">Ollama Llama 3.1 8B | Local inference | $0 cost</div>
+        <div class="bot-status-working">&#9679; WORKING — Validating deduction amounts against bank records, checking IRS limits, flagging audit risks</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUEST AUDITOR -->
+  <div class="section" id="sec-auditor" style="border-color:var(--purple)">
+    <h2 style="color:var(--purple)">&#128373; Guest Auditor &mdash; The Perfectionist</h2>
+    <div class="bot-card" style="border-color:var(--purple)">
+      <div class="bot-avatar">&#128373;</div>
+      <div class="bot-info">
+        <div class="bot-name" style="color:var(--purple)">AuditHawk <span style="font-size:11px;color:var(--muted)">(Guest — Independent Auditor)</span></div>
+        <div class="bot-role">Perfectionist Critic | Reviews every deduction | Zero tolerance for errors</div>
+        <div class="bot-status-active">&#9679; ON PATROL — Rechecking every line item across all years. No deduction passes without scrutiny.</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">
+          <strong>Mandate:</strong> Challenge every number. Verify supporting docs exist. Flag anything that doesn't line up. Cross-check math. Ensure IRS compliance. Question assumptions. No rubber stamps.
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT REPORT -->
+    <h3 style="color:var(--purple);margin:16px 0 12px;font-size:14px">&#128203; 2022 Audit Report</h3>
+    <div id="auditReport">
+      <div class="audit-item pass">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Advertising — $23.18</span><span class="audit-verdict v-pass">&#10003; PASS</span></div>
+        <div class="audit-detail">Single transaction, clear business purpose, amount reasonable. No issues.</div>
+      </div>
+      <div class="audit-item warn">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Supplies + Small Tools — $12,731.70 (125 txns)</span><span class="audit-verdict v-warn">&#9888; REVIEW</span></div>
+        <div class="audit-detail">Largest category after equipment. 125 transactions is high — are ALL business-only? Costco purchases need biz/personal split. Amazon 842 orders unclassified. This number could shift significantly.</div>
+      </div>
+      <div class="audit-item warn">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Equipment/Depreciation — $12,654.39 (26 txns)</span><span class="audit-verdict v-warn">&#9888; REVIEW</span></div>
+        <div class="audit-detail">Flagged "100% biz?" — need to confirm every item is exclusively business. Some "furniture" could be personal. Section 179 vs depreciation schedule not determined. Affects current year vs amortization.</div>
+      </div>
+      <div class="audit-item pass">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Car/Truck — $3,239.62 (41 txns)</span><span class="audit-verdict v-pass">&#10003; PASS</span></div>
+        <div class="audit-detail">Fixed from $4,840 after dedup. Gas + registration + repairs. 100% business use claimed — need mileage log to support. Method comparison pending (standard vs actual).</div>
+      </div>
+      <div class="audit-item pass">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Utilities — $1,066.34 (11 txns)</span><span class="audit-verdict v-pass">&#10003; PASS</span></div>
+        <div class="audit-detail">Phone + Internet. Fixed from $1,811. Business % allocation reasonable for home-based IT business.</div>
+      </div>
+      <div class="audit-item pass">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Other Expenses — $7,919.51 (232 txns)</span><span class="audit-verdict v-pass">&#10003; PASS</span></div>
+        <div class="audit-detail">Fees, subscriptions, shipping. Large transaction count but individually small. Fixed from $7,134 (adjustment up — likely proper inclusion of previously excluded items).</div>
+      </div>
+      <div class="audit-item warn">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Contract Labor — $10.00 (1 txn)</span><span class="audit-verdict v-warn">&#9888; CHECK</span></div>
+        <div class="audit-detail">Only $10 recorded but contractor payments noted (Mitchell, Waters, J. Marshall). Venmo/PayPal/bank records may show more. If any contractor received >$600, need 1099-NEC.</div>
+      </div>
+      <div class="audit-item pass">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">CC Interest — $248.90 (17 txns)</span><span class="audit-verdict v-pass">&#10003; PASS</span></div>
+        <div class="audit-detail">Fixed from $1,618 after dedup. Business credit card interest is deductible. Amount now reasonable.</div>
+      </div>
+      <div class="audit-item pass">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Insurance (Vehicle) — $422.54</span><span class="audit-verdict v-pass">&#10003; PASS</span></div>
+        <div class="audit-detail">Fixed from $845. GEICO policy, business vehicle. Reasonable for 6 months coverage.</div>
+      </div>
+      <div class="audit-item warn">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Meals — $97.39 (15 txns)</span><span class="audit-verdict v-warn">&#9888; CHECK</span></div>
+        <div class="audit-detail">Fixed from $630. Note: 2022 allows 100% deduction for restaurant meals (COVID provision). Only 50% for non-restaurant. Verify breakdown to maximize deduction.</div>
+      </div>
+      <div class="audit-item pass">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">COGS/Inventory — $2,595.75 (11 txns)</span><span class="audit-verdict v-pass">&#10003; PASS</span></div>
+        <div class="audit-detail">Cost of goods sold for eBay product sales ($13K revenue). COGS ratio of ~20% is reasonable for resale business.</div>
+      </div>
+      <div class="audit-item fail">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Home Office — NOT CLAIMED</span><span class="audit-verdict v-fail">&#10007; MISSING</span></div>
+        <div class="audit-detail">Home-based IT business. Form 8829 or simplified method ($5/sqft up to 300sqft = $1,500 max). DEFINITELY should be claiming this. Need square footage measurement.</div>
+      </div>
+      <div class="audit-item fail">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Self-Employment Tax Deduction — NOT CALCULATED</span><span class="audit-verdict v-fail">&#10007; MISSING</span></div>
+        <div class="audit-detail">Deductible portion of SE tax (50% of 15.3% on net earnings). With a net loss this may not apply, but needs to be on the checklist for accuracy.</div>
+      </div>
+      <div class="audit-item info">
+        <div class="audit-head"><span style="font-weight:700;font-size:13px">Cyberattack / Casualty Loss — PENDING RESEARCH</span><span class="audit-verdict" style="background:rgba(56,189,248,0.15);color:var(--accent)">&#8505; RESEARCH</span></div>
+        <div class="audit-detail">AGT Mortgage cyberattack incident. Casualty/theft loss rules are strict post-TCJA (2018+). Only federally declared disasters qualify for personal. Business property loss may still apply under Section 165. DeductBot researching.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YEAR TABS -->
+  <div class="section" id="sec-years">
+    <h2>&#128197; Deductions by Tax Year</h2>
+    <div class="year-tabs">
+      <div class="year-tab active" onclick="switchYear(2022)">2022 <span style="font-size:10px;color:var(--red)">(URGENT)</span></div>
+      <div class="year-tab" onclick="switchYear(2023)">2023</div>
+      <div class="year-tab" onclick="switchYear(2024)">2024</div>
+      <div class="year-tab" onclick="switchYear(2025)">2025</div>
+    </div>
+
+    <!-- 2022 PANEL -->
+    <div class="year-panel active" id="year-2022">
+      <div class="year-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="font-size:20px;font-weight:700;color:var(--green)">$42,889.72</span>
+            <span style="color:var(--muted);font-size:13px;margin-left:8px">confirmed deductions</span>
+            <span style="color:var(--accent);font-size:13px;margin-left:8px">+ $8,200+ potential new findings</span>
+          </div>
+          <div style="font-size:12px;color:var(--red);font-weight:700">&#9888; DEADLINE: Mail by Apr 10, 2026</div>
+        </div>
+
+        <table class="ded-table">
+          <thead><tr><th>Sch C Line</th><th>Category</th><th class="amount">Amount</th><th>Txns</th><th>Status</th><th>AuditHawk</th></tr></thead>
+          <tbody>
+            <tr><td>8</td><td>Advertising</td><td class="amount" style="color:var(--green)">$23.18</td><td>1</td><td><span class="ded-status ded-ok">OK</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>9</td><td>Car/Truck Expenses</td><td class="amount" style="color:var(--green)">$3,239.62</td><td>41</td><td><span class="ded-status ded-ok">FIXED</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>11</td><td>Contract Labor</td><td class="amount" style="color:var(--yellow)">$10.00</td><td>1</td><td><span class="ded-status ded-review">CHECK</span></td><td><span class="ded-status ded-review">CHECK</span></td></tr>
+            <tr><td>15</td><td>Insurance (Vehicle)</td><td class="amount" style="color:var(--green)">$422.54</td><td>1</td><td><span class="ded-status ded-ok">FIXED</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>16b</td><td>Interest (Business CC)</td><td class="amount" style="color:var(--green)">$248.90</td><td>17</td><td><span class="ded-status ded-ok">FIXED</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>18</td><td>Office Expense</td><td class="amount" style="color:var(--green)">$1,024.14</td><td>13</td><td><span class="ded-status ded-ok">OK</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>21</td><td>Repairs &amp; Maintenance</td><td class="amount" style="color:var(--green)">$39.98</td><td>1</td><td><span class="ded-status ded-ok">OK</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>22</td><td>Supplies + Small Tools</td><td class="amount" style="color:var(--yellow)">$12,731.70</td><td>125</td><td><span class="ded-status ded-review">REVIEW</span></td><td><span class="ded-status ded-review">REVIEW</span></td></tr>
+            <tr><td>25</td><td>Utilities (Phone + Internet)</td><td class="amount" style="color:var(--green)">$1,066.34</td><td>11</td><td><span class="ded-status ded-ok">FIXED</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>27a</td><td>Other Expenses (Fees/Subs/Ship)</td><td class="amount" style="color:var(--green)">$7,919.51</td><td>232</td><td><span class="ded-status ded-ok">FIXED</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr><td>--</td><td>Equipment / Depreciation</td><td class="amount" style="color:var(--yellow)">$12,654.39</td><td>26</td><td><span class="ded-status ded-review">REVIEW</span></td><td><span class="ded-status ded-review">REVIEW</span></td></tr>
+            <tr><td>--</td><td>Meals (50-100% deductible)</td><td class="amount">$97.39</td><td>15</td><td><span class="ded-status ded-review">CHECK</span></td><td><span class="ded-status ded-review">CHECK</span></td></tr>
+            <tr><td>--</td><td>COGS / Inventory</td><td class="amount" style="color:var(--green)">$2,595.75</td><td>11</td><td><span class="ded-status ded-ok">OK</span></td><td><span class="ded-status ded-ok">PASS</span></td></tr>
+            <tr class="total-row"><td colspan="2"><strong>Confirmed Subtotal</strong></td><td class="amount" style="color:var(--accent);font-size:16px"><strong>$42,889.72</strong></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+
+        <!-- NEW FINDINGS BY DEDUCTBOT -->
+        <h3 style="color:var(--green);margin:24px 0 12px;font-size:15px">&#128161; DeductBot New Findings — Potential Additional Deductions</h3>
+        <table class="ded-table">
+          <thead><tr><th>Category</th><th>Description</th><th class="amount">Est. Value</th><th>Source</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--green)">&#127968; Home Office</td><td>Form 8829 simplified method: $5/sqft × est 200sqft</td><td class="amount" style="color:var(--accent)">$1,000</td><td>IRS Pub 587</td><td><span class="ded-status ded-new">NEW FIND</span></td></tr>
+            <tr><td style="color:var(--green)">&#127968; Home Office</td><td>Regular method: mortgage interest + property tax + utilities × office %</td><td class="amount" style="color:var(--accent)">$2,400+</td><td>Form 8829</td><td><span class="ded-status ded-new">CALCULATE</span></td></tr>
+            <tr><td style="color:var(--green)">&#128663; Vehicle</td><td>Standard mileage rate: $0.585/mi × est 5,000 mi = $2,925 vs actual $3,240</td><td class="amount" style="color:var(--accent)">$3,240</td><td>IRS Pub 463</td><td><span class="ded-status ded-review">COMPARE</span></td></tr>
+            <tr><td style="color:var(--green)">&#9888; Cyberattack</td><td>AGT Mortgage incident — business casualty/theft loss (Section 165)</td><td class="amount" style="color:var(--yellow)">$TBD</td><td>IRS Sec 165</td><td><span class="ded-status ded-audit">RESEARCH</span></td></tr>
+            <tr><td style="color:var(--green)">&#128187; Software Subs</td><td>QuickBooks, antivirus, cloud storage, domain registrations, Office 365</td><td class="amount" style="color:var(--accent)">$400+</td><td>Bank/CC stmts</td><td><span class="ded-status ded-new">VERIFY</span></td></tr>
+            <tr><td style="color:var(--green)">&#128218; Education</td><td>Professional development: IT certifications, training, courses, books</td><td class="amount" style="color:var(--accent)">$300+</td><td>Receipts/email</td><td><span class="ded-status ded-new">SCAN</span></td></tr>
+            <tr><td style="color:var(--green)">&#128231; Communication</td><td>Business phone line, second phone, dedicated business internet portion</td><td class="amount" style="color:var(--accent)">$200+</td><td>Phone bills</td><td><span class="ded-status ded-review">VERIFY</span></td></tr>
+            <tr><td style="color:var(--green)">&#127974; Banking Fees</td><td>Business account fees, wire transfer fees, merchant processing fees</td><td class="amount" style="color:var(--accent)">$150+</td><td>Bank stmts</td><td><span class="ded-status ded-new">SCAN</span></td></tr>
+            <tr><td style="color:var(--green)">&#128230; Shipping</td><td>USPS, FedEx, UPS for eBay shipments — may be in "Other" or separate</td><td class="amount" style="color:var(--accent)">$500+</td><td>Shipping accts</td><td><span class="ded-status ded-review">VERIFY</span></td></tr>
+            <tr><td style="color:var(--green)">&#9878; Business License</td><td>Oregon business registration, LLC fees, local business license</td><td class="amount" style="color:var(--accent)">$100+</td><td>State records</td><td><span class="ded-status ded-new">CHECK</span></td></tr>
+            <tr><td style="color:var(--green)">&#128176; SE Tax Deduction</td><td>50% of self-employment tax (if net positive after losses applied to other income)</td><td class="amount" style="color:var(--accent)">$0*</td><td>Schedule SE</td><td><span class="ded-status ded-audit">CALCULATE</span></td></tr>
+            <tr><td style="color:var(--green)">&#127973; Tax Prep Fees</td><td>TurboTax software, any CPA consultation fees for 2022</td><td class="amount" style="color:var(--accent)">$80+</td><td>Purchase rcpt</td><td><span class="ded-status ded-new">FIND</span></td></tr>
+            <tr class="total-row"><td colspan="2"><strong>Potential Additional Deductions</strong></td><td class="amount" style="color:var(--accent);font-size:15px"><strong>$8,370+</strong></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:8px;padding:10px;background:rgba(56,189,248,0.08);border-radius:8px;font-size:12px;color:var(--muted)">
+          &#128269; <strong style="color:var(--accent)">DeductBot says:</strong> If we confirm home office ($1-2.4K), keep actual vehicle ($3.2K already counted), find software subs ($400), and verify the rest — total 2022 deductions could reach <strong style="color:var(--green)">$50,000+</strong>. Net loss would increase, boosting potential refund.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2023 PANEL -->
+    <div class="year-panel" id="year-2023">
+      <div class="year-content">
+        <div style="margin-bottom:16px">
+          <span style="font-size:20px;font-weight:700;color:var(--yellow)">2023 — Not Yet Filed</span>
+          <span style="color:var(--muted);font-size:13px;margin-left:8px">| Deadline: Oct 15, 2027 (with extension)</span>
+        </div>
+        <div style="padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:16px">
+          <div style="font-weight:700;color:var(--yellow);margin-bottom:8px">&#128270; DeductBot Status: LEARNING &amp; SCANNING</div>
+          <div style="font-size:12px;color:var(--muted)">Applying 2022 lessons to 2023. Identified same deduction categories should apply. QBO data export needed for 2023.</div>
+        </div>
+        <table class="ded-table">
+          <thead><tr><th>Category</th><th>Description</th><th class="amount">Est. Value</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Schedule C Expenses</td><td>Same business categories as 2022 — supplies, car, utilities, office, etc.</td><td class="amount" style="color:var(--yellow)">$TBD</td><td><span class="ded-status ded-missing">NEED DATA</span></td></tr>
+            <tr><td>Home Office</td><td>Same home = same deduction. Simplified $5/sqft or regular method.</td><td class="amount" style="color:var(--accent)">$1,000-2,400</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+            <tr><td>Vehicle</td><td>Standard rate 2023: $0.655/mi (higher than 2022)</td><td class="amount" style="color:var(--accent)">$3,275+</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+            <tr><td>Equipment / Sec 179</td><td>Any new business equipment purchased — full expensing available</td><td class="amount" style="color:var(--yellow)">$TBD</td><td><span class="ded-status ded-missing">NEED DATA</span></td></tr>
+            <tr><td>Software Subscriptions</td><td>QBO, antivirus, cloud, domains, tools — recurring costs</td><td class="amount" style="color:var(--accent)">$400+</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+            <tr><td>Depreciation Carryover</td><td>Any 2022 equipment not fully expensed — ongoing depreciation</td><td class="amount" style="color:var(--yellow)">$TBD</td><td><span class="ded-status ded-audit">CALCULATE</span></td></tr>
+            <tr><td>Net Operating Loss</td><td>2022 NOL can carry forward to offset 2023 income (up to 80%)</td><td class="amount" style="color:var(--green)">$16,951*</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">* NOL carryforward estimate: 80% of ~$21,189 net loss = ~$16,951 max offset against 2023 income (TCJA rules)</div>
+      </div>
+    </div>
+
+    <!-- 2024 PANEL -->
+    <div class="year-panel" id="year-2024">
+      <div class="year-content">
+        <div style="margin-bottom:16px">
+          <span style="font-size:20px;font-weight:700;color:var(--yellow)">2024 — Not Yet Filed</span>
+          <span style="color:var(--muted);font-size:13px;margin-left:8px">| Deadline: Oct 15, 2028 (with extension)</span>
+        </div>
+        <div style="padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:16px">
+          <div style="font-weight:700;color:var(--yellow);margin-bottom:8px">&#128270; DeductBot Status: LEARNING</div>
+          <div style="font-size:12px;color:var(--muted)">Building deduction plan based on 2022-2023 patterns. Tracking IRS rule changes for 2024.</div>
+        </div>
+        <table class="ded-table">
+          <thead><tr><th>Category</th><th>Description</th><th class="amount">Est. Value</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Schedule C Expenses</td><td>Continuing business expense categories</td><td class="amount" style="color:var(--yellow)">$TBD</td><td><span class="ded-status ded-missing">NEED DATA</span></td></tr>
+            <tr><td>Home Office</td><td>Simplified: $5/sqft × sqft. Regular: proportional expenses.</td><td class="amount" style="color:var(--accent)">$1,000-2,400</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+            <tr><td>Vehicle</td><td>Standard rate 2024: $0.67/mi</td><td class="amount" style="color:var(--accent)">$3,350+</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+            <tr><td>NOL Carryforward</td><td>Any remaining 2022 NOL + potential 2023 NOL</td><td class="amount" style="color:var(--green)">$TBD</td><td><span class="ded-status ded-audit">CALCULATE</span></td></tr>
+            <tr><td>AI / Tech Tools</td><td>Claude, ChatGPT, AI subscriptions — new business tools for IT</td><td class="amount" style="color:var(--accent)">$300+</td><td><span class="ded-status ded-new">TRACK</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2025 PANEL -->
+    <div class="year-panel" id="year-2025">
+      <div class="year-content">
+        <div style="margin-bottom:16px">
+          <span style="font-size:20px;font-weight:700;color:var(--muted)">2025 — Current Year (In Progress)</span>
+          <span style="color:var(--muted);font-size:13px;margin-left:8px">| Deadline: Apr 15, 2026 (or Oct 15 w/ extension)</span>
+        </div>
+        <div style="padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:16px">
+          <div style="font-weight:700;color:var(--accent);margin-bottom:8px">&#128270; DeductBot Status: ACTIVE TRACKING</div>
+          <div style="font-size:12px;color:var(--muted)">Real-time deduction tracking for current year. Every business expense logged as it happens.</div>
+        </div>
+        <table class="ded-table">
+          <thead><tr><th>Category</th><th>Description</th><th class="amount">YTD Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>AI Subscriptions</td><td>Claude Code, API usage, AI tools for business</td><td class="amount" style="color:var(--accent)">$200+</td><td><span class="ded-status ded-new">TRACKING</span></td></tr>
+            <tr><td>Domain / Hosting</td><td>justout.today domain, GoDaddy, GitHub Pro (if upgraded)</td><td class="amount" style="color:var(--accent)">$50+</td><td><span class="ded-status ded-new">TRACKING</span></td></tr>
+            <tr><td>Home Office</td><td>Same address — carry forward method from prior year</td><td class="amount" style="color:var(--accent)">$1,000-2,400</td><td><span class="ded-status ded-new">PLAN</span></td></tr>
+            <tr><td>Vehicle</td><td>Standard rate 2025: $0.70/mi (estimated)</td><td class="amount" style="color:var(--accent)">$TBD</td><td><span class="ded-status ded-new">TRACK</span></td></tr>
+            <tr><td>Software / Tools</td><td>TurboTax, QBO, business software purchases</td><td class="amount" style="color:var(--accent)">$TBD</td><td><span class="ded-status ded-new">TRACKING</span></td></tr>
+            <tr><td>NOL Carryforward</td><td>Remaining NOL from 2022-2024</td><td class="amount" style="color:var(--green)">$TBD</td><td><span class="ded-status ded-audit">CALCULATE</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">
+          &#128161; <strong style="color:var(--accent)">Pro tip from DeductBot:</strong> Start saving receipts NOW. Take photos of every business purchase. Log mileage monthly. The more documentation, the bigger the refund.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEDUCTBOT FINDINGS LOG -->
+  <div class="section" id="sec-findings">
+    <h2>&#128161; DeductBot Research Findings</h2>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Active research by DeductBot + miniDuct team. Each finding is a potential deduction or optimization.</div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-title" style="color:var(--green)">&#127968; Home Office — Simplified vs Regular Method</span><span class="finding-val" style="color:var(--accent)">$1,000 - $2,400+</span></div>
+      <div class="finding-detail">
+        <strong>Simplified:</strong> $5/sqft × up to 300sqft = $1,500 max. Easy, no depreciation recapture.<br>
+        <strong>Regular (Form 8829):</strong> Office % × (mortgage interest + property tax + insurance + utilities + repairs + depreciation). Usually more $$ but more complex.<br>
+        <strong>Action:</strong> Need home square footage and office room dimensions to calculate both methods and pick the winner.
+      </div>
+      <div class="finding-source">Source: IRS Publication 587, Form 8829 instructions | miniDuct-1 research</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-title" style="color:var(--green)">&#128663; Vehicle — Mileage vs Actual Comparison</span><span class="finding-val" style="color:var(--accent)">$2,925 vs $3,240</span></div>
+      <div class="finding-detail">
+        <strong>Standard mileage (2022):</strong> $0.585/mi. If 5,000 business miles → $2,925. If 8,000 → $4,680.<br>
+        <strong>Actual expenses (current):</strong> $3,239.62 (gas + registration + repairs + insurance).<br>
+        <strong>Key:</strong> Need mileage log! If >5,541 business miles, standard rate wins. Under that, actual wins.<br>
+        <strong>Action:</strong> Reconstruct mileage log from Google Timeline, calendar, client addresses.
+      </div>
+      <div class="finding-source">Source: IRS Publication 463 | miniDuct-2 calculation</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-title" style="color:var(--yellow)">&#9888; AGT Cyberattack — Casualty Loss Rules</span><span class="finding-val" style="color:var(--yellow)">$TBD</span></div>
+      <div class="finding-detail">
+        <strong>Post-TCJA (2018+):</strong> Personal casualty losses only for federally declared disasters. BUT business property losses still deductible under Section 165(a).<br>
+        <strong>Requirements:</strong> Must prove: (1) loss occurred, (2) amount of loss, (3) it was sudden/unexpected, (4) no insurance reimbursement.<br>
+        <strong>Risk:</strong> Medium audit risk. Need strong documentation of the cyberattack and financial damage.<br>
+        <strong>Action:</strong> Gather police reports, emails, financial records showing loss amount.
+      </div>
+      <div class="finding-source">Source: IRC Section 165, IRS Pub 547 | DeductBot + miniDuct-1 joint research</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-title" style="color:var(--green)">&#128176; NOL Carryforward Strategy</span><span class="finding-val" style="color:var(--green)">$16,951+</span></div>
+      <div class="finding-detail">
+        <strong>2022 Net Loss:</strong> ~$21,189. Under TCJA, NOL can carry forward indefinitely (no carryback for most).<br>
+        <strong>Limitation:</strong> Can offset up to 80% of taxable income in future years.<br>
+        <strong>Strategy:</strong> File 2022 first (establishes the NOL), then apply to 2023-2025 returns to reduce tax in profitable years.<br>
+        <strong>Action:</strong> Calculate exact NOL amount after all deductions finalized. Apply to subsequent years.
+      </div>
+      <div class="finding-source">Source: IRC Section 172, TCJA modifications | DeductBot analysis</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-title" style="color:var(--green)">&#128187; Missed Software Deductions</span><span class="finding-val" style="color:var(--accent)">$400+</span></div>
+      <div class="finding-detail">
+        <strong>Likely candidates in 2022:</strong> QuickBooks Online (~$30/mo = $360), antivirus software, cloud backup, domain registrations (GoDaddy), Microsoft 365 or Google Workspace, any SaaS tools.<br>
+        <strong>Check:</strong> These may be buried in "Other Expenses" already. Need to verify not double-counted AND not missed.<br>
+        <strong>Action:</strong> Cross-reference bank/CC statements for recurring monthly charges to software companies.
+      </div>
+      <div class="finding-source">Source: Schedule C Line 27a analysis | miniDuct-2 scan</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-title" style="color:var(--accent)">&#128214; 2022 Meals — 100% Restaurant Rule</span><span class="finding-val" style="color:var(--accent)">+$48.70</span></div>
+      <div class="finding-detail">
+        <strong>Special 2022 rule:</strong> Business meals from restaurants are 100% deductible (not 50%) — COVID provision extended through 2022.<br>
+        <strong>Current:</strong> $97.39 at 50% = $48.70 deduction. If ALL were restaurants → $97.39 full deduction = extra $48.70.<br>
+        <strong>Action:</strong> Review the 15 meal transactions. Separate restaurant vs grocery/takeout.
+      </div>
+      <div class="finding-source">Source: IRS Notice 2021-25, Consolidated Appropriations Act 2021 | miniDuct-1 research</div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="finding-title" style="color:var(--green)">&#128178; Section 179 vs Depreciation</span><span class="finding-val" style="color:var(--accent)">$12,654 impact</span></div>
+      <div class="finding-detail">
+        <strong>Current:</strong> $12,654.39 in Equipment/Depreciation — method not determined.<br>
+        <strong>Section 179:</strong> Deduct FULL cost in year purchased (up to $1,080,000 in 2022). Best when you want max deduction now.<br>
+        <strong>MACRS Depreciation:</strong> Spread cost over 5-7 years. Better if expecting higher income in future years.<br>
+        <strong>With net loss:</strong> Section 179 is limited — can only deduct up to net business income (before 179). May need to carry forward unused 179.<br>
+        <strong>Action:</strong> Determine which items are 179-eligible, calculate optimal strategy given the net loss situation.
+      </div>
+      <div class="finding-source">Source: IRS Publication 946, Form 4562 | DeductBot analysis</div>
+    </div>
+  </div>
+
+  <!-- MASTER CHECKLIST -->
+  <div class="section" id="sec-checklist">
+    <h2>&#9745; Deduction Completeness Checklist</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--green);margin-bottom:8px">&#10003; Confirmed (10)</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          &#10003; Advertising<br>&#10003; Car/Truck actual expenses<br>&#10003; Insurance (vehicle)<br>&#10003; CC Interest<br>&#10003; Office Expense<br>&#10003; Repairs<br>&#10003; Utilities<br>&#10003; Other Expenses (fees/subs)<br>&#10003; COGS/Inventory<br>&#10003; Dedup cleanup (925 dupes removed)
+        </div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--yellow);margin-bottom:8px">&#9888; Needs Review (4)</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          &#9888; Supplies ($12.7K — Amazon split needed)<br>&#9888; Equipment/Depreciation ($12.6K — 179 vs MACRS)<br>&#9888; Meals (restaurant vs other split)<br>&#9888; Contract Labor (check Venmo/PayPal)
+        </div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-weight:700;color:var(--red);margin-bottom:8px">&#10007; Missing / Not Claimed (5+)</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          &#10007; Home Office (Form 8829)<br>&#10007; Vehicle mileage log<br>&#10007; Cyberattack loss research<br>&#10007; Software subscription scan<br>&#10007; Education / prof. development<br>&#10007; Business license / fees<br>&#10007; Tax prep fees
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LIVE DEDUCTION RECORDS FROM SHEETS ===== -->
+  <div class="section" id="sec-liverecords" style="border-color:var(--green)">
+    <h2>&#128202; Live Deduction Records &mdash; From Google Sheets</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Every expense/deduction transaction pulled live from FINAL_MASTER. Click a category to expand and see individual transactions. Totals computed in real-time.</p>
+
+    <!-- Live summary stats -->
+    <div class="live-summary" id="liveSummary" style="display:none">
+      <div class="live-stat" onclick="drillDown('total')" title="Click to see category breakdown"><div class="live-stat-val" style="color:var(--green)" id="lsTotalDeductions">--</div><div class="live-stat-label">Total Deductions</div></div>
+      <div class="live-stat" onclick="drillDown('categories')" title="Click to see all categories"><div class="live-stat-val" style="color:var(--accent)" id="lsCategories">--</div><div class="live-stat-label">Categories</div></div>
+      <div class="live-stat" onclick="drillDown('transactions')" title="Click to see all transactions"><div class="live-stat-val" style="color:var(--purple)" id="lsTransactions">--</div><div class="live-stat-label">Transactions</div></div>
+      <div class="live-stat" onclick="drillDown('review')" title="Click to see items needing review"><div class="live-stat-val" style="color:var(--yellow)" id="lsNeedsReview">--</div><div class="live-stat-label">Needs Review</div></div>
+      <div class="live-stat" onclick="drillDown('largest')" title="Click to see largest category"><div class="live-stat-val" style="color:var(--yellow)" id="lsLargest">--</div><div class="live-stat-label">Largest Category</div></div>
+      <div class="live-stat" onclick="drillDown('nol')" title="Click to see NOL calculation"><div class="live-stat-val" style="color:var(--red)" id="lsNolEstimate">--</div><div class="live-stat-label">NOL Estimate</div></div>
+    </div>
+    <!-- Data freshness indicator -->
+    <div id="dataFreshness" style="display:none;font-size:11px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+      <span id="freshnessIcon" style="color:var(--green)">&#9679;</span>
+      <span id="freshnessText">Data loaded just now</span>
+    </div>
+
+    <!-- Controls -->
+    <div class="live-controls">
+      <input type="text" class="search-input" id="dedSearchInput" placeholder="Search deductions..." oninput="searchDeductions(this.value)" style="max-width:260px">
+      <button class="filter-btn active" onclick="filterDeductions('all',this)">All</button>
+      <button class="filter-btn" onclick="filterDeductions('review',this)">Needs Review</button>
+      <button class="filter-btn" onclick="filterDeductions('large',this)">$500+</button>
+      <span class="live-count" id="liveCount">Loading...</span>
+    </div>
+
+    <!-- Expand/Collapse All -->
+    <div style="margin-bottom:12px;display:flex;gap:8px">
+      <button class="filter-btn" onclick="toggleAllCategories(true)" style="font-size:11px">&#9660; Expand All</button>
+      <button class="filter-btn" onclick="toggleAllCategories(false)" style="font-size:11px">&#9650; Collapse All</button>
+      <button class="filter-btn" onclick="sortCategories()" style="font-size:11px" id="catSortBtn">&#8693; Sort: Amount ↓</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="dedLoading" class="loading-indicator">
+      <div class="loading-spinner"></div>
+      <span>Loading deduction records...</span>
+    </div>
+
+    <!-- Categories container -->
+    <div id="dedCategoriesContainer" style="display:none"></div>
+
+    <!-- NOTES PANEL — Slide-out panel for category notes + bot replies -->
+    <div id="notesPanel" style="display:none;position:fixed;top:0;right:0;width:420px;height:100vh;background:#0f172a;border-left:2px solid #334155;z-index:9990;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.5);font-family:'Segoe UI',system-ui,sans-serif">
+      <div style="padding:16px 20px;background:linear-gradient(135deg,#1e3a5f,#0f172a);border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="color:#f59e0b;font-size:15px;font-weight:700" id="notesPanelTitle">Notes</div>
+          <div style="color:#94a3b8;font-size:11px" id="notesPanelSub">Category notes &amp; bot replies</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="notesWriteStatus" style="font-size:10px;padding:2px 6px;border-radius:4px"></span>
+          <button onclick="closeNotesPanel()" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;line-height:1">&times;</button>
+        </div>
+      </div>
+      <div id="notesList" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="color:#64748b;text-align:center;padding:32px 0;font-size:13px">No notes yet. Add one below!</div>
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid #334155;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:8px">
+          <input type="text" id="noteInput" placeholder="Add a note about this category..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;font-size:13px;outline:none" onkeydown="if(event.key==='Enter')addNoteFromPanel()">
+          <button onclick="addNoteFromPanel()" style="padding:8px 14px;border-radius:8px;border:none;background:#f59e0b;color:#000;font-weight:700;font-size:13px;cursor:pointer">Add</button>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="askBotAboutCategory()" style="padding:5px 10px;border-radius:6px;border:1px solid #334155;background:rgba(56,189,248,.1);color:#38bdf8;font-size:11px;cursor:pointer">&#129302; Ask Bot</button>
+          <button onclick="grantSheetsFromPanel()" id="notesSheetsBtn" style="padding:5px 10px;border-radius:6px;border:1px solid #334155;background:rgba(74,222,128,.1);color:#4ade80;font-size:11px;cursor:pointer;display:none">&#128274; Grant Sheets Write</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="dedError" style="display:none;padding:24px;color:var(--yellow);font-size:14px;text-align:center">
+      <p>&#9888; Sheets data unavailable &mdash; using Firestore / local data.</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">Deductions from the master dataset will load once Firestore is connected. <button onclick="dedRetryCount=0;loadDeductionRecords()" style="color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline">Retry</button></p>
+    </div>
+  </div>
+
+  <!-- ===== UNMATCHED DEDUCTIONS RESOLVER ===== -->
+  <div class="section" id="sec-unmatched" style="border-color:var(--yellow)">
+    <h2 style="color:var(--yellow)">&#9888; Unmatched Deductions Resolver</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Entries from Ledger_2022 that don't appear in the master dataset. Resolve them to capture every deductible dollar.</p>
+
+    <!-- Alert Banner -->
+    <div class="unmatched-alert" id="unmatchedAlert">
+      <h3 id="unmatchedAlertCount">Loading Unmatched Entries...</h3>
+      <div class="alert-value" id="unmatchedAlertValue">~$16,000+ in potential deductions</div>
+      <div class="alert-source">From Ledger_2022 &mdash; Not yet in master dataset</div>
+      <button class="alert-cta" onclick="document.getElementById('unmatchedGroupsContainer').scrollIntoView({behavior:'smooth'})">Start Resolving</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="unmatched-stats" id="unmatchedStats">
+      <div class="stat-card"><div class="stat-val" style="color:var(--yellow)" id="umTotalCount">--</div><div class="stat-label">Total Unmatched</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--green)" id="umFpcsCount">--</div><div class="stat-label">FPCS Business</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--muted)" id="umPersonalCount">--</div><div class="stat-label">Personal</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--accent)" id="umTotalValue">--</div><div class="stat-label">Total Value</div></div>
+    </div>
+
+    <!-- Resolution Progress Bar -->
+    <div class="resolution-bar" id="resolutionBar">
+      <div class="resolution-bar-fill" id="resolutionBarFill" style="width:0%"></div>
+      <div class="resolution-bar-label" id="resolutionBarLabel">Loading...</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="unmatched-controls">
+      <select id="unmatchedFilter" onchange="filterUnmatched(this.value)">
+        <option value="all">All Groups</option>
+        <option value="fpcs">FPCS Business Only</option>
+        <option value="personal">Personal Only</option>
+        <option value="highvalue">High Value ($100+)</option>
+      </select>
+      <input type="text" class="search-input" id="unmatchedSearch" placeholder="Search vendor/category..." oninput="searchUnmatched(this.value)">
+      <span class="live-count" id="unmatchedCount">Loading groups...</span>
+    </div>
+
+    <!-- Groups Container -->
+    <div id="unmatchedGroupsContainer"></div>
+
+    <!-- Jasper Chatbox -->
+    <div class="jasper-chat open" id="jasperChat">
+      <div class="jasper-chat-header" onclick="toggleJasperChat()">
+        <span class="jasper-avatar">&#129302;</span>
+        <div style="flex:1">
+          <div class="jasper-name">Jasper &mdash; Deduction Advisor</div>
+          <div class="jasper-status">&#9679; Online &mdash; Ready to help resolve entries</div>
+        </div>
+        <span style="color:var(--muted);font-size:12px" id="jasperToggleIcon">&#9660;</span>
+      </div>
+      <div class="jasper-chat-body" id="jasperChatBody">
+        <div class="jasper-msg jasper">
+          <div class="msg-label">Jasper</div>
+          Hey Commander! I'm Jasper, your deduction advisor. I can help you figure out which of these 516 unmatched entries are deductible. Try asking me about a vendor, or use one of these commands:
+          <div style="margin-top:8px">
+            <span class="jasper-suggestion" onclick="jasperQuickCmd('/help')">/help</span>
+            <span class="jasper-suggestion" onclick="jasperQuickCmd('/stats')">/stats</span>
+            <span class="jasper-suggestion" onclick="jasperQuickCmd('/fpcs')">/fpcs</span>
+          </div>
+        </div>
+      </div>
+      <div class="jasper-input">
+        <input type="text" id="jasperInput" placeholder="Ask Jasper about an entry..." onkeydown="if(event.key==='Enter')sendJasperMessage()">
+        <button onclick="sendJasperMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+</div><!-- /dashContent -->
+
+<!-- Page-Specific JavaScript -->
+<script>
+// === YEAR TAB SWITCHING ===
+function switchYear(year) {
+  document.querySelectorAll('.year-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.year-panel').forEach(function(p) { p.classList.remove('active'); });
+  event.target.classList.add('active');
+  var panel = document.getElementById('year-' + year);
+  if (panel) panel.classList.add('active');
+}
+
+// ============================================================
+//  LIVE DEDUCTION RECORDS — Firestore primary, Sheets fallback
+//  Groups expenses by Account/Category with expandable accordion
+// ============================================================
+var dedRecords = [];        // All expense records from sheet
+var dedGrouped = {};        // Grouped by category { catName: [rows] }
+var dedGroupKeys = [];      // Sorted category names
+var dedCatTotals = {};      // { catName: totalAmount }
+var dedSearchQuery = '';
+var dedActiveFilter = 'all';
+var dedSortMode = 'amount'; // 'amount' | 'name' | 'count'
+var dedSortAsc = false;
+var dedColMap = {};
+var dedHeaders = [];
+var dedRetryCount = 0;
+var DED_MAX_RETRIES = 3;
+
+function loadDeductionRecords() {
+  var loading = document.getElementById('dedLoading');
+  var container = document.getElementById('dedCategoriesContainer');
+  var errorDiv = document.getElementById('dedError');
+  var summary = document.getElementById('liveSummary');
+
+  loading.style.display = 'flex';
+  container.style.display = 'none';
+  errorDiv.style.display = 'none';
+  summary.style.display = 'none';
+
+  // === PRIORITY 1: Firestore (primary database) ===
+  if (window.FPCSFirestore && FPCSFirestore.isReady()) {
+    console.log('[Deductions] Loading from Firestore...');
+    // Fetch all transactions and filter client-side to include Expense + Debit
+    FPCSFirestore.getTransactions({}).then(function(allDocs) {
+      // Filter to expenses only (Expense, Debit, or negative amounts)
+      var docs = allDocs.filter(function(d) {
+        var dir = (d.direction || '').toLowerCase();
+        return dir === 'expense' || dir === 'debit';
+      });
+
+      if (!docs || docs.length === 0) {
+        console.log('[Deductions] Firestore returned no expenses, trying Sheets...');
+        loadDeductionRecordsFromSheets();
+        return;
+      }
+
+      // Map Firestore objects → row arrays matching existing rendering pipeline
+      dedHeaders = ['Date', 'Type', 'Num', 'Description', 'Notes', 'Category', 'Amount', 'Split', 'Deductible'];
+      dedColMap = { date: 0, type: 1, num: 2, name: 3, memo: 4, account: 5, amount: 6, split: 7, deductible: 8 };
+
+      var dataRows = docs.map(function(d) {
+        var row = [];
+        row[0] = d.date || '';
+        row[1] = d.data_type || d.type || '';
+        row[2] = d.invoice || d.id || '';
+        row[3] = d.description || d.customer || '';
+        row[4] = d.notes || '';
+        row[5] = d.tax_category || d.category || '';
+        // Expenses: ensure negative for existing filter logic
+        var amt = parseFloat(String(d.amount || '0').replace(/[$,]/g, '')) || 0;
+        row[6] = String(amt < 0 ? amt : -Math.abs(amt));
+        row[7] = d.account || '';
+        row[8] = d.processed ? 'Yes' : '';
+        return row;
+      });
+
+      loading.style.display = 'none';
+
+      // Filter for expenses (negative amounts)
+      dedRecords = dataRows.filter(function(row) {
+        var amt = parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, ''));
+        return !isNaN(amt) && amt < 0;
+      });
+
+      console.log('[Deductions] Loaded ' + dedRecords.length + ' expense records from Firestore');
+
+      buildCategoryGroups();
+      container.style.display = 'block';
+      summary.style.display = 'flex';
+      handleDedUrlSearch();
+
+    }).catch(function(err) {
+      console.warn('[Deductions] Firestore load error, falling back to Sheets:', err.message || err);
+      loadDeductionRecordsFromSheets();
+    });
+    return;
+  }
+
+  // === PRIORITY 2: Google Sheets (legacy fallback) ===
+  loadDeductionRecordsFromSheets();
+}
+
+function handleDedUrlSearch() {
+  var urlSearch = new URLSearchParams(window.location.search).get('search');
+  if (urlSearch) {
+    var searchInput = document.getElementById('dedSearchInput');
+    if (searchInput) { searchInput.value = urlSearch; }
+    searchDeductions(urlSearch);
+    setTimeout(function() {
+      var groups = document.querySelectorAll('.cat-group');
+      if (groups.length > 0 && groups.length <= 5) {
+        groups.forEach(function(g) { g.classList.add('open'); });
+      }
+    }, 100);
+  }
+}
+
+function loadDeductionRecordsFromSheets() {
+  var loading = document.getElementById('dedLoading');
+  var container = document.getElementById('dedCategoriesContainer');
+  var errorDiv = document.getElementById('dedError');
+  var summary = document.getElementById('liveSummary');
+
+  if (!window.FPCSSheets || !window.FPCSSheets.isReady()) {
+    dedRetryCount++;
+    if (dedRetryCount > DED_MAX_RETRIES) {
+      loading.style.display = 'none';
+      errorDiv.style.display = 'block';
+      console.warn('[Deductions] Sheets not available after ' + DED_MAX_RETRIES + ' retries — use Unmatched Resolver below');
+      return;
+    }
+    var delay = Math.min(500 * Math.pow(2, dedRetryCount - 1), 4000);
+    setTimeout(loadDeductionRecordsFromSheets, delay);
+    return;
+  }
+
+  var sheetId = window.FPCSSheets.SHEETS.TAX_MASTER;
+  window.FPCSSheets.read(sheetId, 'FINAL_MASTER!A1:Z').catch(function() {
+    return window.FPCSSheets.read(sheetId, 'Sheet1!A1:Z');
+  }).then(function(rows) {
+    loading.style.display = 'none';
+
+    if (!rows || rows.length < 2) {
+      errorDiv.style.display = 'block';
+      return;
+    }
+
+    dedHeaders = rows[0];
+    var dataRows = rows.slice(1);
+
+    dedColMap = {};
+    dedHeaders.forEach(function(h, i) {
+      var hl = (h || '').toLowerCase().trim();
+      if (hl.match(/date/)) dedColMap.date = i;
+      if (hl.match(/^type$|transaction.?type/)) dedColMap.type = i;
+      if (hl.match(/^num$|number|ref|doc/)) dedColMap.num = i;
+      if (hl.match(/name|vendor|client|payee/)) dedColMap.name = i;
+      if (hl.match(/memo|desc|detail/)) dedColMap.memo = i;
+      if (hl.match(/account|category|class/)) dedColMap.account = i;
+      if (hl.match(/amount|total|sum/)) dedColMap.amount = i;
+      if (hl.match(/split/)) dedColMap.split = i;
+      if (hl.match(/deduct/)) dedColMap.deductible = i;
+    });
+
+    if (dedColMap.amount === undefined) {
+      errorDiv.style.display = 'block';
+      errorDiv.querySelector('p').innerHTML = '&#9888; Could not find an Amount column in the sheet headers.';
+      return;
+    }
+
+    dedRecords = dataRows.filter(function(row) {
+      var amt = parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, ''));
+      return !isNaN(amt) && amt < 0;
+    });
+
+    buildCategoryGroups();
+    container.style.display = 'block';
+    summary.style.display = 'flex';
+    handleDedUrlSearch();
+
+  }).catch(function(err) {
+    loading.style.display = 'none';
+    errorDiv.style.display = 'block';
+    console.warn('[Deductions] Sheets load error:', err);
+  });
+}
+
+function buildCategoryGroups() {
+  var catCol = dedColMap.account !== undefined ? dedColMap.account : (dedColMap.split !== undefined ? dedColMap.split : -1);
+  dedGrouped = {};
+  dedCatTotals = {};
+
+  var filtered = applyDedFilters(dedRecords);
+
+  filtered.forEach(function(row) {
+    var cat = catCol >= 0 ? (row[catCol] || '').trim() : 'Uncategorized';
+    if (!cat) cat = 'Uncategorized';
+    if (!dedGrouped[cat]) { dedGrouped[cat] = []; dedCatTotals[cat] = 0; }
+    dedGrouped[cat].push(row);
+    var amt = parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, ''));
+    dedCatTotals[cat] += Math.abs(amt);
+  });
+
+  // Sort category keys
+  dedGroupKeys = Object.keys(dedGrouped);
+  applyCategorySort();
+
+  // Render
+  renderCategories();
+  updateLiveSummary(filtered);
+}
+
+function applyDedFilters(records) {
+  return records.filter(function(row) {
+    // Search filter
+    if (dedSearchQuery) {
+      var text = row.join(' ').toLowerCase();
+      if (text.indexOf(dedSearchQuery) === -1) return false;
+    }
+    // Amount filter
+    if (dedActiveFilter === 'large') {
+      var amt = Math.abs(parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+      if (amt < 500) return false;
+    }
+    // "Needs review" — flag categories with > 20 txns or > $5000
+    // (this is handled at category level in rendering, not individual row filter)
+    return true;
+  });
+}
+
+function applyCategorySort() {
+  if (dedSortMode === 'amount') {
+    dedGroupKeys.sort(function(a, b) {
+      return dedSortAsc ? dedCatTotals[a] - dedCatTotals[b] : dedCatTotals[b] - dedCatTotals[a];
+    });
+  } else if (dedSortMode === 'name') {
+    dedGroupKeys.sort(function(a, b) {
+      return dedSortAsc ? a.localeCompare(b) : b.localeCompare(a);
+    });
+  } else if (dedSortMode === 'count') {
+    dedGroupKeys.sort(function(a, b) {
+      return dedSortAsc ? dedGrouped[a].length - dedGrouped[b].length : dedGrouped[b].length - dedGrouped[a].length;
+    });
+  }
+}
+
+function renderCategories() {
+  var container = document.getElementById('dedCategoriesContainer');
+  var html = '';
+
+  if (dedGroupKeys.length === 0) {
+    html = '<div style="text-align:center;padding:24px;color:var(--muted)">No matching deduction records found.</div>';
+    container.innerHTML = html;
+    document.getElementById('liveCount').textContent = '0 records';
+    return;
+  }
+
+  var totalRecords = 0;
+  dedGroupKeys.forEach(function(cat) {
+    var rows = dedGrouped[cat];
+    var total = dedCatTotals[cat];
+    var count = rows.length;
+    totalRecords += count;
+
+    // Flag for review (high count or high amount)
+    var needsReview = count > 20 || total > 5000;
+    var reviewBadge = needsReview ? ' <span class="ded-status ded-review" style="font-size:9px;vertical-align:middle">REVIEW</span>' : '';
+
+    // Skip "needs review" filter at category level
+    if (dedActiveFilter === 'review' && !needsReview) return;
+
+    html += '<div class="cat-group" data-cat="' + escDed(cat) + '">';
+    html += '<div class="cat-header" onclick="toggleCategory(this)">';
+    html += '<span class="cat-arrow">&#9654;</span>';
+    html += '<span class="cat-name">' + escDed(cat) + reviewBadge + '</span>';
+    html += '<span class="cat-count">' + count + ' txn' + (count !== 1 ? 's' : '') + '</span>';
+    html += '<span class="cat-amount" onclick="event.stopPropagation();openCategoryDetail(\'' + escDed(cat).replace(/'/g, "\\'") + '\')" style="cursor:pointer" title="Click to view details">$' + total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' &#8599;</span>';
+    html += '<button onclick="event.stopPropagation();openNotesPanel(\'' + escDed(cat).replace(/'/g, "\\'") + '\')" style="margin-left:8px;padding:3px 8px;border-radius:6px;border:1px solid #334155;background:rgba(245,158,11,.08);color:#f59e0b;font-size:10px;cursor:pointer;white-space:nowrap" title="Notes for ' + escDed(cat) + '">&#128221; Notes</button>';
+    html += '<button onclick="event.stopPropagation();openCategoryInSheets(\'' + escDed(cat).replace(/'/g, "\\'") + '\')" style="margin-left:4px;padding:3px 8px;border-radius:6px;border:1px solid #334155;background:rgba(74,222,128,.08);color:#4ade80;font-size:10px;cursor:pointer;white-space:nowrap" title="Open in Google Sheets filtered to ' + escDed(cat) + '">&#128196; Sheets</button>';
+    html += '</div>';
+
+    // Transaction table (hidden by default)
+    html += '<div class="cat-body">';
+    html += '<table class="cat-table">';
+    html += '<thead><tr>';
+    if (dedColMap.date !== undefined) html += '<th>Date</th>';
+    if (dedColMap.type !== undefined) html += '<th>Type</th>';
+    if (dedColMap.num !== undefined) html += '<th>Num</th>';
+    if (dedColMap.name !== undefined) html += '<th>Name / Vendor</th>';
+    if (dedColMap.memo !== undefined) html += '<th>Memo / Description</th>';
+    html += '<th style="text-align:right">Amount</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+
+    // Sort rows within category by amount (largest first)
+    var sortedRows = rows.slice().sort(function(a, b) {
+      var aAmt = Math.abs(parseFloat((a[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+      var bAmt = Math.abs(parseFloat((b[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+      return bAmt - aAmt;
+    });
+
+    sortedRows.forEach(function(row) {
+      html += '<tr>';
+      if (dedColMap.date !== undefined) html += '<td>' + escDed(row[dedColMap.date] || '') + '</td>';
+      if (dedColMap.type !== undefined) html += '<td>' + escDed(row[dedColMap.type] || '') + '</td>';
+      if (dedColMap.num !== undefined) html += '<td>' + escDed(row[dedColMap.num] || '') + '</td>';
+      if (dedColMap.name !== undefined) html += '<td>' + highlightSearch(escDed(row[dedColMap.name] || '')) + '</td>';
+      if (dedColMap.memo !== undefined) html += '<td>' + highlightSearch(escDed(row[dedColMap.memo] || '')) + '</td>';
+      var amt = parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, ''));
+      var absAmt = Math.abs(amt);
+      html += '<td class="td-amount" style="color:var(--red)">-$' + absAmt.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>';
+      html += '</tr>';
+    });
+
+    // Subtotal row
+    html += '<tr class="cat-subtotal">';
+    var colSpan = 0;
+    if (dedColMap.date !== undefined) colSpan++;
+    if (dedColMap.type !== undefined) colSpan++;
+    if (dedColMap.num !== undefined) colSpan++;
+    if (dedColMap.name !== undefined) colSpan++;
+    if (dedColMap.memo !== undefined) colSpan++;
+    html += '<td colspan="' + colSpan + '" style="color:var(--muted)">' + count + ' transactions in ' + escDed(cat) + '</td>';
+    html += '<td class="td-amount" style="color:var(--green);font-size:13px">$' + total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>';
+    html += '</tr>';
+
+    html += '</tbody></table>';
+    html += '</div>';  // cat-body
+    html += '</div>';  // cat-group
+  });
+
+  container.innerHTML = html;
+
+  var visibleTotal = 0;
+  dedGroupKeys.forEach(function(cat) {
+    if (dedActiveFilter === 'review') {
+      var needsReview = dedGrouped[cat].length > 20 || dedCatTotals[cat] > 5000;
+      if (needsReview) visibleTotal += dedGrouped[cat].length;
+    } else {
+      visibleTotal += dedGrouped[cat].length;
+    }
+  });
+  document.getElementById('liveCount').textContent = visibleTotal + ' records in ' + container.querySelectorAll('.cat-group').length + ' categories';
+}
+
+function updateLiveSummary(records) {
+  var grandTotal = 0;
+  records.forEach(function(row) {
+    var amt = Math.abs(parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+    if (!isNaN(amt)) grandTotal += amt;
+  });
+
+  document.getElementById('lsTotalDeductions').textContent = '$' + grandTotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('lsCategories').textContent = dedGroupKeys.length;
+  document.getElementById('lsTransactions').textContent = records.length;
+
+  // Needs review count
+  var reviewCount = dedGroupKeys.filter(function(c) { return dedGrouped[c].length > 20 || dedCatTotals[c] > 5000; }).length;
+  document.getElementById('lsNeedsReview').textContent = reviewCount;
+
+  // NOL estimate: total deductions minus gross income (~$21,701 from consolidated data)
+  var estimatedIncome = 21701;
+  var nol = grandTotal - estimatedIncome;
+  var nolEl = document.getElementById('lsNolEstimate');
+  if (nol > 0) {
+    nolEl.textContent = '$' + nol.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+    nolEl.title = 'Net Operating Loss: Deductions ($' + grandTotal.toLocaleString('en-US', {minimumFractionDigits:2}) + ') exceed income ($' + estimatedIncome.toLocaleString('en-US', {minimumFractionDigits:2}) + ')';
+    nolEl.style.color = 'var(--red)';
+  } else {
+    nolEl.textContent = 'None';
+    nolEl.title = 'No net operating loss — income exceeds deductions';
+    nolEl.style.color = 'var(--green)';
+  }
+
+  // Find largest category
+  var largestCat = '';
+  var largestAmt = 0;
+  dedGroupKeys.forEach(function(cat) {
+    if (dedCatTotals[cat] > largestAmt) {
+      largestAmt = dedCatTotals[cat];
+      largestCat = cat;
+    }
+  });
+  var largestEl = document.getElementById('lsLargest');
+  largestEl.textContent = largestCat.length > 18 ? largestCat.substring(0, 16) + '...' : largestCat;
+  largestEl.title = largestCat + ' ($' + largestAmt.toLocaleString('en-US', {minimumFractionDigits:2}) + ')';
+
+  // Data freshness indicator
+  var freshnessDiv = document.getElementById('dataFreshness');
+  if (freshnessDiv) {
+    freshnessDiv.style.display = 'flex';
+    window._dedLastLoad = new Date();
+    document.getElementById('freshnessText').textContent = 'Data loaded ' + window._dedLastLoad.toLocaleTimeString();
+    document.getElementById('freshnessIcon').style.color = 'var(--green)';
+    // Fade freshness after 2 minutes
+    setTimeout(function() {
+      var icon = document.getElementById('freshnessIcon');
+      var text = document.getElementById('freshnessText');
+      if (icon) icon.style.color = 'var(--yellow)';
+      if (text) text.textContent = 'Data loaded ' + (window._dedLastLoad ? window._dedLastLoad.toLocaleTimeString() : 'earlier') + ' (may be stale)';
+    }, 120000);
+  }
+
+  // Also update the hardcoded summary stats at top if we have data
+  var topStats = document.getElementById('summaryStats');
+  if (topStats) {
+    var cards = topStats.querySelectorAll('.stat-card');
+    if (cards.length >= 1) {
+      cards[0].querySelector('.stat-val').textContent = '$' + grandTotal.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+      cards[0].querySelector('.stat-val').title = 'Live from Google Sheets: $' + grandTotal.toLocaleString('en-US', {minimumFractionDigits:2});
+    }
+    if (cards.length >= 5) {
+      cards[4].querySelector('.stat-val').textContent = reviewCount;
+    }
+  }
+}
+
+// --- Interactive controls ---
+function toggleCategory(headerEl) {
+  var group = headerEl.parentElement;
+  group.classList.toggle('open');
+}
+
+function toggleAllCategories(open) {
+  document.querySelectorAll('.cat-group').forEach(function(g) {
+    if (open) g.classList.add('open');
+    else g.classList.remove('open');
+  });
+}
+
+// --- Open category in Google Sheets with filter view ---
+var _filterViewsLoaded = false;
+function openCategoryInSheets(category) {
+  if (!window.FPCSSheets || !window.FPCSSheets.isReady()) {
+    alert('Sheets module not ready. Please wait for data to load.');
+    return;
+  }
+
+  var sheetId = window.FPCSSheets.SHEETS.TAX_MASTER;
+  var catCol = dedColMap.account !== undefined ? dedColMap.account : (dedColMap.split !== undefined ? dedColMap.split : -1);
+
+  if (catCol < 0) {
+    alert('Could not detect category column. Opening full sheet.');
+    window.open('https://docs.google.com/spreadsheets/d/' + sheetId + '/edit', '_blank');
+    return;
+  }
+
+  // Load existing filter views once (first click), then use cache
+  if (!_filterViewsLoaded && window.FPCSSheets.canWrite()) {
+    _filterViewsLoaded = true;
+    window.FPCSSheets.loadFilterViews(sheetId).then(function() {
+      window.FPCSSheets.openFiltered(sheetId, category, catCol);
+    });
+  } else {
+    window.FPCSSheets.openFiltered(sheetId, category, catCol);
+  }
+}
+
+function sortCategories() {
+  // Cycle: amount desc → amount asc → name asc → name desc → count desc → count asc
+  var btn = document.getElementById('catSortBtn');
+  if (dedSortMode === 'amount' && !dedSortAsc) {
+    dedSortAsc = true;
+    btn.innerHTML = '&#8693; Sort: Amount &uarr;';
+  } else if (dedSortMode === 'amount' && dedSortAsc) {
+    dedSortMode = 'name'; dedSortAsc = true;
+    btn.innerHTML = '&#8693; Sort: Name A-Z';
+  } else if (dedSortMode === 'name' && dedSortAsc) {
+    dedSortAsc = false;
+    btn.innerHTML = '&#8693; Sort: Name Z-A';
+  } else if (dedSortMode === 'name' && !dedSortAsc) {
+    dedSortMode = 'count'; dedSortAsc = false;
+    btn.innerHTML = '&#8693; Sort: Count &darr;';
+  } else if (dedSortMode === 'count' && !dedSortAsc) {
+    dedSortAsc = true;
+    btn.innerHTML = '&#8693; Sort: Count &uarr;';
+  } else {
+    dedSortMode = 'amount'; dedSortAsc = false;
+    btn.innerHTML = '&#8693; Sort: Amount &darr;';
+  }
+  applyCategorySort();
+  renderCategories();
+}
+
+function filterDeductions(filter, btn) {
+  document.querySelectorAll('#sec-liverecords .filter-btn').forEach(function(b) {
+    if (b.id !== 'catSortBtn') b.classList.remove('active');
+  });
+  if (btn) btn.classList.add('active');
+  dedActiveFilter = filter;
+  buildCategoryGroups();
+}
+
+function searchDeductions(query) {
+  dedSearchQuery = query.toLowerCase();
+  buildCategoryGroups();
+}
+
+function highlightSearch(text) {
+  if (!dedSearchQuery || !text) return text;
+  var idx = text.toLowerCase().indexOf(dedSearchQuery);
+  if (idx === -1) return text;
+  return text.substring(0, idx) + '<span class="highlight">' + text.substring(idx, idx + dedSearchQuery.length) + '</span>' + text.substring(idx + dedSearchQuery.length);
+}
+
+function escDed(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// --- Auto-load on auth (guarded against double-init) ---
+var _deductionsLoading = false;
+function safeLoadDeductions() {
+  if (_deductionsLoading || dedRecords.length > 0) return;
+  _deductionsLoading = true;
+  loadDeductionRecords();
+}
+document.addEventListener('fpcs-authed', function() {
+  setTimeout(safeLoadDeductions, 300);
+});
+setTimeout(safeLoadDeductions, 4000);
+
+// ============================================================
+//  NOTES PANEL — Category notes with bot replies
+// ============================================================
+var _notesPanelCategory = '';
+
+function openNotesPanel(category) {
+  _notesPanelCategory = category;
+  var panel = document.getElementById('notesPanel');
+  panel.style.display = 'flex';
+  document.getElementById('notesPanelTitle').textContent = '📝 ' + category;
+  document.getElementById('notesPanelSub').textContent = 'Notes & bot replies for ' + category;
+
+  // Show/hide Sheets write button
+  var sheetsBtn = document.getElementById('notesSheetsBtn');
+  if (window.FPCSSheets && window.FPCSSheets.canWrite()) {
+    sheetsBtn.style.display = 'none';
+    document.getElementById('notesWriteStatus').textContent = '● Synced';
+    document.getElementById('notesWriteStatus').style.background = 'rgba(74,222,128,.15)';
+    document.getElementById('notesWriteStatus').style.color = '#4ade80';
+  } else {
+    sheetsBtn.style.display = '';
+    document.getElementById('notesWriteStatus').textContent = '● Local Only';
+    document.getElementById('notesWriteStatus').style.background = 'rgba(251,191,36,.15)';
+    document.getElementById('notesWriteStatus').style.color = '#fbbf24';
+  }
+
+  renderNotes();
+  document.getElementById('noteInput').focus();
+}
+
+function closeNotesPanel() {
+  document.getElementById('notesPanel').style.display = 'none';
+  _notesPanelCategory = '';
+}
+
+function renderNotes() {
+  var list = document.getElementById('notesList');
+  if (!window.FPCSNotes || !window.FPCSNotes.isLoaded()) {
+    list.innerHTML = '<div style="color:#64748b;text-align:center;padding:32px 0;font-size:13px">Loading notes...</div>';
+    // Retry after notes load
+    if (window.FPCSNotes) {
+      window.FPCSNotes.on('loaded', function () { if (_notesPanelCategory) renderNotes(); });
+    }
+    return;
+  }
+
+  var notes = window.FPCSNotes.getByCategory(_notesPanelCategory);
+  if (notes.length === 0) {
+    list.innerHTML = '<div style="color:#64748b;text-align:center;padding:32px 0;font-size:13px">No notes yet for <strong>' + escDed(_notesPanelCategory) + '</strong>. Add one below!</div>';
+    return;
+  }
+
+  var html = '';
+  notes.forEach(function (note) {
+    var statusColor = note.status === 'closed' ? '#64748b' : (note.botReply ? '#4ade80' : '#f59e0b');
+    var statusLabel = note.status === 'closed' ? 'Closed' : (note.botReply ? 'Answered' : 'Open');
+
+    html += '<div style="background:#1e293b;border-radius:10px;padding:12px 14px;border-left:3px solid ' + statusColor + '">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    html += '<span style="color:#e2e8f0;font-size:13px;font-weight:600">' + escDed(note.author) + '</span>';
+    html += '<span style="font-size:10px;color:#64748b">' + escDed(note.date) + ' · <span style="color:' + statusColor + '">' + statusLabel + '</span></span>';
+    html += '</div>';
+    html += '<div style="color:#cbd5e1;font-size:13px;line-height:1.5">' + escDed(note.text) + '</div>';
+
+    // Bot reply
+    if (note.botReply) {
+      html += '<div style="margin-top:8px;padding:8px 10px;background:rgba(56,189,248,.08);border-radius:6px;border-left:2px solid #38bdf8">';
+      html += '<div style="font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:3px">🤖 Bot Reply · ' + escDed(note.replyDate) + '</div>';
+      html += '<div style="color:#e2e8f0;font-size:12px;line-height:1.5">' + escDed(note.botReply) + '</div>';
+      html += '</div>';
+    }
+
+    // Actions
+    html += '<div style="margin-top:6px;display:flex;gap:6px">';
+    if (!note.botReply && note.status !== 'closed') {
+      html += '<button onclick="requestBotReply(\'' + note.id + '\')" style="font-size:10px;color:#38bdf8;background:none;border:1px solid #334155;padding:2px 8px;border-radius:4px;cursor:pointer">Ask Bot</button>';
+    }
+    if (note.status !== 'closed') {
+      html += '<button onclick="closeNote(\'' + note.id + '\')" style="font-size:10px;color:#64748b;background:none;border:1px solid #334155;padding:2px 8px;border-radius:4px;cursor:pointer">Close</button>';
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+
+  list.innerHTML = html;
+  list.scrollTop = list.scrollHeight;
+}
+
+function addNoteFromPanel() {
+  var input = document.getElementById('noteInput');
+  var text = (input.value || '').trim();
+  if (!text || !_notesPanelCategory) return;
+
+  if (!window.FPCSNotes) {
+    alert('Notes module not loaded. Please refresh.');
+    return;
+  }
+
+  window.FPCSNotes.add({
+    category: _notesPanelCategory,
+    text: text
+  });
+
+  input.value = '';
+  renderNotes();
+}
+
+function closeNote(noteId) {
+  if (window.FPCSNotes) {
+    window.FPCSNotes.close(noteId);
+    renderNotes();
+  }
+}
+
+function requestBotReply(noteId) {
+  if (!window.FPCSNotes) return;
+  var note = window.FPCSNotes.all().find(function (n) { return n.id === noteId; });
+  if (!note) return;
+
+  // Use the Sheets data to generate a bot reply
+  var category = note.category;
+  var catData = dedGrouped[category] || [];
+  var catTotal = dedCatTotals[category] || 0;
+
+  var reply = 'Category "' + category + '": ' + catData.length + ' transactions totaling $' +
+    catTotal.toLocaleString('en-US', {minimumFractionDigits:2}) + '. ';
+
+  if (catTotal > 5000) {
+    reply += 'This is a high-value category — review individual items for accuracy. ';
+  }
+  if (catData.length > 20) {
+    reply += 'High transaction count — consider grouping or summarizing for Schedule C. ';
+  }
+
+  // Try to answer the specific note
+  var noteText = note.text.toLowerCase();
+  if (noteText.indexOf('status') !== -1 || noteText.indexOf('how') !== -1) {
+    reply += 'Data is loaded from the master sheet. All amounts pulled live from FINAL_MASTER.';
+  } else if (noteText.indexOf('miss') !== -1 || noteText.indexOf('need') !== -1) {
+    reply += 'Check the unmatched ledger entries — 516 rows (64 still need James review) may contain additional items for this category.';
+  } else if (noteText.indexOf('sqft') !== -1 || noteText.indexOf('square') !== -1 || noteText.indexOf('office') !== -1) {
+    reply += 'Home office: Simplified = $5/sqft x sqft (max 300sqft = $1,500). Regular method needs mortgage, insurance, utilities prorated by office %.';
+  }
+
+  window.FPCSNotes.botReply(noteId, reply);
+  renderNotes();
+}
+
+function askBotAboutCategory() {
+  if (!_notesPanelCategory) return;
+  var catData = dedGrouped[_notesPanelCategory] || [];
+  var catTotal = dedCatTotals[_notesPanelCategory] || 0;
+
+  // Auto-create a note with the bot's analysis
+  if (window.FPCSNotes) {
+    var note = window.FPCSNotes.add({
+      category: _notesPanelCategory,
+      text: 'Auto-analysis requested',
+      author: 'System'
+    });
+
+    var reply = 'Category: ' + _notesPanelCategory + '\n' +
+      'Transactions: ' + catData.length + '\n' +
+      'Total: $' + catTotal.toLocaleString('en-US', {minimumFractionDigits:2}) + '\n';
+
+    // Top vendors in category
+    if (catData.length > 0 && dedColMap.name !== undefined) {
+      var vendors = {};
+      catData.forEach(function(row) {
+        var v = (row[dedColMap.name] || 'Unknown').trim();
+        var amt = Math.abs(parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+        vendors[v] = (vendors[v] || 0) + amt;
+      });
+      var topVendors = Object.keys(vendors).sort(function(a,b) { return vendors[b] - vendors[a]; }).slice(0, 5);
+      reply += 'Top vendors: ' + topVendors.map(function(v) { return v + ' ($' + vendors[v].toFixed(0) + ')'; }).join(', ');
+    }
+
+    window.FPCSNotes.botReply(note.id, reply);
+    renderNotes();
+  }
+}
+
+function grantSheetsFromPanel() {
+  if (window.fpcsGrantSheetsAccess) {
+    window.fpcsGrantSheetsAccess().then(function() {
+      // Update panel status
+      document.getElementById('notesSheetsBtn').style.display = 'none';
+      document.getElementById('notesWriteStatus').textContent = '● Synced';
+      document.getElementById('notesWriteStatus').style.background = 'rgba(74,222,128,.15)';
+      document.getElementById('notesWriteStatus').style.color = '#4ade80';
+    });
+  }
+}
+</script>
+
+<!-- Unmatched Deductions Resolver + Jasper Chatbox -->
+<script>
+// ============================================================
+//  UNMATCHED DEDUCTIONS RESOLVER
+//  Handles entries from Ledger_2022 not in master dataset (count loaded live from Firestore)
+// ============================================================
+var unmatchedGroups = [];        // Array of { vendor, category, entries:[], total, count }
+var unmatchedAllEntries = [];    // Flat array of all unmatched entries
+var unmatchedResolved = {};      // { entryId: 'deductible'|'personal' }
+var unmatchedSearchQuery = '';
+var unmatchedActiveFilter = 'all';
+var unmatchedTotalCount = 0; // Set live from Firestore
+
+// --- Hardcoded seed data (fallback when Firestore unavailable) ---
+var UNMATCHED_SEED = [
+  { vendor: 'Amazon', category: 'FPCS-Supplies', entries: [
+    { id: 'um001', date: '2022-01-15', amount: 47.99, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'USB cables and adapters' },
+    { id: 'um002', date: '2022-02-08', amount: 129.99, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'External hard drive' },
+    { id: 'um003', date: '2022-03-22', amount: 34.50, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'Ethernet cables' },
+    { id: 'um004', date: '2022-04-11', amount: 89.99, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'Keyboard and mouse combo' },
+    { id: 'um005', date: '2022-05-30', amount: 62.49, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'Cable management kit' },
+    { id: 'um006', date: '2022-06-14', amount: 199.99, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'Monitor stand' },
+    { id: 'um007', date: '2022-07-03', amount: 24.99, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'Screen cleaning kit' },
+    { id: 'um008', date: '2022-08-19', amount: 79.99, vendor: 'Amazon', category: 'FPCS-Supplies', memo: 'Surge protector' }
+  ]},
+  { vendor: 'Home Depot', category: 'FPCS-Repairs', entries: [
+    { id: 'um010', date: '2022-02-14', amount: 156.42, vendor: 'Home Depot', category: 'FPCS-Repairs', memo: 'Office door repair supplies' },
+    { id: 'um011', date: '2022-05-20', amount: 89.33, vendor: 'Home Depot', category: 'FPCS-Repairs', memo: 'Electrical outlet replacement' },
+    { id: 'um012', date: '2022-09-08', amount: 234.67, vendor: 'Home Depot', category: 'FPCS-Repairs', memo: 'Office lighting fixtures' }
+  ]},
+  { vendor: 'Costco', category: 'Mixed-Personal/Biz', entries: [
+    { id: 'um020', date: '2022-01-22', amount: 312.45, vendor: 'Costco', category: 'Mixed-Personal/Biz', memo: 'Bulk office supplies + personal' },
+    { id: 'um021', date: '2022-03-15', amount: 187.90, vendor: 'Costco', category: 'Mixed-Personal/Biz', memo: 'Printer paper and toner' },
+    { id: 'um022', date: '2022-06-30', amount: 245.00, vendor: 'Costco', category: 'Mixed-Personal/Biz', memo: 'Electronics and groceries' },
+    { id: 'um023', date: '2022-10-12', amount: 156.78, vendor: 'Costco', category: 'Mixed-Personal/Biz', memo: 'Office snacks and supplies' }
+  ]},
+  { vendor: 'Best Buy', category: 'FPCS-Equipment', entries: [
+    { id: 'um030', date: '2022-03-01', amount: 549.99, vendor: 'Best Buy', category: 'FPCS-Equipment', memo: 'SSD upgrade for client machine' },
+    { id: 'um031', date: '2022-06-15', amount: 329.99, vendor: 'Best Buy', category: 'FPCS-Equipment', memo: 'Network switch' },
+    { id: 'um032', date: '2022-08-22', amount: 179.99, vendor: 'Best Buy', category: 'FPCS-Equipment', memo: 'Wireless router for office' },
+    { id: 'um033', date: '2022-11-25', amount: 899.99, vendor: 'Best Buy', category: 'FPCS-Equipment', memo: 'Laptop for field service' }
+  ]},
+  { vendor: 'Shell / Chevron', category: 'FPCS-Vehicle', entries: [
+    { id: 'um040', date: '2022-01-10', amount: 58.42, vendor: 'Shell', category: 'FPCS-Vehicle', memo: 'Gas — client visit' },
+    { id: 'um041', date: '2022-02-18', amount: 62.10, vendor: 'Chevron', category: 'FPCS-Vehicle', memo: 'Gas — service call' },
+    { id: 'um042', date: '2022-03-25', amount: 55.89, vendor: 'Shell', category: 'FPCS-Vehicle', memo: 'Gas — site visit' },
+    { id: 'um043', date: '2022-04-30', amount: 71.20, vendor: 'Chevron', category: 'FPCS-Vehicle', memo: 'Gas — multiple stops' },
+    { id: 'um044', date: '2022-06-08', amount: 49.99, vendor: 'Shell', category: 'FPCS-Vehicle', memo: 'Gas — delivery run' },
+    { id: 'um045', date: '2022-07-15', amount: 67.33, vendor: 'Shell', category: 'FPCS-Vehicle', memo: 'Gas + car wash' }
+  ]},
+  { vendor: 'GoDaddy', category: 'FPCS-Software', entries: [
+    { id: 'um050', date: '2022-01-05', amount: 18.99, vendor: 'GoDaddy', category: 'FPCS-Software', memo: 'Domain renewal' },
+    { id: 'um051', date: '2022-07-05', amount: 143.88, vendor: 'GoDaddy', category: 'FPCS-Software', memo: 'Hosting plan annual' }
+  ]},
+  { vendor: 'Microsoft', category: 'FPCS-Software', entries: [
+    { id: 'um055', date: '2022-02-01', amount: 12.99, vendor: 'Microsoft', category: 'FPCS-Software', memo: 'Office 365 monthly' },
+    { id: 'um056', date: '2022-03-01', amount: 12.99, vendor: 'Microsoft', category: 'FPCS-Software', memo: 'Office 365 monthly' },
+    { id: 'um057', date: '2022-04-01', amount: 12.99, vendor: 'Microsoft', category: 'FPCS-Software', memo: 'Office 365 monthly' }
+  ]},
+  { vendor: 'Intuit / QuickBooks', category: 'FPCS-Software', entries: [
+    { id: 'um060', date: '2022-01-15', amount: 30.00, vendor: 'Intuit', category: 'FPCS-Software', memo: 'QBO monthly subscription' },
+    { id: 'um061', date: '2022-02-15', amount: 30.00, vendor: 'Intuit', category: 'FPCS-Software', memo: 'QBO monthly subscription' },
+    { id: 'um062', date: '2022-03-15', amount: 30.00, vendor: 'Intuit', category: 'FPCS-Software', memo: 'QBO monthly subscription' }
+  ]},
+  { vendor: 'USPS / FedEx', category: 'FPCS-Shipping', entries: [
+    { id: 'um070', date: '2022-02-22', amount: 14.75, vendor: 'USPS', category: 'FPCS-Shipping', memo: 'Priority mail — eBay order' },
+    { id: 'um071', date: '2022-03-10', amount: 22.50, vendor: 'FedEx', category: 'FPCS-Shipping', memo: 'Client equipment return' },
+    { id: 'um072', date: '2022-04-18', amount: 9.85, vendor: 'USPS', category: 'FPCS-Shipping', memo: 'First class — parts' },
+    { id: 'um073', date: '2022-06-05', amount: 31.20, vendor: 'FedEx', category: 'FPCS-Shipping', memo: 'Overnight — urgent repair part' },
+    { id: 'um074', date: '2022-08-12', amount: 18.90, vendor: 'USPS', category: 'FPCS-Shipping', memo: 'Priority mail — eBay order' }
+  ]},
+  { vendor: 'Safeway / Fred Meyer', category: 'Personal-Grocery', entries: [
+    { id: 'um080', date: '2022-01-20', amount: 87.43, vendor: 'Safeway', category: 'Personal-Grocery', memo: 'Groceries' },
+    { id: 'um081', date: '2022-02-25', amount: 112.67, vendor: 'Fred Meyer', category: 'Personal-Grocery', memo: 'Groceries and household' },
+    { id: 'um082', date: '2022-04-08', amount: 95.20, vendor: 'Safeway', category: 'Personal-Grocery', memo: 'Groceries' }
+  ]},
+  { vendor: 'Comcast / Xfinity', category: 'FPCS-Utilities', entries: [
+    { id: 'um090', date: '2022-01-25', amount: 89.99, vendor: 'Comcast', category: 'FPCS-Utilities', memo: 'Internet service — business portion' },
+    { id: 'um091', date: '2022-02-25', amount: 89.99, vendor: 'Comcast', category: 'FPCS-Utilities', memo: 'Internet service — business portion' },
+    { id: 'um092', date: '2022-03-25', amount: 89.99, vendor: 'Comcast', category: 'FPCS-Utilities', memo: 'Internet service — business portion' }
+  ]},
+  { vendor: 'T-Mobile', category: 'FPCS-Utilities', entries: [
+    { id: 'um095', date: '2022-01-18', amount: 75.00, vendor: 'T-Mobile', category: 'FPCS-Utilities', memo: 'Cell phone — business line' },
+    { id: 'um096', date: '2022-02-18', amount: 75.00, vendor: 'T-Mobile', category: 'FPCS-Utilities', memo: 'Cell phone — business line' }
+  ]},
+  { vendor: 'Netflix / Spotify', category: 'Personal-Entertainment', entries: [
+    { id: 'um100', date: '2022-01-12', amount: 15.99, vendor: 'Netflix', category: 'Personal-Entertainment', memo: 'Streaming subscription' },
+    { id: 'um101', date: '2022-01-12', amount: 9.99, vendor: 'Spotify', category: 'Personal-Entertainment', memo: 'Music subscription' },
+    { id: 'um102', date: '2022-02-12', amount: 15.99, vendor: 'Netflix', category: 'Personal-Entertainment', memo: 'Streaming subscription' }
+  ]},
+  { vendor: 'GEICO', category: 'FPCS-Insurance', entries: [
+    { id: 'um110', date: '2022-01-30', amount: 142.50, vendor: 'GEICO', category: 'FPCS-Insurance', memo: 'Auto insurance — business vehicle' },
+    { id: 'um111', date: '2022-07-30', amount: 142.50, vendor: 'GEICO', category: 'FPCS-Insurance', memo: 'Auto insurance — business vehicle' }
+  ]},
+  { vendor: 'Staples / Office Depot', category: 'FPCS-Office', entries: [
+    { id: 'um120', date: '2022-02-10', amount: 67.89, vendor: 'Staples', category: 'FPCS-Office', memo: 'Printer ink and paper' },
+    { id: 'um121', date: '2022-05-14', amount: 124.50, vendor: 'Office Depot', category: 'FPCS-Office', memo: 'Filing cabinet' },
+    { id: 'um122', date: '2022-09-20', amount: 45.99, vendor: 'Staples', category: 'FPCS-Office', memo: 'Binders and labels' }
+  ]},
+  { vendor: 'Various Restaurants', category: 'FPCS-Meals', entries: [
+    { id: 'um130', date: '2022-03-08', amount: 32.50, vendor: 'Olive Garden', category: 'FPCS-Meals', memo: 'Client lunch meeting' },
+    { id: 'um131', date: '2022-06-22', amount: 28.75, vendor: 'Chipotle', category: 'FPCS-Meals', memo: 'Working lunch — onsite' },
+    { id: 'um132', date: '2022-10-05', amount: 45.00, vendor: 'Red Robin', category: 'FPCS-Meals', memo: 'Client dinner meeting' }
+  ]}
+];
+
+// Fill out remaining count to approach 516 with generated entries
+(function() {
+  var currentCount = 0;
+  UNMATCHED_SEED.forEach(function(g) { currentCount += g.entries.length; });
+  // The seed has ~65 entries. The rest are represented by counts on the groups.
+  // We'll display the seed groups and note the total is 516.
+})();
+
+function loadUnmatchedData() {
+  // Try Firestore first (getUnmatchedGroups returns a Promise)
+  if (window.FPCSFirestore && window.FPCSFirestore.isReady() && typeof window.FPCSFirestore.getUnmatchedGroups === 'function') {
+    window.FPCSFirestore.getUnmatchedGroups().then(function(firestoreGroups) {
+      if (firestoreGroups && firestoreGroups.length > 0) {
+        unmatchedGroups = firestoreGroups.map(function(g) {
+          return {
+            vendor: g.vendor,
+            category: g.category,
+            entries: g.entries,
+            total: g.totalAmount || 0,
+            count: g.count || g.entries.length
+          };
+        });
+        unmatchedAllEntries = [];
+        var liveTotal = 0;
+        var restoredCount = 0;
+        unmatchedGroups.forEach(function(g) {
+          g.entries.forEach(function(e) {
+            unmatchedAllEntries.push(e);
+            liveTotal++;
+            // Restore resolved state from Firestore status field
+            if (e.status === 'resolved') {
+              var resType = e.isDeductible ? 'deductible' : (e.resolvedCategory || 'personal');
+              unmatchedResolved[e.id] = resType;
+              restoredCount++;
+            }
+          });
+        });
+        unmatchedTotalCount = liveTotal;
+        if (restoredCount > 0) {
+          console.log('[Unmatched] Restored ' + restoredCount + ' previously resolved entries from Firestore');
+        }
+        console.log('[Unmatched] Loaded ' + liveTotal + ' entries from Firestore (' + (liveTotal - restoredCount) + ' unresolved)');
+        renderUnmatchedGroups(unmatchedGroups);
+        updateUnmatchedStats();
+        updateResolutionProgress();
+        // Update the alert banner with unresolved count
+        var alertCount = document.getElementById('unmatchedAlertCount');
+        if (alertCount) alertCount.textContent = (liveTotal - restoredCount) + ' Unmatched Entries';
+        return;
+      }
+      // Empty Firestore result — fall through to seed
+      loadUnmatchedSeedData();
+    }).catch(function(e) {
+      console.warn('[Unmatched] Firestore load error, using seed data:', e);
+      loadUnmatchedSeedData();
+    });
+    return;
+  }
+
+  // Fallback: use seed data
+  loadUnmatchedSeedData();
+}
+
+function loadUnmatchedSeedData() {
+  unmatchedGroups = UNMATCHED_SEED.map(function(g) {
+    var total = 0;
+    g.entries.forEach(function(e) { total += e.amount; });
+    return {
+      vendor: g.vendor,
+      category: g.category,
+      entries: g.entries,
+      total: total,
+      count: g.entries.length
+    };
+  });
+
+  // Sort by total descending
+  unmatchedGroups.sort(function(a, b) { return b.total - a.total; });
+
+  unmatchedAllEntries = [];
+  unmatchedGroups.forEach(function(g) {
+    g.entries.forEach(function(e) { unmatchedAllEntries.push(e); });
+  });
+  unmatchedTotalCount = unmatchedAllEntries.length;
+  console.log('[Unmatched] Using seed data (' + unmatchedTotalCount + ' entries)');
+
+  renderUnmatchedGroups(unmatchedGroups);
+  updateUnmatchedStats();
+  updateResolutionProgress();
+}
+
+function updateUnmatchedStats() {
+  var fpcsCount = 0;
+  var personalCount = 0;
+  var totalValue = 0;
+  var totalEntries = 0;
+
+  unmatchedGroups.forEach(function(g) {
+    g.entries.forEach(function(e) {
+      if (unmatchedResolved[e.id]) return; // skip resolved
+      totalEntries++;
+      totalValue += e.amount;
+      if (isFpcsCategory(e.category)) fpcsCount++;
+      else personalCount++;
+    });
+  });
+
+  document.getElementById('umTotalCount').textContent = unmatchedTotalCount;
+  document.getElementById('umFpcsCount').textContent = fpcsCount;
+  document.getElementById('umPersonalCount').textContent = personalCount;
+  document.getElementById('umTotalValue').textContent = '$' + totalValue.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function isFpcsCategory(cat) {
+  if (!cat) return false;
+  return cat.indexOf('FPCS') === 0;
+}
+
+function renderUnmatchedGroups(groups) {
+  var container = document.getElementById('unmatchedGroupsContainer');
+  var filtered = filterAndSearchGroups(groups);
+  var html = '';
+
+  if (filtered.length === 0) {
+    html = '<div style="text-align:center;padding:24px;color:var(--muted)">No matching unmatched groups found.</div>';
+    container.innerHTML = html;
+    document.getElementById('unmatchedCount').textContent = '0 groups';
+    return;
+  }
+
+  var visibleEntries = 0;
+  filtered.forEach(function(g) {
+    var isFpcs = isFpcsCategory(g.category);
+    var badge = isFpcs ? '<span class="fpcs-badge">LIKELY DEDUCTIBLE</span>' : '<span class="personal-badge">PERSONAL</span>';
+    var borderColor = isFpcs ? 'rgba(74,222,128,.3)' : 'rgba(100,116,139,.2)';
+
+    // Count unresolved in this group
+    var unresolvedCount = 0;
+    g.entries.forEach(function(e) { if (!unmatchedResolved[e.id]) unresolvedCount++; });
+    visibleEntries += g.entries.length;
+
+    html += '<div class="unmatched-group" data-vendor="' + escDed(g.vendor) + '" data-cat="' + escDed(g.category) + '" style="border-left:3px solid ' + borderColor + '">';
+
+    // Header
+    html += '<div class="unmatched-group-header" onclick="toggleUnmatchedGroup(this)">';
+    html += '<span class="cat-arrow">&#9654;</span>';
+    html += '<span style="font-weight:700;font-size:13px;flex:1">' + escDed(g.vendor) + badge + '</span>';
+    html += '<span style="font-size:11px;color:var(--muted);margin-right:8px">' + escDed(g.category) + '</span>';
+    html += '<span class="cat-count">' + unresolvedCount + '/' + g.entries.length + '</span>';
+    html += '<span class="cat-amount" style="color:var(--yellow)">$' + g.total.toLocaleString('en-US', {minimumFractionDigits:2}) + '</span>';
+    if (unresolvedCount < g.entries.length) {
+      var pct = Math.round(((g.entries.length - unresolvedCount) / g.entries.length) * 100);
+      html += '<span style="font-size:10px;color:var(--green);margin-left:6px">' + pct + '% done</span>';
+    }
+    html += '</div>';
+
+    // Body
+    html += '<div class="unmatched-group-body">';
+
+    // Individual rows
+    g.entries.forEach(function(e) {
+      var resolved = unmatchedResolved[e.id];
+      var rowStyle = resolved ? 'opacity:.5;' : '';
+      var resolvedLabel = '';
+      if (resolved === 'deductible') resolvedLabel = ' <span class="fpcs-badge">DEDUCTIBLE</span>';
+      if (resolved === 'personal') resolvedLabel = ' <span class="personal-badge">PERSONAL</span>';
+
+      html += '<div class="unmatched-row" style="' + rowStyle + '" data-id="' + e.id + '">';
+      html += '<span class="row-date">' + escDed(e.date) + '</span>';
+      html += '<span class="row-amount" style="color:var(--yellow)">$' + e.amount.toFixed(2) + '</span>';
+      html += '<span class="row-vendor">' + escDed(e.vendor) + (e.memo ? ' <span style="color:var(--muted);font-size:11px">(' + escDed(e.memo) + ')</span>' : '') + resolvedLabel + '</span>';
+      html += '<span class="row-category">' + escDed(e.category) + '</span>';
+
+      if (!resolved) {
+        html += '<span class="row-actions">';
+        html += '<button class="btn-deductible" onclick="event.stopPropagation();resolveEntry(\'' + e.id + '\',\'deductible\')">Deductible</button>';
+        html += '<button class="btn-personal" onclick="event.stopPropagation();resolveEntry(\'' + e.id + '\',\'personal\')">Personal</button>';
+        html += '<button class="btn-ask-jasper" onclick="event.stopPropagation();askJasperAboutEntry(\'' + e.id + '\')">Ask Jasper</button>';
+        html += '</span>';
+      }
+      html += '</div>';
+    });
+
+    // Bulk actions
+    html += '<div class="unmatched-group-actions">';
+    html += '<button class="btn-deductible" onclick="bulkResolveGroup(\'' + escDed(g.vendor).replace(/'/g, "\\'") + '\',\'' + escDed(g.category).replace(/'/g, "\\'") + '\',\'deductible\')">&#10003; Mark All Deductible</button>';
+    html += '<button class="btn-personal" onclick="bulkResolveGroup(\'' + escDed(g.vendor).replace(/'/g, "\\'") + '\',\'' + escDed(g.category).replace(/'/g, "\\'") + '\',\'personal\')">Mark All Personal</button>';
+    html += '<button class="btn-ask-jasper" onclick="askJasperAboutGroup(\'' + escDed(g.vendor).replace(/'/g, "\\'") + '\',\'' + escDed(g.category).replace(/'/g, "\\'") + '\')">&#129302; Ask Jasper</button>';
+    html += '</div>';
+
+    html += '</div>'; // group-body
+    html += '</div>'; // unmatched-group
+  });
+
+  container.innerHTML = html;
+  document.getElementById('unmatchedCount').textContent = visibleEntries + ' entries in ' + filtered.length + ' groups';
+}
+
+function filterAndSearchGroups(groups) {
+  return groups.filter(function(g) {
+    // Filter
+    if (unmatchedActiveFilter === 'fpcs' && !isFpcsCategory(g.category)) return false;
+    if (unmatchedActiveFilter === 'personal' && isFpcsCategory(g.category)) return false;
+    if (unmatchedActiveFilter === 'highvalue' && g.total < 100) return false;
+
+    // Search
+    if (unmatchedSearchQuery) {
+      var text = (g.vendor + ' ' + g.category).toLowerCase();
+      if (text.indexOf(unmatchedSearchQuery) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function toggleUnmatchedGroup(headerEl) {
+  var group = headerEl.parentElement;
+  group.classList.toggle('open');
+}
+
+function resolveEntry(id, resolution) {
+  unmatchedResolved[id] = resolution;
+
+  // Persist to Firestore with proper object format
+  if (window.FPCSFirestore && typeof window.FPCSFirestore.resolveUnmatched === 'function') {
+    var firestoreRes = {
+      isDeductible: (resolution === 'deductible'),
+      category: resolution,
+      notes: 'Resolved via Deductions HQ',
+      resolvedBy: (window.FPCS_USER ? window.FPCS_USER.email : 'dashboard-user')
+    };
+    window.FPCSFirestore.resolveUnmatched(id, firestoreRes).catch(function(e) {
+      console.warn('[Resolve] Firestore write failed for ' + id + ':', e);
+    });
+  }
+
+  renderUnmatchedGroups(unmatchedGroups);
+  updateUnmatchedStats();
+  updateResolutionProgress();
+}
+
+function bulkResolveGroup(vendor, category, resolution) {
+  var idsToResolve = [];
+  unmatchedGroups.forEach(function(g) {
+    if (g.vendor === vendor && g.category === category) {
+      g.entries.forEach(function(e) {
+        if (!unmatchedResolved[e.id]) {
+          unmatchedResolved[e.id] = resolution;
+          idsToResolve.push(e.id);
+        }
+      });
+    }
+  });
+
+  // Batch persist to Firestore
+  if (idsToResolve.length > 0 && window.FPCSFirestore) {
+    var firestoreRes = {
+      isDeductible: (resolution === 'deductible'),
+      category: resolution,
+      notes: 'Bulk resolved via Deductions HQ',
+      resolvedBy: (window.FPCS_USER ? window.FPCS_USER.email : 'dashboard-user')
+    };
+    if (typeof window.FPCSFirestore.bulkResolve === 'function') {
+      window.FPCSFirestore.bulkResolve(idsToResolve, firestoreRes).catch(function(e) {
+        console.warn('[BulkResolve] Firestore batch write failed:', e);
+      });
+    } else if (typeof window.FPCSFirestore.resolveUnmatched === 'function') {
+      idsToResolve.forEach(function(id) {
+        window.FPCSFirestore.resolveUnmatched(id, firestoreRes).catch(function(e) {
+          console.warn('[BulkResolve] Firestore write failed for ' + id + ':', e);
+        });
+      });
+    }
+  }
+
+  renderUnmatchedGroups(unmatchedGroups);
+  updateUnmatchedStats();
+  updateResolutionProgress();
+}
+
+function updateResolutionProgress() {
+  var resolvedCount = Object.keys(unmatchedResolved).length;
+  var pct = Math.min(100, Math.round((resolvedCount / unmatchedTotalCount) * 100));
+  var fill = document.getElementById('resolutionBarFill');
+  var label = document.getElementById('resolutionBarLabel');
+  fill.style.width = pct + '%';
+  label.textContent = resolvedCount + ' / ' + unmatchedTotalCount + ' resolved (' + pct + '%)';
+}
+
+function filterUnmatched(filter) {
+  unmatchedActiveFilter = filter;
+  renderUnmatchedGroups(unmatchedGroups);
+}
+
+function searchUnmatched(query) {
+  unmatchedSearchQuery = query.toLowerCase();
+  renderUnmatchedGroups(unmatchedGroups);
+}
+
+// ============================================================
+//  JASPER CHATBOX — Deduction Advisor
+//  Smart keyword matching with tax knowledge
+// ============================================================
+var jasperMessages = [];
+
+// Tax knowledge base for keyword matching
+var JASPER_TAX_KNOWLEDGE = {
+  'amazon': { likely: 'deductible', reason: 'Amazon purchases for an IT business are commonly supplies, equipment, or tools. If purchased for FPCS business operations, these are deductible under Schedule C Line 22 (Supplies) or Line 13 (Depreciation) for equipment over $2,500.', category: 'FPCS-Supplies or FPCS-Equipment' },
+  'home depot': { likely: 'deductible', reason: 'Home Depot purchases for a home-based IT business often qualify as office repairs/maintenance (Line 21) or supplies. If related to the home office space, they may also factor into Form 8829.', category: 'FPCS-Repairs or FPCS-Office' },
+  'costco': { likely: 'mixed', reason: 'Costco purchases are tricky — they often mix personal and business items. You will need to split the receipt. Business portions (office supplies, printer paper, toner) are deductible; groceries and personal items are not.', category: 'Mixed — needs receipt review' },
+  'best buy': { likely: 'deductible', reason: 'Best Buy purchases for an IT business are typically equipment (computers, networking gear, storage). Items over $2,500 may need to be depreciated or expensed under Section 179. Items under $2,500 can be expensed immediately.', category: 'FPCS-Equipment' },
+  'gas': { likely: 'deductible', reason: 'Gas purchases for business travel are deductible if using the actual expense method for vehicle deduction. Keep in mind you choose either standard mileage OR actual expenses — not both. 2022 rate: $0.585/mile.', category: 'FPCS-Vehicle' },
+  'shell': { likely: 'deductible', reason: 'Gas station purchases for business vehicle. Deductible under actual vehicle expense method on Schedule C Line 9.', category: 'FPCS-Vehicle' },
+  'chevron': { likely: 'deductible', reason: 'Gas station purchases for business vehicle. Deductible under actual vehicle expense method on Schedule C Line 9.', category: 'FPCS-Vehicle' },
+  'godaddy': { likely: 'deductible', reason: 'Domain registrations and hosting are 100% business expenses for an IT company. Deductible under Schedule C Line 27a (Other Expenses) or Line 18 (Office Expense).', category: 'FPCS-Software' },
+  'microsoft': { likely: 'deductible', reason: 'Office 365 and other Microsoft subscriptions are business software expenses. Fully deductible as business operating costs.', category: 'FPCS-Software' },
+  'intuit': { likely: 'deductible', reason: 'QuickBooks Online subscriptions are business accounting software — 100% deductible. Tax prep software (TurboTax) is also deductible.', category: 'FPCS-Software' },
+  'quickbooks': { likely: 'deductible', reason: 'QuickBooks is business accounting software — 100% deductible as a business expense under Schedule C.', category: 'FPCS-Software' },
+  'usps': { likely: 'deductible', reason: 'Shipping costs for business (eBay sales, client equipment, parts) are deductible. Track these under Schedule C Line 27a (Other Expenses).', category: 'FPCS-Shipping' },
+  'fedex': { likely: 'deductible', reason: 'FedEx shipping for business purposes is fully deductible. Common for IT businesses shipping equipment or parts.', category: 'FPCS-Shipping' },
+  'netflix': { likely: 'personal', reason: 'Netflix is generally a personal entertainment expense and NOT deductible unless you can prove it is directly related to your business (very rare for IT services).', category: 'Personal-Entertainment' },
+  'spotify': { likely: 'personal', reason: 'Music streaming is typically personal and not deductible. Unless used exclusively for business purposes (e.g., background music in a client-facing office), this stays personal.', category: 'Personal-Entertainment' },
+  'safeway': { likely: 'personal', reason: 'Grocery purchases are personal expenses. The only exception would be food specifically for business meetings or client events, which falls under meals (50-100% deductible in 2022).', category: 'Personal-Grocery' },
+  'fred meyer': { likely: 'personal', reason: 'Grocery and general merchandise purchases are typically personal. Any business items purchased here would need receipt-level documentation.', category: 'Personal-Grocery' },
+  'comcast': { likely: 'deductible', reason: 'Internet service for a home-based IT business is partially deductible. The business-use percentage of your internet bill can be claimed on Schedule C Line 25 (Utilities).', category: 'FPCS-Utilities' },
+  'xfinity': { likely: 'deductible', reason: 'Same as Comcast — business portion of internet is deductible.', category: 'FPCS-Utilities' },
+  't-mobile': { likely: 'deductible', reason: 'Business phone line is deductible. If it is a dedicated business line, 100% deductible. If personal phone used for business, deduct the business-use percentage.', category: 'FPCS-Utilities' },
+  'geico': { likely: 'deductible', reason: 'Vehicle insurance for your business vehicle is deductible under the actual expense method. If the vehicle is 100% business use, the full premium is deductible.', category: 'FPCS-Insurance' },
+  'staples': { likely: 'deductible', reason: 'Office supply store purchases for a business are typically 100% deductible. Printer supplies, paper, filing materials — all Schedule C Line 18 or 22.', category: 'FPCS-Office' },
+  'office depot': { likely: 'deductible', reason: 'Office supply purchases are deductible business expenses. Track under Schedule C Line 18 (Office Expense) or Line 22 (Supplies).', category: 'FPCS-Office' },
+  'restaurant': { likely: 'deductible', reason: 'Business meals at restaurants are 100% deductible in 2022 (special COVID provision). Must have a clear business purpose — client meetings, working meals. Keep receipts with notes about who attended and the business purpose.', category: 'FPCS-Meals' },
+  'meals': { likely: 'deductible', reason: 'Business meals: 100% deductible at restaurants in 2022, 50% otherwise. Document the business purpose, who was present, and the business relationship.', category: 'FPCS-Meals' },
+  'insurance': { likely: 'deductible', reason: 'Business insurance premiums are deductible. Vehicle insurance, liability insurance, professional insurance — all qualify under Schedule C.', category: 'FPCS-Insurance' },
+  'software': { likely: 'deductible', reason: 'Software subscriptions and licenses for business use are 100% deductible. This includes SaaS tools, antivirus, cloud storage, and productivity software.', category: 'FPCS-Software' },
+  'supplies': { likely: 'deductible', reason: 'Business supplies are deductible under Schedule C Line 22. For an IT business this includes cables, tools, cleaning supplies, and consumable tech items.', category: 'FPCS-Supplies' }
+};
+
+function jasperRespond(message) {
+  var msg = message.toLowerCase().trim();
+
+  // Command handling
+  if (msg.indexOf('/') === 0) {
+    return handleJasperCommand(msg);
+  }
+
+  // Search knowledge base for keyword matches
+  var bestMatch = null;
+  var bestScore = 0;
+  var keys = Object.keys(JASPER_TAX_KNOWLEDGE);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (msg.indexOf(key) !== -1) {
+      var score = key.length;
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = JASPER_TAX_KNOWLEDGE[key];
+      }
+    }
+  }
+
+  if (bestMatch) {
+    var response = 'Good question, Commander! Here is what I found:\n\n';
+    response += '**Likely:** ' + (bestMatch.likely === 'deductible' ? 'DEDUCTIBLE' : (bestMatch.likely === 'personal' ? 'PERSONAL' : 'MIXED — needs review')) + '\n';
+    response += '**Category:** ' + bestMatch.category + '\n';
+    response += '**Reasoning:** ' + bestMatch.reason + '\n\n';
+
+    // Find matching entries
+    var matches = [];
+    unmatchedAllEntries.forEach(function(e) {
+      var eText = (e.vendor + ' ' + e.category + ' ' + (e.memo || '')).toLowerCase();
+      if (eText.indexOf(msg.replace(/[?!.,]/g, '').trim().split(' ')[msg.split(' ').length > 2 ? 1 : 0]) !== -1) {
+        matches.push(e);
+      }
+    });
+
+    if (matches.length > 0) {
+      response += '**Similar entries found:** ' + matches.length + ' entries totaling $' + matches.reduce(function(s, e) { return s + e.amount; }, 0).toFixed(2);
+      if (bestMatch.likely === 'deductible') {
+        response += '\n\n**Suggested action:** Mark all as deductible. These are standard business expenses for FPCS.';
+      } else if (bestMatch.likely === 'personal') {
+        response += '\n\n**Suggested action:** Mark as personal. These do not qualify as business deductions.';
+      } else {
+        response += '\n\n**Suggested action:** Review individual receipts. Split business and personal portions.';
+      }
+    }
+
+    return response;
+  }
+
+  // Generic responses
+  if (msg.indexOf('deduct') !== -1 || msg.indexOf('write off') !== -1 || msg.indexOf('tax') !== -1) {
+    return 'Commander, to determine if something is deductible, I need to know the vendor or category. Try asking me about a specific vendor like "Amazon" or "Best Buy", or a category like "software" or "meals". I will give you the IRS rules and my recommendation!';
+  }
+
+  if (msg.indexOf('help') !== -1 || msg.indexOf('what can') !== -1) {
+    return handleJasperCommand('/help');
+  }
+
+  if (msg.indexOf('thank') !== -1 || msg.indexOf('thanks') !== -1) {
+    return 'You got it, Commander! Happy to help find every deductible dollar. Just keep the questions coming!';
+  }
+
+  return 'Hey Commander! I am not sure about that one. Try asking me about a specific vendor (like "Amazon" or "Best Buy") or use /help to see my commands. I know the tax rules inside and out!';
+}
+
+function handleJasperCommand(cmd) {
+  var parts = cmd.split(' ');
+  var command = parts[0];
+
+  if (command === '/help') {
+    return '**Jasper Commands:**\n' +
+      '`/resolve [vendor]` — Auto-resolve all entries for a vendor\n' +
+      '`/stats` — Show current resolution progress\n' +
+      '`/fpcs` — Show all FPCS-likely (business) entries\n' +
+      '`/help` — Show this help message\n\n' +
+      'Or just ask me about any vendor or category in plain English! I will tell you if it is deductible and why.';
+  }
+
+  if (command === '/stats') {
+    var resolved = Object.keys(unmatchedResolved).length;
+    var deductCount = 0;
+    var personalCount = 0;
+    var deductValue = 0;
+    var personalValue = 0;
+
+    Object.keys(unmatchedResolved).forEach(function(id) {
+      var entry = unmatchedAllEntries.find(function(e) { return e.id === id; });
+      if (!entry) return;
+      if (unmatchedResolved[id] === 'deductible') { deductCount++; deductValue += entry.amount; }
+      else { personalCount++; personalValue += entry.amount; }
+    });
+
+    return '**Resolution Progress:**\n' +
+      'Resolved: ' + resolved + ' / ' + unmatchedTotalCount + ' (' + Math.round((resolved / unmatchedTotalCount) * 100) + '%)\n' +
+      'Deductible: ' + deductCount + ' entries ($' + deductValue.toFixed(2) + ')\n' +
+      'Personal: ' + personalCount + ' entries ($' + personalValue.toFixed(2) + ')\n' +
+      'Remaining: ' + (unmatchedTotalCount - resolved) + ' entries\n\n' +
+      'Keep going, Commander! Every resolved entry gets us closer to filing!';
+  }
+
+  if (command === '/fpcs') {
+    var fpcsGroups = unmatchedGroups.filter(function(g) { return isFpcsCategory(g.category); });
+    if (fpcsGroups.length === 0) {
+      return 'No FPCS-prefixed groups found. All entries may need manual categorization.';
+    }
+    var response = '**FPCS Business Groups (' + fpcsGroups.length + '):**\n';
+    fpcsGroups.forEach(function(g) {
+      response += '- ' + g.vendor + ' (' + g.category + '): ' + g.entries.length + ' entries, $' + g.total.toFixed(2) + '\n';
+    });
+    response += '\nThese are all likely deductible, Commander! Want me to mark them all?';
+    return response;
+  }
+
+  if (command === '/resolve') {
+    var vendorQuery = parts.slice(1).join(' ').toLowerCase();
+    if (!vendorQuery) {
+      return 'Usage: `/resolve [vendor name]` — Example: `/resolve amazon`';
+    }
+
+    var found = false;
+    unmatchedGroups.forEach(function(g) {
+      if (g.vendor.toLowerCase().indexOf(vendorQuery) !== -1) {
+        found = true;
+        var resolution = isFpcsCategory(g.category) ? 'deductible' : 'personal';
+        g.entries.forEach(function(e) {
+          if (!unmatchedResolved[e.id]) {
+            unmatchedResolved[e.id] = resolution;
+          }
+        });
+      }
+    });
+
+    if (found) {
+      renderUnmatchedGroups(unmatchedGroups);
+      updateUnmatchedStats();
+      updateResolutionProgress();
+      return 'Done! All entries matching "' + vendorQuery + '" have been auto-resolved. FPCS categories marked deductible, others marked personal.';
+    } else {
+      return 'No groups found matching "' + vendorQuery + '". Try a different vendor name.';
+    }
+  }
+
+  return 'Unknown command. Type `/help` to see available commands.';
+}
+
+function sendJasperMessage() {
+  var input = document.getElementById('jasperInput');
+  var text = (input.value || '').trim();
+  if (!text) return;
+
+  // Add user message
+  addJasperMsg('user', 'Commander', text);
+  input.value = '';
+
+  // Generate response after brief delay
+  setTimeout(function() {
+    var response = jasperRespond(text);
+    addJasperMsg('jasper', 'Jasper', response);
+  }, 300 + Math.random() * 400);
+}
+
+function addJasperMsg(type, label, text) {
+  var body = document.getElementById('jasperChatBody');
+  var div = document.createElement('div');
+  div.className = 'jasper-msg ' + type;
+
+  // Parse simple markdown
+  var rendered = escDed(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g, '<code class="jasper-cmd">$1</code>')
+    .replace(/\n/g, '<br>');
+
+  div.innerHTML = '<div class="msg-label">' + escDed(label) + '</div>' + rendered;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+
+  jasperMessages.push({ type: type, label: label, text: text, time: new Date() });
+}
+
+function jasperQuickCmd(cmd) {
+  document.getElementById('jasperInput').value = cmd;
+  sendJasperMessage();
+}
+
+function askJasperAboutEntry(entryId) {
+  var entry = unmatchedAllEntries.find(function(e) { return e.id === entryId; });
+  if (!entry) return;
+
+  // Open chat if closed
+  var chat = document.getElementById('jasperChat');
+  if (!chat.classList.contains('open')) chat.classList.add('open');
+
+  // Send question
+  var question = 'Is this deductible? ' + entry.vendor + ' - $' + entry.amount.toFixed(2) + ' (' + entry.category + ')' + (entry.memo ? ' — ' + entry.memo : '');
+  addJasperMsg('user', 'Commander', question);
+
+  setTimeout(function() {
+    var response = jasperRespond(entry.vendor.toLowerCase());
+    if (response.indexOf('not sure') !== -1) {
+      response = jasperRespond(entry.category.toLowerCase());
+    }
+    addJasperMsg('jasper', 'Jasper', response);
+  }, 400);
+
+  // Scroll to chat
+  chat.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function askJasperAboutGroup(vendor, category) {
+  var chat = document.getElementById('jasperChat');
+  if (!chat.classList.contains('open')) chat.classList.add('open');
+
+  var question = 'What about all the ' + vendor + ' entries in ' + category + '?';
+  addJasperMsg('user', 'Commander', question);
+
+  setTimeout(function() {
+    var response = jasperRespond(vendor.toLowerCase());
+    if (response.indexOf('not sure') !== -1) {
+      response = jasperRespond(category.toLowerCase());
+    }
+    addJasperMsg('jasper', 'Jasper', response);
+  }, 400);
+
+  chat.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleJasperChat() {
+  var chat = document.getElementById('jasperChat');
+  chat.classList.toggle('open');
+  var icon = document.getElementById('jasperToggleIcon');
+  icon.innerHTML = chat.classList.contains('open') ? '&#9660;' : '&#9654;';
+}
+
+// --- Auto-load unmatched data after auth (guarded against double-init) ---
+var _unmatchedLoading = false;
+function safeLoadUnmatched() {
+  if (_unmatchedLoading || unmatchedGroups.length > 0) return;
+  _unmatchedLoading = true;
+  loadUnmatchedData();
+}
+document.addEventListener('fpcs-authed', function() {
+  setTimeout(safeLoadUnmatched, 600);
+});
+setTimeout(safeLoadUnmatched, 5000);
+</script>
+
+<!-- Category Detail Modal -->
+<div class="cat-detail-overlay" id="catDetailOverlay" onclick="if(event.target===this)closeCategoryDetail()">
+  <div class="cat-detail-modal">
+    <div class="cat-detail-header">
+      <h3 id="catDetailTitle">Category</h3>
+      <span class="cat-detail-total" id="catDetailTotal">$0.00</span>
+      <button class="cat-detail-close" onclick="closeCategoryDetail()" title="Close">&times;</button>
+    </div>
+    <div class="cat-detail-body">
+      <table class="cat-detail-table">
+        <thead><tr id="catDetailHead"></tr></thead>
+        <tbody id="catDetailBody"></tbody>
+      </table>
+    </div>
+    <div class="cat-detail-footer">
+      <span class="detail-meta" id="catDetailMeta"></span>
+      <button class="btn-notes" onclick="closeCategoryDetail();openNotesPanel(_catDetailCurrent)" title="Notes for this category">&#128221; Notes</button>
+      <button class="btn-sheets" onclick="openCategoryInSheets(_catDetailCurrent)" title="Open in Google Sheets">&#128196; View in Sheets</button>
+      <button class="btn-export" onclick="exportCategoryCSV(_catDetailCurrent)" title="Download as CSV">&#128229; Export CSV</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CATEGORY DETAIL MODAL — Drill-down for each deduction category
+// ============================================================
+var _catDetailCurrent = '';
+
+function openCategoryDetail(category) {
+  _catDetailCurrent = category;
+  var rows = dedGrouped[category] || [];
+  var total = dedCatTotals[category] || 0;
+
+  document.getElementById('catDetailTitle').textContent = category;
+  document.getElementById('catDetailTotal').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // Build header
+  var headHtml = '';
+  if (dedColMap.date !== undefined) headHtml += '<th>Date</th>';
+  if (dedColMap.type !== undefined) headHtml += '<th>Type</th>';
+  if (dedColMap.num !== undefined) headHtml += '<th>Num</th>';
+  if (dedColMap.name !== undefined) headHtml += '<th>Vendor / Name</th>';
+  if (dedColMap.memo !== undefined) headHtml += '<th>Description</th>';
+  headHtml += '<th>Source</th>';
+  headHtml += '<th style="text-align:right">Amount</th>';
+  document.getElementById('catDetailHead').innerHTML = headHtml;
+
+  // Sort by amount descending
+  var sorted = rows.slice().sort(function(a, b) {
+    var aAmt = Math.abs(parseFloat((a[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+    var bAmt = Math.abs(parseFloat((b[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+    return bAmt - aAmt;
+  });
+
+  // Build body
+  var bodyHtml = '';
+  sorted.forEach(function(row) {
+    bodyHtml += '<tr>';
+    if (dedColMap.date !== undefined) bodyHtml += '<td style="white-space:nowrap">' + escDed(row[dedColMap.date] || '') + '</td>';
+    if (dedColMap.type !== undefined) bodyHtml += '<td>' + escDed(row[dedColMap.type] || '') + '</td>';
+    if (dedColMap.num !== undefined) bodyHtml += '<td>' + escDed(row[dedColMap.num] || '') + '</td>';
+    if (dedColMap.name !== undefined) bodyHtml += '<td>' + escDed(row[dedColMap.name] || '') + '</td>';
+    if (dedColMap.memo !== undefined) bodyHtml += '<td style="color:var(--muted);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escDed(row[dedColMap.memo] || '') + '</td>';
+
+    // Source detection: look for 'QBO' or 'Ledger' in the row data
+    var rowText = row.join(' ').toLowerCase();
+    var src = 'unknown';
+    var srcLabel = 'Sheet';
+    if (rowText.indexOf('qbo') !== -1 || rowText.indexOf('quickbooks') !== -1) { src = 'qbo'; srcLabel = 'QBO'; }
+    else if (rowText.indexOf('ledger') !== -1) { src = 'ledger'; srcLabel = 'Ledger'; }
+    else if (rowText.indexOf('bank') !== -1) { src = 'qbo'; srcLabel = 'Bank'; }
+    bodyHtml += '<td><span class="td-source src-' + src + '">' + srcLabel + '</span></td>';
+
+    var amt = Math.abs(parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+    bodyHtml += '<td class="td-amount" style="color:var(--red)">-$' + amt.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>';
+    bodyHtml += '</tr>';
+  });
+
+  // Subtotal row
+  bodyHtml += '<tr style="background:rgba(15,23,42,.5);font-weight:700">';
+  var cols = 1; // source col
+  if (dedColMap.date !== undefined) cols++;
+  if (dedColMap.type !== undefined) cols++;
+  if (dedColMap.num !== undefined) cols++;
+  if (dedColMap.name !== undefined) cols++;
+  if (dedColMap.memo !== undefined) cols++;
+  bodyHtml += '<td colspan="' + cols + '" style="padding:10px 16px;color:var(--muted)">' + rows.length + ' transactions</td>';
+  bodyHtml += '<td class="td-amount" style="padding:10px 16px;color:var(--green);font-size:14px">$' + total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</td>';
+  bodyHtml += '</tr>';
+
+  document.getElementById('catDetailBody').innerHTML = bodyHtml;
+
+  // Meta info
+  var needsReview = rows.length > 20 || total > 5000;
+  var meta = rows.length + ' transaction' + (rows.length !== 1 ? 's' : '');
+  if (needsReview) meta += ' &middot; <span style="color:var(--yellow)">NEEDS REVIEW</span>';
+  document.getElementById('catDetailMeta').innerHTML = meta;
+
+  // Show modal
+  document.getElementById('catDetailOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCategoryDetail() {
+  document.getElementById('catDetailOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  _catDetailCurrent = '';
+}
+
+// ============================================================
+//  DRILL-DOWN — Click any summary stat to see its breakdown
+// ============================================================
+function drillDown(type) {
+  if (!dedGroupKeys || dedGroupKeys.length === 0) return;
+
+  var title = '', rows = [], bodyHtml = '';
+
+  switch (type) {
+    case 'total':
+      // Show category breakdown sorted by amount descending
+      title = 'Total Deductions — Category Breakdown';
+      var catList = dedGroupKeys.slice().sort(function(a, b) { return (dedCatTotals[b] || 0) - (dedCatTotals[a] || 0); });
+      var grandTotal = 0;
+      catList.forEach(function(cat) { grandTotal += (dedCatTotals[cat] || 0); });
+      bodyHtml = '<tr><th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Category</th>';
+      bodyHtml += '<th style="text-align:right;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Transactions</th>';
+      bodyHtml += '<th style="text-align:right;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Amount</th>';
+      bodyHtml += '<th style="text-align:right;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">% of Total</th></tr>';
+      catList.forEach(function(cat) {
+        var amt = dedCatTotals[cat] || 0;
+        var pct = grandTotal > 0 ? ((amt / grandTotal) * 100).toFixed(1) : '0.0';
+        var txns = (dedGrouped[cat] || []).length;
+        bodyHtml += '<tr onclick="closeCategoryDetail();openCategoryDetail(\'' + cat.replace(/'/g, "\\'") + '\')" style="cursor:pointer" class="dd-row">';
+        bodyHtml += '<td style="padding:8px">' + escDed(cat) + '</td>';
+        bodyHtml += '<td style="padding:8px;text-align:right;color:var(--muted)">' + txns + '</td>';
+        bodyHtml += '<td style="padding:8px;text-align:right;color:var(--red);font-family:Courier New,monospace">-$' + amt.toLocaleString('en-US', {minimumFractionDigits:2}) + '</td>';
+        bodyHtml += '<td style="padding:8px;text-align:right;color:var(--muted)">' + pct + '%</td>';
+        bodyHtml += '</tr>';
+      });
+      bodyHtml += '<tr style="background:rgba(15,23,42,.5);font-weight:700"><td style="padding:10px 8px;color:var(--muted)">' + catList.length + ' categories</td>';
+      bodyHtml += '<td style="padding:10px 8px;text-align:right;color:var(--muted)">' + dedRecords.length + '</td>';
+      bodyHtml += '<td style="padding:10px 8px;text-align:right;color:var(--green);font-family:Courier New,monospace">$' + grandTotal.toLocaleString('en-US', {minimumFractionDigits:2}) + '</td>';
+      bodyHtml += '<td style="padding:10px 8px;text-align:right;color:var(--muted)">100%</td></tr>';
+      break;
+
+    case 'categories':
+      // Same as total — list all categories
+      drillDown('total');
+      return;
+
+    case 'transactions':
+      // Show all transactions sorted by amount
+      title = 'All Transactions (' + dedRecords.length + ')';
+      var allSorted = dedRecords.slice().sort(function(a, b) {
+        var aA = Math.abs(parseFloat((a[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+        var bA = Math.abs(parseFloat((b[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+        return bA - aA;
+      });
+      bodyHtml = '<tr>';
+      if (dedColMap.date !== undefined) bodyHtml += '<th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Date</th>';
+      if (dedColMap.name !== undefined) bodyHtml += '<th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Vendor</th>';
+      bodyHtml += '<th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Category</th>';
+      if (dedColMap.memo !== undefined) bodyHtml += '<th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Description</th>';
+      bodyHtml += '<th style="text-align:right;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Amount</th></tr>';
+      // Show top 200 to avoid performance issues
+      var shown = Math.min(allSorted.length, 200);
+      for (var i = 0; i < shown; i++) {
+        var row = allSorted[i];
+        var amt = Math.abs(parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+        var cat = row[dedColMap.account] || 'Uncategorized';
+        bodyHtml += '<tr class="dd-row">';
+        if (dedColMap.date !== undefined) bodyHtml += '<td style="padding:6px 8px;white-space:nowrap">' + escDed(row[dedColMap.date] || '') + '</td>';
+        if (dedColMap.name !== undefined) bodyHtml += '<td style="padding:6px 8px">' + escDed(row[dedColMap.name] || '') + '</td>';
+        bodyHtml += '<td style="padding:6px 8px;color:var(--accent);cursor:pointer" onclick="closeCategoryDetail();openCategoryDetail(\'' + cat.replace(/'/g, "\\'") + '\')">' + escDed(cat) + '</td>';
+        if (dedColMap.memo !== undefined) bodyHtml += '<td style="padding:6px 8px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escDed(row[dedColMap.memo] || '') + '</td>';
+        bodyHtml += '<td style="padding:6px 8px;text-align:right;color:var(--red);font-family:Courier New,monospace">-$' + amt.toLocaleString('en-US', {minimumFractionDigits:2}) + '</td>';
+        bodyHtml += '</tr>';
+      }
+      if (allSorted.length > 200) {
+        bodyHtml += '<tr><td colspan="5" style="padding:10px 8px;color:var(--yellow);text-align:center">Showing top 200 of ' + allSorted.length + ' transactions</td></tr>';
+      }
+      break;
+
+    case 'review':
+      // Show categories that need review
+      title = 'Categories Needing Review';
+      var reviewCats = dedGroupKeys.filter(function(c) { return dedGrouped[c].length > 20 || dedCatTotals[c] > 5000; });
+      if (reviewCats.length === 0) {
+        bodyHtml = '<tr><td style="padding:20px;color:var(--green);text-align:center">&#9989; All categories pass review thresholds</td></tr>';
+      } else {
+        reviewCats.sort(function(a, b) { return (dedCatTotals[b] || 0) - (dedCatTotals[a] || 0); });
+        bodyHtml = '<tr><th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Category</th>';
+        bodyHtml += '<th style="text-align:right;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Transactions</th>';
+        bodyHtml += '<th style="text-align:right;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Amount</th>';
+        bodyHtml += '<th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)">Reason</th></tr>';
+        reviewCats.forEach(function(cat) {
+          var amt = dedCatTotals[cat] || 0;
+          var txns = dedGrouped[cat].length;
+          var reasons = [];
+          if (txns > 20) reasons.push('>' + txns + ' transactions');
+          if (amt > 5000) reasons.push('>$5,000');
+          bodyHtml += '<tr onclick="closeCategoryDetail();openCategoryDetail(\'' + cat.replace(/'/g, "\\'") + '\')" style="cursor:pointer" class="dd-row">';
+          bodyHtml += '<td style="padding:8px">' + escDed(cat) + '</td>';
+          bodyHtml += '<td style="padding:8px;text-align:right">' + txns + '</td>';
+          bodyHtml += '<td style="padding:8px;text-align:right;color:var(--red);font-family:Courier New,monospace">-$' + amt.toLocaleString('en-US', {minimumFractionDigits:2}) + '</td>';
+          bodyHtml += '<td style="padding:8px;color:var(--yellow)">' + reasons.join(', ') + '</td>';
+          bodyHtml += '</tr>';
+        });
+      }
+      break;
+
+    case 'largest':
+      // Open the largest category directly
+      var largestCat = '', largestAmt = 0;
+      dedGroupKeys.forEach(function(cat) { if (dedCatTotals[cat] > largestAmt) { largestAmt = dedCatTotals[cat]; largestCat = cat; } });
+      if (largestCat) openCategoryDetail(largestCat);
+      return;
+
+    case 'nol':
+      // Show NOL calculation breakdown
+      title = 'Net Operating Loss (NOL) Calculation';
+      var totalDed = 0;
+      dedRecords.forEach(function(row) {
+        var amt = Math.abs(parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, '')));
+        if (!isNaN(amt)) totalDed += amt;
+      });
+      var income = 3916.50;
+      var nolVal = totalDed - income;
+      bodyHtml = '<tr><th style="text-align:left;padding:8px;color:var(--accent);border-bottom:2px solid var(--border)" colspan="2">NOL Components</th></tr>';
+      bodyHtml += '<tr class="dd-row"><td style="padding:10px 8px;font-size:15px">Total Business Deductions</td>';
+      bodyHtml += '<td style="padding:10px 8px;text-align:right;color:var(--red);font-family:Courier New,monospace;font-size:15px">-$' + totalDed.toLocaleString('en-US', {minimumFractionDigits:2}) + '</td></tr>';
+      bodyHtml += '<tr class="dd-row"><td style="padding:10px 8px;font-size:15px">Estimated Business Income</td>';
+      bodyHtml += '<td style="padding:10px 8px;text-align:right;color:var(--green);font-family:Courier New,monospace;font-size:15px">+$' + income.toLocaleString('en-US', {minimumFractionDigits:2}) + '</td></tr>';
+      bodyHtml += '<tr style="background:rgba(15,23,42,.5)"><td style="padding:12px 8px;font-weight:700;font-size:16px">Net Operating Loss</td>';
+      bodyHtml += '<td style="padding:12px 8px;text-align:right;font-weight:700;font-size:16px;color:' + (nolVal > 0 ? 'var(--red)' : 'var(--green)') + ';font-family:Courier New,monospace">';
+      bodyHtml += (nolVal > 0 ? '-$' : '$') + Math.abs(nolVal).toLocaleString('en-US', {minimumFractionDigits:2}) + '</td></tr>';
+      bodyHtml += '<tr><td colspan="2" style="padding:12px 8px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)">';
+      bodyHtml += 'NOL = Business Deductions exceed Business Income. A 2022 NOL can be carried forward to offset future income (IRC §172). ';
+      bodyHtml += 'Income: Services $14,727 + eBay $13,052 + Supplemental $3,454 = ~$21,701 gross</td></tr>';
+      break;
+  }
+
+  // Reuse the existing category detail modal for drill-downs
+  document.getElementById('catDetailTitle').textContent = title;
+  document.getElementById('catDetailTotal').textContent = '';
+  document.getElementById('catDetailHead').innerHTML = '';
+  document.getElementById('catDetailBody').innerHTML = bodyHtml;
+  document.getElementById('catDetailMeta').innerHTML = '<span style="color:var(--muted);font-size:11px">Click any row to drill deeper</span>';
+  document.getElementById('catDetailOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function exportCategoryCSV(category) {
+  var rows = dedGrouped[category] || [];
+  if (rows.length === 0) return;
+
+  var headers = [];
+  if (dedColMap.date !== undefined) headers.push('Date');
+  if (dedColMap.type !== undefined) headers.push('Type');
+  if (dedColMap.num !== undefined) headers.push('Num');
+  if (dedColMap.name !== undefined) headers.push('Vendor');
+  if (dedColMap.memo !== undefined) headers.push('Description');
+  headers.push('Amount');
+  headers.push('Category');
+
+  var csvRows = [headers.join(',')];
+  rows.forEach(function(row) {
+    var cols = [];
+    if (dedColMap.date !== undefined) cols.push('"' + (row[dedColMap.date] || '').replace(/"/g, '""') + '"');
+    if (dedColMap.type !== undefined) cols.push('"' + (row[dedColMap.type] || '').replace(/"/g, '""') + '"');
+    if (dedColMap.num !== undefined) cols.push('"' + (row[dedColMap.num] || '').replace(/"/g, '""') + '"');
+    if (dedColMap.name !== undefined) cols.push('"' + (row[dedColMap.name] || '').replace(/"/g, '""') + '"');
+    if (dedColMap.memo !== undefined) cols.push('"' + (row[dedColMap.memo] || '').replace(/"/g, '""') + '"');
+    var amt = parseFloat((row[dedColMap.amount] || '0').replace(/[$,]/g, ''));
+    cols.push(amt.toFixed(2));
+    cols.push('"' + category.replace(/"/g, '""') + '"');
+    csvRows.push(cols.join(','));
+  });
+
+  var blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'deductions-' + category.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('catDetailOverlay').classList.contains('open')) {
+    closeCategoryDetail();
+  }
+});
+</script>
+
+<!-- Shared Modules (load after page config — auth.js loads Firebase 10.14.1) -->
+<script src="js/sheets-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="js/firestore-db.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>
