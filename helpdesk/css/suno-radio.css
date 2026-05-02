@@ -1,0 +1,569 @@
+/* ============================================================
+   Suno Radio — Floating music player widget
+   FPCS Dashboard Component
+   ============================================================ */
+
+/* --- Container & Positioning --- */
+.suno-radio {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9000;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.suno-radio * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* --- Minimized Pill --- */
+.suno-radio-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 220px;
+  height: 42px;
+  padding: 0 12px;
+  background: #12121a;
+  border: 1px solid #2a2a3a;
+  border-radius: 21px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease, box-shadow 0.3s ease;
+}
+
+.suno-radio-pill:hover {
+  border-color: #f59e0b;
+}
+
+.suno-radio-pill.playing {
+  animation: suno-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes suno-glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.3), 0 0 2px rgba(245, 158, 11, 0.2); border-color: #f59e0b; }
+  50% { box-shadow: 0 0 18px rgba(245, 158, 11, 0.5), 0 0 6px rgba(245, 158, 11, 0.3); border-color: #fbbf24; }
+}
+
+.suno-radio-pill .sr-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.suno-radio-pill .sr-title-scroll {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  height: 18px;
+  line-height: 18px;
+}
+
+.suno-radio-pill .sr-title-scroll span {
+  display: inline-block;
+  font-size: 13px;
+  color: #e2e8f0;
+  font-weight: 500;
+  animation: suno-scroll-text 12s linear infinite;
+  padding-right: 40px;
+}
+
+.suno-radio-pill .sr-title-scroll span.no-scroll {
+  animation: none;
+}
+
+@keyframes suno-scroll-text {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.suno-radio-pill .sr-playpause {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #f59e0b;
+  color: #12121a;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.suno-radio-pill .sr-playpause:hover {
+  background: #fbbf24;
+  transform: scale(1.08);
+}
+
+/* --- Expanded Panel --- */
+.suno-radio-panel {
+  display: none;
+  width: 350px;
+  max-height: 460px;
+  background: rgba(18, 18, 26, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #2a2a3a;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 12px rgba(245, 158, 11, 0.08);
+  flex-direction: column;
+}
+
+.suno-radio.expanded .suno-radio-pill { display: none; }
+.suno-radio.expanded .suno-radio-panel { display: flex; }
+
+/* --- Panel Header / Channel Bar --- */
+.sr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #12121a 100%);
+  border-bottom: 1px solid #2a2a3a;
+}
+
+.sr-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sr-channel-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #12121a;
+  flex-shrink: 0;
+}
+
+.sr-channel-info {
+  min-width: 0;
+}
+
+.sr-channel-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f59e0b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-channel-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.sr-header-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sr-header-actions button {
+  background: none;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.sr-header-actions button:hover {
+  color: #e2e8f0;
+  border-color: #f59e0b;
+}
+
+/* --- Channel Input --- */
+.sr-channel-input-wrap {
+  padding: 10px 16px;
+  border-bottom: 1px solid #2a2a3a;
+  display: none;
+}
+
+.sr-channel-input-wrap.open { display: block; }
+
+.sr-channel-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: #0f0f1a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sr-channel-input::placeholder { color: #64748b; }
+.sr-channel-input:focus { border-color: #f59e0b; }
+
+/* --- Now Playing Area --- */
+.sr-now-playing {
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  border-bottom: 1px solid #2a2a3a;
+}
+
+.sr-cover-art {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sr-cover-gradient {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.sr-track-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sr-track-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.sr-track-genre {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+/* --- Visualizer Bars --- */
+.sr-visualizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 18px;
+}
+
+.sr-visualizer .bar {
+  width: 3px;
+  border-radius: 1px;
+  background: #f59e0b;
+  transition: height 0.1s;
+}
+
+.sr-visualizer.active .bar { animation: suno-bar-bounce var(--bar-speed, 0.5s) ease-in-out infinite alternate; }
+.sr-visualizer .bar:nth-child(1) { --bar-speed: 0.4s; height: 6px; }
+.sr-visualizer .bar:nth-child(2) { --bar-speed: 0.55s; height: 12px; animation-delay: 0.1s; }
+.sr-visualizer .bar:nth-child(3) { --bar-speed: 0.35s; height: 8px; animation-delay: 0.2s; }
+.sr-visualizer .bar:nth-child(4) { --bar-speed: 0.6s; height: 15px; animation-delay: 0.05s; }
+.sr-visualizer .bar:nth-child(5) { --bar-speed: 0.45s; height: 10px; animation-delay: 0.15s; }
+.sr-visualizer .bar:nth-child(6) { --bar-speed: 0.5s; height: 13px; animation-delay: 0.25s; }
+.sr-visualizer .bar:nth-child(7) { --bar-speed: 0.38s; height: 7px; animation-delay: 0.3s; }
+
+@keyframes suno-bar-bounce {
+  0% { height: 3px; opacity: 0.6; }
+  100% { height: 18px; opacity: 1; }
+}
+
+.sr-visualizer:not(.active) .bar {
+  height: 3px !important;
+  opacity: 0.3;
+  animation: none !important;
+}
+
+/* --- Progress Bar --- */
+.sr-progress-wrap {
+  padding: 0 16px;
+  margin-bottom: 4px;
+}
+
+.sr-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #2a2a3a;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: visible;
+}
+
+.sr-progress-bar:hover { height: 6px; }
+
+.sr-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.3s linear;
+  position: relative;
+}
+
+.sr-progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fbbf24;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.sr-progress-bar:hover .sr-progress-fill::after { opacity: 1; }
+
+.sr-time-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 16px 8px;
+  font-size: 11px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Playback Controls --- */
+.sr-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 16px 14px;
+  border-bottom: 1px solid #2a2a3a;
+}
+
+.sr-controls button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  transition: color 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sr-controls button:hover { color: #e2e8f0; }
+.sr-controls button:active { transform: scale(0.9); }
+
+.sr-controls .sr-main-play {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #12121a;
+  font-size: 18px;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.sr-controls .sr-main-play:hover { background: #fbbf24; transform: scale(1.06); }
+
+.sr-controls .sr-shuffle.active { color: #f59e0b; }
+
+/* --- Volume --- */
+.sr-volume-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.sr-volume-icon {
+  font-size: 14px;
+  color: #94a3b8;
+  cursor: pointer;
+  width: 20px;
+  text-align: center;
+}
+
+.sr-volume-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #2a2a3a;
+  outline: none;
+}
+
+.sr-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f59e0b;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.sr-volume-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.sr-volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f59e0b;
+  cursor: pointer;
+  border: none;
+}
+
+.sr-volume-pct {
+  font-size: 11px;
+  color: #64748b;
+  width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Playlist --- */
+.sr-playlist {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 160px;
+  padding: 4px 0;
+}
+
+.sr-playlist::-webkit-scrollbar { width: 4px; }
+.sr-playlist::-webkit-scrollbar-track { background: transparent; }
+.sr-playlist::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+.sr-playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 13px;
+}
+
+.sr-playlist-item:hover { background: rgba(245, 158, 11, 0.06); }
+.sr-playlist-item.active { background: rgba(245, 158, 11, 0.1); }
+
+.sr-playlist-item .sr-pl-num {
+  width: 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.sr-playlist-item.active .sr-pl-num { color: #f59e0b; font-weight: 700; }
+
+.sr-playlist-item .sr-pl-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sr-playlist-item .sr-pl-name {
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-playlist-item.active .sr-pl-name { color: #f59e0b; font-weight: 600; }
+
+.sr-playlist-item .sr-pl-genre {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.sr-playlist-item .sr-pl-dur {
+  color: #64748b;
+  font-size: 12px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Footer --- */
+.sr-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #2a2a3a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sr-open-suno {
+  font-size: 12px;
+  color: #f59e0b;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.sr-open-suno:hover { color: #fbbf24; }
+
+.sr-footer-brand {
+  font-size: 10px;
+  color: #475569;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* --- Drag Handle --- */
+.sr-drag-handle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: #334155;
+  border-radius: 2px;
+  cursor: grab;
+  margin-top: -8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.suno-radio.expanded:hover .sr-drag-handle { opacity: 1; }
+.sr-drag-handle:active { cursor: grabbing; }
+
+/* --- Keyboard Focus --- */
+.suno-radio button:focus-visible,
+.suno-radio input:focus-visible,
+.suno-radio a:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+  .suno-radio-panel { width: calc(100vw - 20px); }
+  .suno-radio { right: 10px; bottom: 10px; }
+}

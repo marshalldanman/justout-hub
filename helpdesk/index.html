@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Helpdesk — FPCS Project Tracker</title>
+<link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/suno-radio.css">
+<style>
+  /* === HELPDESK PAGE-SPECIFIC STYLES === */
+  .section h2 { color: var(--orange); }
+  /* STATUS BADGES */
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-progress { background: #1d4ed8; color: #bfdbfe; }
+  .badge-hold { background: #6b21a8; color: #e9d5ff; }
+  .badge-awaiting { background: #854d0e; color: #fef08a; }
+  .badge-approval { background: #b45309; color: #fed7aa; }
+  .badge-done { background: #166534; color: #bbf7d0; }
+  .badge-blocked { background: #991b1b; color: #fecaca; }
+  .badge-cancelled { background: #374151; color: #9ca3af; }
+  .badge-new { background: #0e7490; color: #cffafe; }
+  .badge-review { background: #4338ca; color: #c7d2fe; }
+  .badge-escalated { background: #be123c; color: #fecdd3; }
+  /* PRIORITY BADGES */
+  .pri-critical { color: var(--red); font-weight: 700; }
+  .pri-high { color: var(--orange); font-weight: 700; }
+  .pri-medium { color: var(--yellow); }
+  .pri-low { color: var(--muted); }
+  /* TICKET CARD */
+  .ticket-card { padding: 16px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid var(--border); background: var(--bg); cursor: pointer; transition: all 0.15s; }
+  .ticket-card:hover { border-color: var(--accent); background: rgba(56,189,248,0.03); }
+  .ticket-card.pri-border-critical { border-color: var(--red); }
+  .ticket-card.pri-border-high { border-color: var(--orange); }
+  .ticket-card.pri-border-medium { border-color: var(--yellow); }
+  .ticket-card.pri-border-low { border-color: var(--muted); }
+  .ticket-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .ticket-id { font-size: 11px; font-family: monospace; color: var(--muted); }
+  .ticket-title { font-size: 15px; font-weight: 600; margin: 4px 0 6px; }
+  .ticket-meta { display: flex; gap: 12px; font-size: 12px; color: var(--muted); flex-wrap: wrap; align-items: center; }
+  .ticket-meta span { display: flex; align-items: center; gap: 4px; }
+  .ticket-desc { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .ticket-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .ticket-tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.2); }
+  /* FILTER BAR */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-bar label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .filter-select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .filter-select:focus { border-color: var(--accent); outline: none; }
+  .search-input { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; flex: 1; min-width: 200px; }
+  .search-input:focus { border-color: var(--orange); outline: none; }
+  /* CREATE TICKET FORM */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select, .form-group textarea { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 13px; font-family: inherit; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--orange); outline: none; }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-full { grid-column: 1 / -1; }
+  .btn-orange { background: var(--orange); color: #0f172a; }
+  /* BOARD VIEW */
+  .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .board-col { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-height: 200px; }
+  .board-col-header { font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 6px; margin-bottom: 10px; text-align: center; }
+  .board-col-header.col-new { background: rgba(14,116,144,0.2); color: #67e8f9; }
+  .board-col-header.col-progress { background: rgba(29,78,216,0.2); color: #93c5fd; }
+  .board-col-header.col-awaiting { background: rgba(133,77,14,0.2); color: #fde68a; }
+  .board-col-header.col-hold { background: rgba(107,33,168,0.2); color: #d8b4fe; }
+  .board-col-header.col-approval { background: rgba(180,83,9,0.2); color: #fdba74; }
+  .board-col-header.col-done { background: rgba(22,101,52,0.2); color: #86efac; }
+  .board-ticket { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 13px; cursor: grab; }
+  .board-ticket:hover { border-color: var(--accent); }
+  .board-ticket .bt-id { font-size: 10px; font-family: monospace; color: var(--muted); }
+  .board-ticket .bt-title { font-weight: 600; margin: 4px 0; }
+  .board-ticket .bt-meta { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  /* TABS */
+  .view-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .view-tab { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .view-tab.active { background: rgba(251,146,60,0.1); color: var(--orange); border-color: var(--orange); }
+  .view-tab:hover { border-color: var(--orange); color: var(--orange); }
+  .view-panel { display: none; }
+  .view-panel.active { display: block; }
+  /* TICKET DETAIL MODAL */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100000; justify-content: center; align-items: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: 16px; padding: 28px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; border: 2px solid var(--orange); }
+  .modal h2 { color: var(--orange); margin-bottom: 16px; font-size: 20px; }
+  .modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; }
+  .comment-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+  .comment-box .c-author { font-size: 12px; font-weight: 700; color: var(--accent); }
+  .comment-box .c-time { font-size: 10px; color: var(--muted); }
+  .comment-box .c-text { font-size: 13px; margin-top: 4px; line-height: 1.5; }
+  @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .board { grid-template-columns: 1fr; } }
+
+  /* HELP BUTTON */
+  .help-btn { position: fixed; top: 12px; right: 180px; z-index: 9997; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--orange); background: rgba(251,146,60,0.12); color: var(--orange); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+  .help-btn:hover { background: rgba(251,146,60,0.25); transform: scale(1.1); }
+  .help-btn.active { background: var(--orange); color: var(--bg); box-shadow: 0 0 20px rgba(251,146,60,0.5); animation: help-pulse 1.5s infinite; }
+  @keyframes help-pulse { 0%,100% { box-shadow: 0 0 10px rgba(251,146,60,0.3); } 50% { box-shadow: 0 0 25px rgba(251,146,60,0.6); } }
+  body.help-mode * { cursor: help !important; }
+  .help-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9990; }
+  .help-overlay.active { display: block; }
+  .help-tooltip { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: var(--orange); color: var(--bg); padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 9996; display: none; }
+  .help-tooltip.active { display: block; animation: fadeIn .3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+  /* BATCH EDIT TOOLBAR */
+  .batch-bar { display: none; background: rgba(56,189,248,0.08); border: 1px solid var(--accent); border-radius: 10px; padding: 10px 16px; margin-bottom: 12px; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .batch-bar.active { display: flex; }
+  .batch-bar label { font-size: 13px; color: var(--accent); font-weight: 600; }
+  .batch-count { font-size: 13px; color: var(--text); font-weight: 700; padding: 2px 10px; background: rgba(56,189,248,0.15); border-radius: 6px; }
+  .batch-actions { display: flex; gap: 8px; margin-left: auto; }
+  .batch-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+  .batch-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .batch-btn.apply { background: rgba(56,189,248,0.15); color: var(--accent); border-color: var(--accent); }
+  .batch-btn.apply:hover { background: rgba(56,189,248,0.3); }
+  .ticket-checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+
+  /* ENHANCED STATS */
+  .stats-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-mini { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .stat-mini h3 { font-size: 13px; color: var(--orange); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+  .stat-bar-label { min-width: 80px; color: var(--muted); }
+  .stat-bar-track { flex: 1; height: 8px; background: rgba(30,41,59,0.8); border-radius: 4px; overflow: hidden; }
+  .stat-bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+  .stat-bar-count { min-width: 24px; text-align: right; color: var(--text); font-weight: 600; }
+
+  /* TICKET SPLIT INDICATOR */
+  .split-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; transition: all .15s; }
+  .split-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* Drill-Down Interactive States */
+  .stat-link{cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
+  .stat-link:hover{transform:translateY(-2px);border-color:rgba(251,146,60,.4);box-shadow:0 4px 20px rgba(251,146,60,.1)}
+  .drill-arrow{font-size:14px;opacity:0;transition:opacity .15s;margin-left:4px}
+  .stat-link:hover .drill-arrow{opacity:.6}
+  .drill-row{cursor:pointer;transition:background .15s}
+  .drill-row:hover{background:rgba(251,146,60,.06) !important}
+
+  /* SUCCESS TOAST */
+  .fpcs-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #166534; color: #bbf7d0; padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 200000; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 24px rgba(0,0,0,0.4); border: 1px solid #22c55e; }
+  .fpcs-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body class="theme-helpdesk">
+<noscript><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#f87171;font-family:sans-serif;text-align:center;padding:40px"><div><h1>&#128274; JavaScript Required</h1><p>Enable JavaScript to access the FPCS Dashboard.</p></div></div></noscript>
+<div id="dashContent" style="display:none">
+
+<!-- HELP BUTTON (? cursor for instant ticket creation) -->
+<button class="help-btn" id="helpBtn" onclick="toggleHelpMode()" title="Click to enter Help Mode &#8212; click any element to create a ticket">?</button>
+<div class="help-tooltip" id="helpTooltip">&#10024; Help Mode ON &#8212; Click any item to instantly create a ticket. Press ESC to exit.</div>
+<div class="help-overlay" id="helpOverlay"></div>
+
+<!-- HEADER -->
+<div class="header" id="top">
+  <h1>&#127915; FPCS Helpdesk &mdash; Project Tracker &amp; Issue System</h1>
+  <div class="subtitle">Track issues, projects, tasks, and requests with full status management &bull; Page 6 of FPCS Dashboard</div>
+</div>
+
+<div class="container">
+
+  <!-- OVERVIEW STATS (clickable — filters tickets by status) -->
+  <div class="grid">
+    <div class="stat-card stat-link" onclick="document.getElementById('filterStatus').value='New';renderTickets();document.getElementById('sec-tickets').scrollIntoView({behavior:'smooth'})" title="Filter: Open tickets" style="cursor:pointer">
+      <div class="label">Open Tickets</div>
+      <div class="value" style="color:var(--accent)" id="statOpen">0 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Active issues</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('filterStatus').value='In Progress';renderTickets();document.getElementById('sec-tickets').scrollIntoView({behavior:'smooth'})" title="Filter: In progress" style="cursor:pointer">
+      <div class="label">In Progress</div>
+      <div class="value" style="color:var(--yellow)" id="statProgress">0 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Being worked on</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('filterStatus').value='Awaiting Information';renderTickets();document.getElementById('sec-tickets').scrollIntoView({behavior:'smooth'})" title="Filter: Awaiting info" style="cursor:pointer">
+      <div class="label">Awaiting Info</div>
+      <div class="value" style="color:var(--orange)" id="statAwaiting">0 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Need input</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('filterStatus').value='Needs Approval';renderTickets();document.getElementById('sec-tickets').scrollIntoView({behavior:'smooth'})" title="Filter: Needs approval" style="cursor:pointer">
+      <div class="label">Needs Approval</div>
+      <div class="value" style="color:var(--purple)" id="statApproval">0 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Review required</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('filterStatus').value='On Hold';renderTickets();document.getElementById('sec-tickets').scrollIntoView({behavior:'smooth'})" title="Filter: On hold" style="cursor:pointer">
+      <div class="label">On Hold</div>
+      <div class="value" style="color:var(--pink)" id="statHold">0 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Paused</div>
+    </div>
+    <div class="stat-card stat-link" onclick="document.getElementById('filterStatus').value='Done';renderTickets();document.getElementById('sec-tickets').scrollIntoView({behavior:'smooth'})" title="Filter: Completed" style="cursor:pointer">
+      <div class="label">Completed</div>
+      <div class="value" style="color:var(--green)" id="statDone">0 <span class="drill-arrow">&#8599;</span></div>
+      <div class="sub">Resolved</div>
+    </div>
+  </div>
+
+  <!-- ENHANCED STATS -->
+  <div class="stats-extra" id="statsExtra">
+    <div class="stat-mini">
+      <h3>&#9679; Priority Distribution</h3>
+      <div id="statPriority"></div>
+    </div>
+    <div class="stat-mini">
+      <h3>&#128100; Assignee Workload</h3>
+      <div id="statAssignee"></div>
+    </div>
+    <div class="stat-mini">
+      <h3>&#128193; By Category</h3>
+      <div id="statCategory"></div>
+    </div>
+  </div>
+
+  <!-- BATCH EDIT TOOLBAR -->
+  <div class="batch-bar" id="batchBar">
+    <input type="checkbox" class="ticket-checkbox" id="batchSelectAll" onchange="toggleSelectAll(this.checked)" title="Select All">
+    <label>Batch Edit</label>
+    <span class="batch-count" id="batchCount">0 selected</span>
+    <div class="batch-actions">
+      <select class="filter-select" id="batchAction" style="min-width:140px">
+        <option value="">Choose action...</option>
+        <option value="status">Change Status</option>
+        <option value="priority">Change Priority</option>
+        <option value="assignee">Change Assignee</option>
+      </select>
+      <select class="filter-select" id="batchValue" style="min-width:140px;display:none"></select>
+      <button class="batch-btn apply" onclick="applyBatchEdit()">Apply</button>
+      <button class="batch-btn" onclick="cancelBatchMode()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- KANBAN BOARD VIEW -->
+  <div class="section" id="sec-board">
+    <h2>&#128203; Board View</h2>
+    <div class="board" id="boardView"></div>
+  </div>
+
+  <!-- ALL TICKETS LIST -->
+  <div class="section" id="sec-tickets">
+    <h2>&#127903; All Tickets</h2>
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search tickets..." oninput="renderTickets()">
+      <label>Status:</label>
+      <select class="filter-select" id="filterStatus" onchange="renderTickets()">
+        <option value="all">All</option>
+        <option value="New">New</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Awaiting Information">Awaiting Info</option>
+        <option value="On Hold">On Hold</option>
+        <option value="Needs Approval">Needs Approval</option>
+        <option value="In Review">In Review</option>
+        <option value="Escalated">Escalated</option>
+        <option value="Blocked">Blocked</option>
+        <option value="Done">Done</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+      <label>Priority:</label>
+      <select class="filter-select" id="filterPri" onchange="renderTickets()">
+        <option value="all">All</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <label>Type:</label>
+      <select class="filter-select" id="filterType" onchange="renderTickets()">
+        <option value="all">All</option>
+        <option value="Issue">Issue</option>
+        <option value="Task">Task</option>
+        <option value="Project">Project</option>
+        <option value="Request">Request</option>
+        <option value="Bug">Bug</option>
+      </select>
+    </div>
+    <div id="ticketList"></div>
+  </div>
+
+  <!-- CREATE TICKET -->
+  <div class="section" id="sec-create">
+    <h2>&#10133; Create New Ticket</h2>
+    <div class="form-row">
+      <div class="form-group form-full">
+        <label>Title</label>
+        <input type="text" id="newTitle" placeholder="Brief description of the issue or task">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="newType">
+          <option value="Issue">Issue</option>
+          <option value="Task">Task</option>
+          <option value="Project">Project</option>
+          <option value="Request">Request</option>
+          <option value="Bug">Bug</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="newPriority">
+          <option value="Medium">Medium</option>
+          <option value="Critical">Critical</option>
+          <option value="High">High</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="newStatus">
+          <option value="New">New</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Awaiting Information">Awaiting Information</option>
+          <option value="On Hold">On Hold</option>
+          <option value="Needs Approval">Needs Approval</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Assigned To</label>
+        <select id="newAssignee">
+          <option value="Commander">Commander (James)</option>
+          <option value="DDBOT">DDBOT</option>
+          <option value="ForensicBot">ForensicBot</option>
+          <option value="ShieldBot">ShieldBot</option>
+          <option value="SCOUT">SCOUT</option>
+          <option value="CategorizerBot">CategorizerBot</option>
+          <option value="Japster">Japster</option>
+          <option value="Claude">Claude AI</option>
+          <option value="Unassigned">Unassigned</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="newCategory">
+          <option value="Tax Prep">Tax Prep</option>
+          <option value="Dashboard">Dashboard</option>
+          <option value="Bots">Bots</option>
+          <option value="Data">Data</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Email">Email</option>
+          <option value="Deductions">Deductions</option>
+          <option value="Income">Income</option>
+          <option value="Integration">Integration</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tags (comma-separated)</label>
+        <input type="text" id="newTags" placeholder="e.g. urgent, 2022-taxes, ebay">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group form-full">
+        <label>Description</label>
+        <textarea id="newDesc" placeholder="Detailed description, steps to reproduce, expected outcome, etc."></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-orange" onclick="createTicket()">&#10133; Create Ticket</button>
+      <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- TICKET DETAIL MODAL -->
+<div class="modal-overlay" id="ticketModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div class="footer">
+  FPCS Tax Preparation System &bull; Helpdesk v2.0 (Firestore) &bull; Page 6 &bull; Issues &amp; Project Tracker
+</div>
+
+</div><!-- /dashContent -->
+
+<script>
+// === TICKET DATA ===
+var STATUSES = ['New','In Progress','Awaiting Information','On Hold','Needs Approval','In Review','Escalated','Blocked','Done','Cancelled'];
+var STATUS_CLASSES = {'New':'badge-new','In Progress':'badge-progress','Awaiting Information':'badge-awaiting','On Hold':'badge-hold','Needs Approval':'badge-approval','In Review':'badge-review','Escalated':'badge-escalated','Blocked':'badge-blocked','Done':'badge-done','Cancelled':'badge-cancelled'};
+var BOARD_COLS = ['New','In Progress','Awaiting Information','On Hold','Needs Approval','Done'];
+var COL_CLASSES = {'New':'col-new','In Progress':'col-progress','Awaiting Information':'col-awaiting','On Hold':'col-hold','Needs Approval':'col-approval','Done':'col-done'};
+
+var nextId = 1;
+function tid() { return 'FPCS-' + String(nextId++).padStart(3,'0'); }
+
+var tickets = [];
+
+// Seed with real FPCS project tickets
+function seedTickets() {
+  var seed = [
+    {title:'Add remaining 12 missing income entries to ledger',type:'Task',priority:'Critical',status:'In Progress',assignee:'Claude',category:'Income',tags:['2022-taxes','income','ledger'],desc:'14 confirmed missing income entries found ($5,185.50). 2 added so far, 12 remaining ($4,660.50). Sources: PayPal, eBay, Amazon, Cash App.'},
+    {title:'Process '+atob('ZGFuaWVsQGZyaWVuZGx5cGNzdXBwb3J0LmNvbQ==')+' email data',type:'Task',priority:'High',status:'New',assignee:'Claude',category:'Email',tags:['email','dedup','outlook'],desc:'Access outlook.office.com, check ALL folders including Deleted Items. Resurrect improperly deleted emails (hacker activity). Find all business/finance/tax emails. Deduplicate against '+atob('bWFyc2hhbGxkYW5tYW5AZ21haWwuY29t')+' data.'},
+    {title:'Configure GitHub Pages for fpcs-bots repo',type:'Task',priority:'Medium',status:'Awaiting Information',assignee:'Commander',category:'Infrastructure',tags:['dns','github-pages','bots'],desc:'CNAME record for bots.justout.today has been created at GoDaddy. Need to enable GitHub Pages on fpcs-bots repo with custom domain bots.justout.today.'},
+    {title:'Build interactive drill-down dashboard',type:'Project',priority:'High',status:'New',assignee:'Claude',category:'Dashboard',tags:['dashboard','drill-down','sheets-api'],desc:'Architect click-to-expand dashboard with Google Sheets backend. Batch categorization, year filter, database-backed everything.'},
+    {title:'Fix HTTPS warnings on dashboard',type:'Bug',priority:'Medium',status:'New',assignee:'Claude',category:'Infrastructure',tags:['https','ssl','dashboard'],desc:'Mixed content warnings or certificate issues on dashboard.justout.today. Need to investigate and resolve.'},
+    {title:'Build bot assistant with cartoon face UI',type:'Project',priority:'Medium',status:'New',assignee:'Claude',category:'Dashboard',tags:['ui','chat-bubble','bot-face'],desc:'Floating bot assistant with cartoon face chat bubble UI on all dashboard pages. Should provide contextual help.'},
+    {title:'IRS transcript analysis',type:'Task',priority:'High',status:'On Hold',assignee:'Commander',category:'Tax Prep',tags:['irs','transcripts','2022-taxes'],desc:'Need to obtain and analyze IRS transcripts for 2022 tax year to cross-reference reported income.'},
+    {title:'Truck rental deduction research',type:'Task',priority:'Medium',status:'On Hold',assignee:'Claude',category:'Deductions',tags:['truck','rental','deduction'],desc:'Research whether truck rental expenses qualify as business deductions for 2022. Check IRS guidelines.'},
+    {title:'Self-rental arrangement documentation',type:'Task',priority:'Medium',status:'Awaiting Information',assignee:'Commander',category:'Tax Prep',tags:['self-rental','documentation'],desc:'Document self-rental arrangement for tax purposes. Need details from Commander about rental terms.'},
+    {title:'Deploy MaintenanceBot',type:'Task',priority:'Low',status:'New',assignee:'Claude',category:'Bots',tags:['bots','maintenance','deployment'],desc:'Build and deploy MaintenanceBot for automated system health checks, dashboard monitoring, and routine maintenance tasks.'},
+    {title:'Set up Discord bot integration',type:'Task',priority:'Low',status:'New',assignee:'Claude',category:'Integration',tags:['discord','bot','integration'],desc:'Create Discord bot for FPCS notifications and Commander interaction. Should relay alerts from dashboard.'},
+    {title:'Categorize uncategorized QBO transactions',type:'Task',priority:'High',status:'In Progress',assignee:'CategorizerBot',category:'Data',tags:['qbo','categorization','transactions'],desc:'CategorizerBot working through uncategorized QuickBooks Online transactions. Need to ensure proper Schedule C mapping.'},
+    {title:'Village library knowledge system',type:'Project',priority:'Low',status:'New',assignee:'Japster',category:'Infrastructure',tags:['library','knowledge','village'],desc:'Build persistent knowledge "books" in the town library for other AI to glean off of and humans to read in village mode. Each major task produces a book.'},
+    {title:'Research best cross-comparison tools for data dedup',type:'Task',priority:'Medium',status:'New',assignee:'Claude',category:'Data',tags:['dedup','tools','research'],desc:'Find the ultimate method for cross-comparing financial data across multiple sources. Evaluate tools, methods, and solutions for ensuring no duplicate entries.'},
+    {title:'MAIL final 2022 tax return by April 10',type:'Task',priority:'Critical',status:'On Hold',assignee:'Commander',category:'Tax Prep',tags:['deadline','filing','2022-taxes'],desc:'Oregon 3-year statute expires April 15, 2026. Must physically MAIL tax return by April 10 to ensure delivery.'},
+    {title:'Migrate helpdesk from localStorage to Firestore',type:'Task',priority:'High',status:'Done',assignee:'Claude',category:'Infrastructure',tags:['firestore','migration','helpdesk','dashboard'],desc:'Move helpdesk ticket storage from browser-only localStorage to Firestore for cross-browser persistence. Keep localStorage as offline fallback. Use onSnapshot for real-time sync.'},
+    {title:'Reconcile PayPal transaction discrepancies',type:'Task',priority:'High',status:'New',assignee:'Claude',category:'Data',tags:['paypal','reconciliation','2022-taxes','income'],desc:'Cross-reference PayPal transaction exports against ledger entries. Identify any missing or duplicated PayPal income for 2022 tax year. Verify amounts match IRS reporting thresholds.'}
+  ];
+  seed.forEach(function(t) {
+    tickets.push({
+      id: tid(),
+      title: t.title,
+      type: t.type,
+      priority: t.priority,
+      status: t.status,
+      assignee: t.assignee,
+      category: t.category,
+      tags: t.tags,
+      desc: t.desc,
+      created: '2026-02-22',
+      updated: '2026-02-22',
+      comments: []
+    });
+  });
+}
+
+// === RENDER ===
+function renderAll() {
+  renderStats();
+  renderBoard();
+  renderTickets();
+}
+
+function renderStats() {
+  var counts = {};
+  STATUSES.forEach(function(s) { counts[s] = 0; });
+  tickets.forEach(function(t) { counts[t.status] = (counts[t.status] || 0) + 1; });
+  document.getElementById('statOpen').textContent = tickets.filter(function(t) { return t.status !== 'Done' && t.status !== 'Cancelled'; }).length;
+  document.getElementById('statProgress').textContent = counts['In Progress'] || 0;
+  document.getElementById('statAwaiting').textContent = counts['Awaiting Information'] || 0;
+  document.getElementById('statApproval').textContent = counts['Needs Approval'] || 0;
+  document.getElementById('statHold').textContent = counts['On Hold'] || 0;
+  document.getElementById('statDone').textContent = counts['Done'] || 0;
+}
+
+function renderBoard() {
+  var board = document.getElementById('boardView');
+  board.innerHTML = '';
+  BOARD_COLS.forEach(function(col) {
+    var colEl = document.createElement('div');
+    colEl.className = 'board-col';
+    var colTickets = tickets.filter(function(t) { return t.status === col; });
+    colEl.innerHTML = '<div class="board-col-header ' + (COL_CLASSES[col] || '') + '">' + col + ' (' + colTickets.length + ')</div>';
+    colTickets.forEach(function(t) {
+      var priClass = t.priority === 'Critical' ? 'pri-critical' : t.priority === 'High' ? 'pri-high' : t.priority === 'Medium' ? 'pri-medium' : 'pri-low';
+      colEl.innerHTML += '<div class="board-ticket" onclick="openTicket(\'' + t.id + '\')"><div class="bt-id">' + t.id + '</div><div class="bt-title">' + escHtml(t.title) + '</div><div class="bt-meta"><span class="' + priClass + '">' + t.priority + '</span><span>' + t.assignee + '</span></div></div>';
+    });
+    board.appendChild(colEl);
+  });
+}
+
+function renderTickets() {
+  var search = (document.getElementById('searchInput').value || '').toLowerCase();
+  var fStatus = document.getElementById('filterStatus').value;
+  var fPri = document.getElementById('filterPri').value;
+  var fType = document.getElementById('filterType').value;
+  var list = document.getElementById('ticketList');
+  list.innerHTML = '';
+  var filtered = tickets.filter(function(t) {
+    if (fStatus !== 'all' && t.status !== fStatus) return false;
+    if (fPri !== 'all' && t.priority !== fPri) return false;
+    if (fType !== 'all' && t.type !== fType) return false;
+    if (search && t.title.toLowerCase().indexOf(search) === -1 && t.desc.toLowerCase().indexOf(search) === -1 && t.tags.join(' ').toLowerCase().indexOf(search) === -1) return false;
+    return true;
+  });
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tickets match the current filters.</div>';
+    return;
+  }
+  filtered.forEach(function(t) {
+    var priClass = t.priority === 'Critical' ? 'pri-border-critical' : t.priority === 'High' ? 'pri-border-high' : t.priority === 'Medium' ? 'pri-border-medium' : 'pri-border-low';
+    var priText = t.priority === 'Critical' ? 'pri-critical' : t.priority === 'High' ? 'pri-high' : t.priority === 'Medium' ? 'pri-medium' : 'pri-low';
+    var statusCls = STATUS_CLASSES[t.status] || 'badge-new';
+    var tagsHtml = t.tags.map(function(tag) { return '<span class="ticket-tag">' + escHtml(tag) + '</span>'; }).join('');
+    list.innerHTML += '<div class="ticket-card ' + priClass + '" onclick="openTicket(\'' + t.id + '\')">' +
+      '<div class="ticket-top"><div><div class="ticket-id">' + t.id + ' &bull; ' + t.type + '</div><div class="ticket-title">' + escHtml(t.title) + '</div></div><span class="badge ' + statusCls + '">' + t.status + '</span></div>' +
+      '<div class="ticket-meta"><span class="' + priText + '">&#9679; ' + t.priority + '</span><span>&#128100; ' + t.assignee + '</span><span>&#128193; ' + t.category + '</span><span>&#128197; ' + t.created + '</span></div>' +
+      '<div class="ticket-desc">' + escHtml(t.desc).substring(0, 200) + (t.desc.length > 200 ? '...' : '') + '</div>' +
+      '<div class="ticket-tags">' + tagsHtml + '</div></div>';
+  });
+}
+
+// === TICKET DETAIL MODAL ===
+function openTicket(id) {
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (!t) return;
+  var statusCls = STATUS_CLASSES[t.status] || 'badge-new';
+  var priText = t.priority === 'Critical' ? 'pri-critical' : t.priority === 'High' ? 'pri-high' : t.priority === 'Medium' ? 'pri-medium' : 'pri-low';
+  var tagsHtml = t.tags.map(function(tag) { return '<span class="ticket-tag">' + escHtml(tag) + '</span>'; }).join('');
+  var commentsHtml = t.comments.map(function(c) {
+    return '<div class="comment-box"><div style="display:flex;justify-content:space-between"><span class="c-author">' + escHtml(c.author) + '</span><span class="c-time">' + c.time + '</span></div><div class="c-text">' + escHtml(c.text) + '</div></div>';
+  }).join('');
+  var statusOptions = STATUSES.map(function(s) { return '<option value="' + s + '"' + (s === t.status ? ' selected' : '') + '>' + s + '</option>'; }).join('');
+
+  document.getElementById('modalContent').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><div class="ticket-id" style="margin-bottom:4px">' + t.id + ' &bull; ' + t.type + ' &bull; ' + t.category + '</div><h2 style="color:var(--text);margin-bottom:8px">' + escHtml(t.title) + '</h2></div><span class="badge ' + statusCls + '" style="font-size:13px;padding:4px 14px">' + t.status + '</span></div>' +
+    '<div class="ticket-meta" style="margin-bottom:16px"><span class="' + priText + '">&#9679; ' + t.priority + '</span><span>&#128100; ' + t.assignee + '</span><span>Created: ' + t.created + '</span><span>Updated: ' + t.updated + '</span></div>' +
+    '<div class="ticket-tags" style="margin-bottom:16px">' + tagsHtml + '</div>' +
+    '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px"><h3 style="color:var(--accent);font-size:14px;margin-bottom:8px">Description</h3><p style="font-size:13px;line-height:1.6;color:var(--muted)">' + escHtml(t.desc) + '</p></div>' +
+    '<div style="margin-bottom:16px"><h3 style="color:var(--accent);font-size:14px;margin-bottom:8px">Update Status</h3><div style="display:flex;gap:8px;align-items:center"><select class="filter-select" id="modalStatus">' + statusOptions + '</select><button class="btn btn-orange" onclick="updateTicketStatus(\'' + t.id + '\')">Update</button></div></div>' +
+    '<div style="margin-bottom:16px"><h3 style="color:var(--accent);font-size:14px;margin-bottom:8px">Comments (' + t.comments.length + ')</h3>' + (commentsHtml || '<div style="color:var(--muted);font-size:13px">No comments yet.</div>') + '</div>' +
+    '<div><div style="display:flex;gap:8px"><input type="text" class="search-input" id="newComment" placeholder="Add a comment..." style="min-width:0"><button class="btn btn-orange" onclick="addComment(\'' + t.id + '\')">Post</button></div></div>';
+
+  document.getElementById('ticketModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('ticketModal').classList.remove('open');
+}
+
+function updateTicketStatus(id) {
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (!t) return;
+  var newStatus = document.getElementById('modalStatus').value;
+  t.status = newStatus;
+  t.updated = new Date().toISOString().slice(0, 10);
+  renderAll();
+  openTicket(id);
+}
+
+function addComment(id) {
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (!t) return;
+  var input = document.getElementById('newComment');
+  var text = input.value.trim();
+  if (!text) return;
+  t.comments.push({
+    author: 'Commander',
+    time: new Date().toLocaleString(),
+    text: text
+  });
+  t.updated = new Date().toISOString().slice(0, 10);
+  input.value = '';
+  openTicket(id);
+}
+
+// === TOAST NOTIFICATION ===
+function showToast(msg) {
+  var existing = document.querySelector('.fpcs-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.className = 'fpcs-toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { toast.classList.add('show'); });
+  });
+  setTimeout(function() {
+    toast.classList.remove('show');
+    setTimeout(function() { toast.remove(); }, 400);
+  }, 3000);
+}
+
+// === CREATE TICKET ===
+function createTicket() {
+  var title = document.getElementById('newTitle').value.trim();
+  if (!title) { alert('Please enter a ticket title.'); return; }
+  var t = {
+    id: tid(),
+    title: title,
+    type: document.getElementById('newType').value,
+    priority: document.getElementById('newPriority').value,
+    status: document.getElementById('newStatus').value,
+    assignee: document.getElementById('newAssignee').value,
+    category: document.getElementById('newCategory').value,
+    tags: document.getElementById('newTags').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean),
+    desc: document.getElementById('newDesc').value.trim() || 'No description provided.',
+    created: new Date().toISOString().slice(0, 10),
+    updated: new Date().toISOString().slice(0, 10),
+    comments: []
+  };
+  tickets.push(t);
+  clearForm();
+  renderAll();
+  showToast('Ticket ' + t.id + ' created successfully!');
+  openTicket(t.id);
+}
+
+function clearForm() {
+  document.getElementById('newTitle').value = '';
+  document.getElementById('newDesc').value = '';
+  document.getElementById('newTags').value = '';
+  document.getElementById('newType').selectedIndex = 0;
+  document.getElementById('newPriority').selectedIndex = 0;
+  document.getElementById('newStatus').selectedIndex = 0;
+  document.getElementById('newAssignee').selectedIndex = 0;
+  document.getElementById('newCategory').selectedIndex = 0;
+}
+
+function escHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// === INIT ===
+seedTickets();
+renderAll();
+
+// ============================================================
+//  FIRESTORE PERSISTENCE — Primary storage with localStorage fallback
+//  Collection: helpdesk_tickets (doc ID = ticket ID e.g. "FPCS-001")
+//  Real-time sync via onSnapshot() across all browsers
+// ============================================================
+var _firestoreDB = null;
+var _firestoreReady = false;
+var _firestoreUnsubscribe = null;
+var _suppressLocalLoad = false;  // prevent localStorage overwriting Firestore data
+
+// --- localStorage fallback (offline cache) ---
+function saveToLocalStorage() {
+  try { localStorage.setItem('fpcs_helpdesk_tickets', JSON.stringify(tickets)); } catch(e) {}
+}
+
+function loadFromLocalStorage() {
+  try {
+    var saved = localStorage.getItem('fpcs_helpdesk_tickets');
+    if (saved) {
+      tickets = JSON.parse(saved);
+      _recalcNextId();
+      renderAll();
+    }
+  } catch(e) {}
+}
+
+function _recalcNextId() {
+  nextId = tickets.reduce(function(max, t) {
+    var n = parseInt(t.id.replace('FPCS-',''), 10);
+    return n >= max ? n + 1 : max;
+  }, nextId);
+}
+
+// --- Save single ticket to Firestore + localStorage ---
+function saveTicketToFirestore(ticket) {
+  // Always update localStorage as offline cache
+  saveToLocalStorage();
+
+  if (!_firestoreReady || !_firestoreDB) return;
+
+  _firestoreDB.collection('helpdesk_tickets').doc(ticket.id).set(ticket)
+    .catch(function(err) {
+      console.error('[Helpdesk] Firestore write failed for ' + ticket.id + ':', err);
+    });
+}
+
+// --- Save ALL tickets to Firestore (bulk seed) ---
+function seedFirestore() {
+  if (!_firestoreReady || !_firestoreDB) return;
+
+  var batch = _firestoreDB.batch();
+  tickets.forEach(function(t) {
+    var ref = _firestoreDB.collection('helpdesk_tickets').doc(t.id);
+    batch.set(ref, t);
+  });
+  batch.commit()
+    .then(function() { console.log('[Helpdesk] Seeded ' + tickets.length + ' tickets to Firestore.'); })
+    .catch(function(err) { console.error('[Helpdesk] Firestore seed failed:', err); });
+}
+
+// --- Load tickets from Firestore with real-time updates ---
+function startFirestoreListener() {
+  if (!_firestoreReady || !_firestoreDB) return;
+
+  // Unsubscribe from any previous listener
+  if (_firestoreUnsubscribe) { _firestoreUnsubscribe(); _firestoreUnsubscribe = null; }
+
+  _firestoreUnsubscribe = _firestoreDB.collection('helpdesk_tickets')
+    .onSnapshot(function(snapshot) {
+      if (snapshot.empty) {
+        // No tickets in Firestore yet — seed from current in-memory data
+        console.log('[Helpdesk] Firestore empty — seeding with ' + tickets.length + ' tickets.');
+        seedFirestore();
+        return;
+      }
+
+      // Build tickets array from Firestore docs
+      var firestoreTickets = [];
+      snapshot.forEach(function(doc) {
+        var d = doc.data();
+        // Map Firestore field names to UI field names
+        firestoreTickets.push({
+          id: d.id || doc.id,
+          title: d.title || '',
+          type: d.type || 'Task',
+          priority: d.priority || 'Medium',
+          status: d.status || 'New',
+          assignee: d.assignee || d.assignedTo || 'Unassigned',
+          category: d.category || 'Other',
+          tags: d.tags || [],
+          desc: d.desc || d.description || '',
+          created: d.created || '',
+          updated: d.updated || '',
+          comments: d.comments || []
+        });
+      });
+
+      // Replace in-memory tickets with Firestore data
+      tickets = firestoreTickets;
+      _recalcNextId();
+      _suppressLocalLoad = true;
+      saveToLocalStorage();  // sync localStorage cache
+      renderAll();
+      console.log('[Helpdesk] Synced ' + tickets.length + ' tickets from Firestore.');
+    }, function(err) {
+      console.error('[Helpdesk] Firestore listener error:', err);
+      // Fall back to localStorage if Firestore fails
+      if (!_suppressLocalLoad) loadFromLocalStorage();
+    });
+}
+
+// --- Initialize Firestore when auth is ready ---
+function initHelpdeskFirestore() {
+  if (typeof firebase === 'undefined' || typeof firebase.firestore !== 'function') {
+    console.warn('[Helpdesk] Firestore SDK not available — using localStorage only.');
+    loadFromLocalStorage();
+    return;
+  }
+
+  try {
+    _firestoreDB = firebase.firestore();
+    _firestoreReady = true;
+    console.log('[Helpdesk] Firestore initialized.');
+    startFirestoreListener();
+  } catch(err) {
+    console.error('[Helpdesk] Firestore init failed:', err);
+    loadFromLocalStorage();
+  }
+}
+
+// Listen for auth ready event (fired by auth.js after login)
+document.addEventListener('fpcs-authed', function() {
+  initHelpdeskFirestore();
+});
+
+// Also try initializing if auth already happened before this script runs
+if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+  var _checkAuthInterval = setInterval(function() {
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+      clearInterval(_checkAuthInterval);
+      if (!_firestoreReady) initHelpdeskFirestore();
+    }
+  }, 200);
+  // Stop checking after 15 seconds
+  setTimeout(function() { clearInterval(_checkAuthInterval); }, 15000);
+}
+
+// Fallback: load from localStorage immediately for offline/unauthenticated viewing
+if (!_suppressLocalLoad) loadFromLocalStorage();
+
+// --- Wrapper: saveTickets() for backward compatibility ---
+function saveTickets() {
+  saveToLocalStorage();
+}
+
+// Auto-save on any change (writes to Firestore + localStorage)
+var _origCreate = createTicket;
+createTicket = function() {
+  _origCreate();
+  var newest = tickets[tickets.length - 1];
+  if (newest) saveTicketToFirestore(newest);
+};
+var _origUpdate = updateTicketStatus;
+updateTicketStatus = function(id) {
+  _origUpdate(id);
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (t) saveTicketToFirestore(t);
+};
+var _origComment = addComment;
+addComment = function(id) {
+  _origComment(id);
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (t) saveTicketToFirestore(t);
+};
+
+// ============================================================
+//  ENHANCED STATS — Priority, Assignee, Category breakdowns
+// ============================================================
+function renderEnhancedStats() {
+  var total = tickets.length || 1;
+
+  // Priority distribution
+  var priColors = { Critical: '#f87171', High: '#fb923c', Medium: '#fbbf24', Low: '#4ade80' };
+  var priCounts = { Critical: 0, High: 0, Medium: 0, Low: 0 };
+  tickets.forEach(function(t) { priCounts[t.priority] = (priCounts[t.priority] || 0) + 1; });
+  var priHtml = '';
+  Object.keys(priCounts).forEach(function(p) {
+    var pct = Math.round((priCounts[p] / total) * 100);
+    priHtml += '<div class="stat-bar-row"><span class="stat-bar-label">' + p + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + pct + '%;background:' + priColors[p] + '"></div></div><span class="stat-bar-count">' + priCounts[p] + '</span></div>';
+  });
+  document.getElementById('statPriority').innerHTML = priHtml;
+
+  // Assignee workload
+  var assignees = {};
+  tickets.forEach(function(t) { assignees[t.assignee] = (assignees[t.assignee] || 0) + 1; });
+  var assignHtml = '';
+  var assignColors = ['#38bdf8', '#a78bfa', '#4ade80', '#f472b6', '#fbbf24'];
+  var ai = 0;
+  Object.keys(assignees).sort(function(a,b) { return assignees[b] - assignees[a]; }).forEach(function(a) {
+    var pct = Math.round((assignees[a] / total) * 100);
+    assignHtml += '<div class="stat-bar-row"><span class="stat-bar-label">' + a + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + pct + '%;background:' + assignColors[ai % assignColors.length] + '"></div></div><span class="stat-bar-count">' + assignees[a] + '</span></div>';
+    ai++;
+  });
+  document.getElementById('statAssignee').innerHTML = assignHtml;
+
+  // Category breakdown
+  var cats = {};
+  tickets.forEach(function(t) { cats[t.category] = (cats[t.category] || 0) + 1; });
+  var catHtml = '';
+  var catColors = ['#fb923c', '#38bdf8', '#4ade80', '#a78bfa', '#f87171', '#fbbf24', '#f472b6'];
+  var ci = 0;
+  Object.keys(cats).sort(function(a,b) { return cats[b] - cats[a]; }).forEach(function(c) {
+    var pct = Math.round((cats[c] / total) * 100);
+    catHtml += '<div class="stat-bar-row"><span class="stat-bar-label">' + c + '</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + pct + '%;background:' + catColors[ci % catColors.length] + '"></div></div><span class="stat-bar-count">' + cats[c] + '</span></div>';
+    ci++;
+  });
+  document.getElementById('statCategory').innerHTML = catHtml;
+}
+
+// Patch renderAll to include enhanced stats
+var _origRenderAll = renderAll;
+renderAll = function() { _origRenderAll(); renderEnhancedStats(); };
+renderEnhancedStats();
+
+// ============================================================
+//  HELP MODE — ? cursor for instant ticket creation
+// ============================================================
+var helpModeActive = false;
+
+function toggleHelpMode() {
+  helpModeActive = !helpModeActive;
+  document.body.classList.toggle('help-mode', helpModeActive);
+  document.getElementById('helpBtn').classList.toggle('active', helpModeActive);
+  document.getElementById('helpTooltip').classList.toggle('active', helpModeActive);
+  document.getElementById('helpOverlay').classList.toggle('active', helpModeActive);
+
+  if (helpModeActive) {
+    document.getElementById('helpOverlay').addEventListener('click', helpModeClick);
+    document.addEventListener('keydown', helpModeEsc);
+  } else {
+    document.getElementById('helpOverlay').removeEventListener('click', helpModeClick);
+    document.removeEventListener('keydown', helpModeEsc);
+  }
+}
+
+function helpModeEsc(e) {
+  if (e.key === 'Escape') toggleHelpMode();
+}
+
+function helpModeClick(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Find what element was clicked (look through the overlay)
+  document.getElementById('helpOverlay').style.pointerEvents = 'none';
+  var target = document.elementFromPoint(e.clientX, e.clientY);
+  document.getElementById('helpOverlay').style.pointerEvents = '';
+
+  if (!target || target.id === 'helpBtn') return;
+
+  // Determine item name from clicked element
+  var itemName = target.textContent.trim().substring(0, 80) || 'Unknown Element';
+  var section = '';
+  var parent = target.closest('.section, .stat-card, .ticket-card, .board-ticket, .stat-mini');
+  if (parent) {
+    var h2 = parent.querySelector('h2, .label, .bt-title');
+    if (h2) section = h2.textContent.trim();
+  }
+
+  // Pre-fill the create ticket form
+  toggleHelpMode(); // Exit help mode
+  document.getElementById('newTitle').value = 'Issues found with: ' + (section || itemName).substring(0, 100);
+  document.getElementById('newType').value = 'Bug';
+  document.getElementById('newPriority').value = 'Medium';
+  document.getElementById('newStatus').value = 'New';
+  document.getElementById('newDesc').value = '';
+
+  // Scroll to create ticket form and focus description
+  var createSection = document.getElementById('sec-create');
+  if (createSection) createSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  setTimeout(function() {
+    var descField = document.getElementById('newDesc');
+    descField.focus();
+    descField.placeholder = 'Describe the issue... (Press Enter to submit quickly)';
+  }, 400);
+
+  // Enable quick-submit with Enter
+  document.getElementById('newDesc').onkeydown = function(ev) {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+      ev.preventDefault();
+      if (!this.value.trim()) {
+        this.value = 'Issues found with ' + (section || itemName).substring(0, 100);
+      }
+      createTicket();
+      this.onkeydown = null;
+    }
+  };
+}
+
+// ============================================================
+//  BATCH EDIT MODE — Select multiple tickets, apply changes
+// ============================================================
+var batchMode = false;
+var selectedTickets = new Set();
+
+function toggleBatchMode() {
+  batchMode = !batchMode;
+  selectedTickets.clear();
+  document.getElementById('batchBar').classList.toggle('active', batchMode);
+  document.getElementById('batchSelectAll').checked = false;
+  updateBatchCount();
+  renderTickets();
+}
+
+function cancelBatchMode() {
+  batchMode = false;
+  selectedTickets.clear();
+  document.getElementById('batchBar').classList.remove('active');
+  document.getElementById('batchSelectAll').checked = false;
+  updateBatchCount();
+  renderTickets();
+}
+
+function toggleTicketSelect(id, checkbox) {
+  if (checkbox.checked) {
+    selectedTickets.add(id);
+  } else {
+    selectedTickets.delete(id);
+  }
+  updateBatchCount();
+}
+
+function toggleSelectAll(checked) {
+  var checkboxes = document.querySelectorAll('.ticket-row-cb');
+  checkboxes.forEach(function(cb) {
+    cb.checked = checked;
+    if (checked) selectedTickets.add(cb.dataset.id);
+    else selectedTickets.delete(cb.dataset.id);
+  });
+  updateBatchCount();
+}
+
+function updateBatchCount() {
+  document.getElementById('batchCount').textContent = selectedTickets.size + ' selected';
+}
+
+// Show appropriate batch value options based on action
+document.getElementById('batchAction').addEventListener('change', function() {
+  var valueSelect = document.getElementById('batchValue');
+  valueSelect.innerHTML = '';
+  valueSelect.style.display = 'inline-block';
+
+  if (this.value === 'status') {
+    STATUSES.forEach(function(s) {
+      valueSelect.innerHTML += '<option value="' + s + '">' + s + '</option>';
+    });
+  } else if (this.value === 'priority') {
+    ['Critical', 'High', 'Medium', 'Low'].forEach(function(p) {
+      valueSelect.innerHTML += '<option value="' + p + '">' + p + '</option>';
+    });
+  } else if (this.value === 'assignee') {
+    ['Claude', 'Commander', 'Japster', 'CategorizerBot', 'SupBotPro', 'Unassigned'].forEach(function(a) {
+      valueSelect.innerHTML += '<option value="' + a + '">' + a + '</option>';
+    });
+  } else {
+    valueSelect.style.display = 'none';
+  }
+});
+
+function applyBatchEdit() {
+  if (selectedTickets.size === 0) { alert('No tickets selected.'); return; }
+  var action = document.getElementById('batchAction').value;
+  var value = document.getElementById('batchValue').value;
+  if (!action || !value) { alert('Please choose an action and value.'); return; }
+
+  var updated = 0;
+  tickets.forEach(function(t) {
+    if (selectedTickets.has(t.id)) {
+      if (action === 'status') t.status = value;
+      else if (action === 'priority') t.priority = value;
+      else if (action === 'assignee') t.assignee = value;
+      t.updated = new Date().toISOString().slice(0, 10);
+      updated++;
+    }
+  });
+
+  alert('Updated ' + updated + ' tickets.');
+  cancelBatchMode();
+  renderAll();
+  // Save each modified ticket to Firestore + localStorage
+  tickets.forEach(function(t) {
+    if (selectedTickets.has(t.id)) saveTicketToFirestore(t);
+  });
+  saveTickets();
+}
+
+// Add batch toggle button to filter bar
+(function() {
+  var filterBar = document.querySelector('#sec-tickets .filter-bar');
+  if (filterBar) {
+    var batchBtn = document.createElement('button');
+    batchBtn.className = 'btn btn-orange';
+    batchBtn.style.cssText = 'padding:6px 14px;font-size:12px;margin-left:auto';
+    batchBtn.textContent = 'Batch Edit';
+    batchBtn.onclick = toggleBatchMode;
+    filterBar.appendChild(batchBtn);
+  }
+})();
+
+// ============================================================
+//  TICKET SPLITTING — Break a multi-issue ticket into parts
+// ============================================================
+function splitTicket(id) {
+  var t = tickets.find(function(x) { return x.id === id; });
+  if (!t) return;
+
+  var count = prompt('How many tickets to split into? (2-10)', '2');
+  count = parseInt(count, 10);
+  if (!count || count < 2 || count > 10) return;
+
+  var descriptions = [];
+  for (var i = 0; i < count; i++) {
+    var desc = prompt('Description for split ticket ' + (i + 1) + ' of ' + count + ':', '');
+    if (desc === null) return;
+    descriptions.push(desc || 'Split from ' + t.id + ' (part ' + (i + 1) + ')');
+  }
+
+  // Create new tickets
+  descriptions.forEach(function(desc, idx) {
+    var newTicket = {
+      id: tid(),
+      title: t.title + ' [Part ' + (idx + 1) + ']',
+      type: t.type,
+      priority: t.priority,
+      status: 'New',
+      assignee: t.assignee,
+      category: t.category,
+      tags: t.tags.concat(['split-from-' + t.id]),
+      desc: desc,
+      created: new Date().toISOString().slice(0, 10),
+      updated: new Date().toISOString().slice(0, 10),
+      comments: [{ author: 'System', time: new Date().toLocaleString(), text: 'Split from ' + t.id + ': ' + t.title }]
+    };
+    tickets.push(newTicket);
+  });
+
+  // Mark original as Done with note
+  t.status = 'Done';
+  t.updated = new Date().toISOString().slice(0, 10);
+  t.comments.push({
+    author: 'System',
+    time: new Date().toLocaleString(),
+    text: 'Ticket split into ' + count + ' parts.'
+  });
+
+  renderAll();
+  // Save original + all new split tickets to Firestore
+  saveTicketToFirestore(t);
+  tickets.forEach(function(tk) {
+    if (tk.tags && tk.tags.indexOf('split-from-' + t.id) !== -1) {
+      saveTicketToFirestore(tk);
+    }
+  });
+  saveTickets();
+  closeModal();
+  alert('Ticket split into ' + count + ' new tickets.');
+}
+
+// Enhance modal to include split button
+var _origOpenTicket = openTicket;
+openTicket = function(id) {
+  _origOpenTicket(id);
+  // Add split button to modal
+  var modalContent = document.getElementById('modalContent');
+  if (modalContent) {
+    var existingSplit = modalContent.querySelector('.split-actions');
+    if (!existingSplit) {
+      var splitDiv = document.createElement('div');
+      splitDiv.className = 'split-actions';
+      splitDiv.style.cssText = 'margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center';
+      splitDiv.innerHTML = '<button class="split-btn" onclick="splitTicket(\'' + id + '\')">&#9986; Split Ticket</button><span style="font-size:12px;color:var(--muted)">Break this ticket into multiple smaller tickets</span>';
+      modalContent.appendChild(splitDiv);
+    }
+  }
+};
+
+// Patch renderTickets to add batch checkboxes when in batch mode
+var _origRenderTickets = renderTickets;
+renderTickets = function() {
+  _origRenderTickets();
+  if (batchMode) {
+    var cards = document.querySelectorAll('.ticket-card');
+    cards.forEach(function(card) {
+      var idMatch = card.onclick && card.onclick.toString().match(/'(FPCS-\d+)'/);
+      if (idMatch) {
+        var ticketId = idMatch[1];
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'ticket-checkbox ticket-row-cb';
+        cb.dataset.id = ticketId;
+        cb.checked = selectedTickets.has(ticketId);
+        cb.onclick = function(e) { e.stopPropagation(); toggleTicketSelect(ticketId, this); };
+        card.insertBefore(cb, card.firstChild);
+        card.style.paddingLeft = '40px';
+        card.style.position = 'relative';
+        cb.style.cssText = 'position:absolute;left:14px;top:50%;transform:translateY(-50%)';
+      }
+    });
+  }
+};
+</script>
+<script>
+  window.FPCS_PAGE = {
+    name: 'Helpdesk',
+    theme: 'theme-helpdesk'
+  };
+  window.FPCS_NAV = {
+    active: 'helpdesk',
+    sections: [
+      { icon: '&#128203;', label: 'Board View',     href: '#sec-board' },
+      { icon: '&#127915;', label: 'All Tickets',    href: '#sec-tickets' },
+      { icon: '&#10133;',  label: 'Create Ticket',  href: '#sec-create' }
+    ]
+  };
+</script>
+<script src="js/sheets-api.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sheets-notes.js"></script>
+<script src="js/memory-blocks.js"></script>
+<script src="js/offline.js"></script>
+<script src="bot-assistant.js"></script>
+<script src="js/suno-radio.js"></script>
+<script src="js/birdbot-widget.js"></script>
+<script src="js/mining-camp.js"></script>
+<script src="js/academy.js"></script>
+<script src="js/exertion.js"></script>
+</body>
+</html>
