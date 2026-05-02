@@ -29,6 +29,19 @@
       "phase": 0
     },
     {
+      "id": "fpcs-shop",
+      "name": "FPCS Shop",
+      "subdomain": "hub.justout.today/fpcs/",
+      "description": "Refurbished laptops & IT services",
+      "orbType": "crystal",
+      "color": "#22c55e",
+      "colorAlt": "#166534",
+      "icon": "💻",
+      "status": "live",
+      "contentCount": 3,
+      "phase": 0
+    },
+    {
       "id": "appraisal",
       "name": "Task Appraisal",
       "subdomain": "hub.justout.today/appraisal.html",

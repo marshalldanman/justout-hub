@@ -9,6 +9,7 @@
   var CHANNELS = [
     { id:'gegenkraft', name:'Gegenkraft', sub:'hub.justout.today/gegenkraft/',   desc:'Daily declaration \u2014 Habit breaker', type:'star', color:'#f87171', deep:'#7f1d1d', icon:'\uD83D\uDD25', status:'live', count:0, phase:0 },
     { id:'journal', name:'Living Journal', sub:'hub.justout.today/living-journal/', desc:'Memories arrive; entries grow', type:'nebula', color:'#c084fc', deep:'#581c87', icon:'\uD83D\uDCD6', status:'live', count:2, phase:0 },
+    { id:'fpcs-shop', name:'FPCS Shop', sub:'hub.justout.today/fpcs/', desc:'Refurbished laptops \u0026 IT services', type:'crystal', color:'#22c55e', deep:'#166534', icon:'\uD83D\uDCBB', status:'live', count:3, phase:0 },
     { id:'appraisal', name:'Task Appraisal', sub:'hub.justout.today/appraisal.html', desc:'Mission Control \u2014 All tasks', type:'gem', color:'#fbbf24', deep:'#78350f', icon:'\uD83D\uDCCB', status:'live', count:23, phase:0 },
     { id:'fpcs',   name:'FPCS',          sub:'dashboard.justout.today',          desc:'Friendly PC Support \u2014 Tech Jobs & Invoices', type:'crystal', color:'#4ade80', deep:'#166534', icon:'\uD83D\uDDA5\uFE0F', status:'live', count:0, phase:0 },
     { id:'tax',    name:'Tax HQ',        sub:'dashboard.justout.today',          desc:'FPCS 2022 Tax Dashboard',       type:'star',    color:'#38bdf8', deep:'#1e3a5f', icon:'\uD83D\uDCCA', status:'live',    count:1185, phase:0 },

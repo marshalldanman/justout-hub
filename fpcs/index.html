@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Friendly PC Support — Refurbished Dell Latitude laptops, tech support, and IT services in your area.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src https://accounts.google.com https://*.firebaseapp.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Friendly PC Support — Refurbished Laptops & IT Services</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4BB;</text></svg>">
+<style>
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #283548;
+  --accent: #3b82f6;
+  --accent-light: #60a5fa;
+  --green: #22c55e;
+  --green-dim: #166534;
+  --gold: #f59e0b;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #334155;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: var(--accent-light); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 50%, #1a1a2e 100%);
+  padding: 48px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.hero-badge {
+  display: inline-block;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.hero h1 span { color: var(--accent-light); }
+.hero-sub {
+  color: var(--muted);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto 24px;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+.hero-cta:hover { background: #2563eb; text-decoration: none; transform: translateY(-1px); }
+
+/* Nav */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.95);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--text);
+}
+.nav-brand img, .nav-brand span.icon { font-size: 22px; }
+.nav-links { display: flex; gap: 20px; }
+.nav-links a {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+.nav-back {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.nav-back:hover { color: var(--accent-light); border-color: var(--accent-light); text-decoration: none; }
+
+/* Section */
+.section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.section-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.section-sub {
+  color: var(--muted);
+  margin-bottom: 32px;
+  font-size: 15px;
+}
+
+/* Product Cards */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.product-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.25s;
+}
+.product-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.product-img {
+  width: 100%;
+  height: 200px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  border-bottom: 1px solid var(--border);
+}
+.product-body { padding: 20px; }
+.product-name {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.product-specs {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+.product-price {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+.product-price-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.product-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.product-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--accent-light);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.product-tag-hot {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--gold);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+.product-btn {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  color: var(--accent-light);
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.product-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  text-decoration: none;
+}
+
+/* Services */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.service-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.service-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.service-icon { font-size: 36px; margin-bottom: 12px; }
+.service-name {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.service-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.service-price {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* Contact */
+.contact-strip {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 40px 24px;
+  text-align: center;
+}
+.contact-strip h2 { font-size: 1.4rem; margin-bottom: 8px; }
+.contact-strip p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+.contact-methods {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.contact-btn:hover {
+  border-color: var(--accent-light);
+  background: rgba(59, 130, 246, 0.08);
+  text-decoration: none;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 32px 24px;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.footer a { color: #64748b; }
+.disclaimer {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 11px;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.8rem; }
+  .product-grid { grid-template-columns: 1fr; }
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-brand">
+    <span class="icon">&#x1F4BB;</span>
+    <span>Friendly PC Support</span>
+  </div>
+  <div class="nav-links">
+    <a href="#laptops">Laptops</a>
+    <a href="#services">Services</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <a href="/" class="nav-back">&#x2190; JustOut Hub</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">Now Selling Online</div>
+  <h1>Friendly <span>PC Support</span></h1>
+  <p class="hero-sub">Refurbished Dell Latitude business laptops, custom-configured to your specs. Plus on-site and remote tech support.</p>
+  <a href="#laptops" class="hero-cta">&#x1F4BB; Browse Laptops</a>
+</section>
+
+<!-- Laptops -->
+<section class="section" id="laptops">
+  <h2 class="section-title">Refurbished Laptops</h2>
+  <p class="section-sub">Enterprise-grade Dell Latitude machines, cleaned up, tested, and ready to work. Every unit inspected and configured to order.</p>
+
+  <div class="product-grid">
+
+    <!-- Latitude 7480 Base -->
+    <div class="product-card">
+      <div class="product-img">&#x1F4BB;</div>
+      <div class="product-body">
+        <div class="product-name">Dell Latitude 7480</div>
+        <div class="product-specs">
+          Intel Core i5-7300U (7th Gen)<br>
+          8GB DDR4 RAM<br>
+          256GB SSD<br>
+          14" FHD Display (1920x1080)<br>
+          Windows 10/11 Pro<br>
+          WiFi + Bluetooth + Webcam
+        </div>
+        <div class="product-price">$250</div>
+        <div class="product-price-note">Starting price — upgrades available</div>
+        <div class="product-tags">
+          <span class="product-tag product-tag-hot">Best Seller</span>
+          <span class="product-tag">Business Grade</span>
+          <span class="product-tag">Customizable</span>
+        </div>
+        <a href="#contact" class="product-btn">Inquire / Order</a>
+      </div>
+    </div>
+
+    <!-- Latitude 7480 Upgraded -->
+    <div class="product-card">
+      <div class="product-img">&#x1F5A5;&#xFE0F;</div>
+      <div class="product-body">
+        <div class="product-name">Dell Latitude 7480 — Upgraded</div>
+        <div class="product-specs">
+          Intel Core i5-7300U or i7-7600U<br>
+          16GB DDR4 RAM<br>
+          512GB SSD<br>
+          14" FHD Display (1920x1080)<br>
+          Windows 11 Pro (fresh install)<br>
+          WiFi + Bluetooth + Webcam
+        </div>
+        <div class="product-price">$325</div>
+        <div class="product-price-note">Upgraded RAM + storage</div>
+        <div class="product-tags">
+          <span class="product-tag">Power User</span>
+          <span class="product-tag">16GB RAM</span>
+        </div>
+        <a href="#contact" class="product-btn">Inquire / Order</a>
+      </div>
+    </div>
+
+    <!-- Custom Build -->
+    <div class="product-card">
+      <div class="product-img">&#x2699;&#xFE0F;</div>
+      <div class="product-body">
+        <div class="product-name">Custom Configuration</div>
+        <div class="product-specs">
+          Choose your specs:<br>
+          - RAM: 8GB / 16GB / 32GB<br>
+          - SSD: 256GB / 512GB / 1TB<br>
+          - OS: Windows 10/11 Pro or Linux<br>
+          - Extras: docking station, charger, bag<br>
+          Tell us what you need and we'll build it
+        </div>
+        <div class="product-price">Custom Quote</div>
+        <div class="product-price-note">Based on your configuration</div>
+        <div class="product-tags">
+          <span class="product-tag">Your Specs</span>
+          <span class="product-tag">Built to Order</span>
+        </div>
+        <a href="#contact" class="product-btn">Get a Quote</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Services -->
+<section class="section" id="services">
+  <h2 class="section-title">Tech Support Services</h2>
+  <p class="section-sub">On-site, remote, and drop-off support for home and small business.</p>
+
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-icon">&#x1F527;</div>
+      <div class="service-name">PC Repair</div>
+      <div class="service-desc">Hardware diagnostics, screen replacement, keyboard repair, motherboard work</div>
+      <div class="service-price">From $50</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x1F6E1;&#xFE0F;</div>
+      <div class="service-name">Virus Removal</div>
+      <div class="service-desc">Malware cleanup, security hardening, browser reset, safe computing setup</div>
+      <div class="service-price">$75 flat</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x1F4BE;</div>
+      <div class="service-name">Data Recovery</div>
+      <div class="service-desc">Hard drive recovery, file rescue, backup setup, cloud migration</div>
+      <div class="service-price">From $100</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x1F310;</div>
+      <div class="service-name">Network Setup</div>
+      <div class="service-desc">WiFi optimization, router config, home office networking, printer setup</div>
+      <div class="service-price">From $75</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x1F4F1;</div>
+      <div class="service-name">Remote Support</div>
+      <div class="service-desc">Screen share troubleshooting, software install, email setup, training</div>
+      <div class="service-price">$40/hr</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x1F3E2;</div>
+      <div class="service-name">Small Business IT</div>
+      <div class="service-desc">Managed support, workstation deployment, security audit, backup strategy</div>
+      <div class="service-price">Monthly plans</div>
+    </div>
+  </div>
+</section>
+
+<!-- Also Available -->
+<section class="section">
+  <h2 class="section-title">Also Available</h2>
+  <p class="section-sub">Check our eBay store for current inventory, or ask us directly about any of these items.</p>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-icon">&#x1F50C;</div>
+      <div class="service-name">Chargers & Adapters</div>
+      <div class="service-desc">Dell, HP, Lenovo power supplies. USB-C docks and display adapters.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x1F4BD;</div>
+      <div class="service-name">RAM & Storage Upgrades</div>
+      <div class="service-desc">DDR4 modules, NVMe SSDs, SATA drives. Install available.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x2328;&#xFE0F;</div>
+      <div class="service-name">Peripherals</div>
+      <div class="service-desc">Keyboards, mice, monitors, webcams, headsets.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">&#x1F4E6;</div>
+      <div class="service-name">Misc Parts & Equipment</div>
+      <div class="service-desc">Laptop screens, batteries, docking stations, cables.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="contact-strip" id="contact">
+  <h2>Get In Touch</h2>
+  <p>Interested in a laptop or need tech support? Reach out and we'll get back to you fast.</p>
+  <div class="contact-methods">
+    <a href="mailto:marshalldanman@gmail.com" class="contact-btn">&#x2709;&#xFE0F; Email Us</a>
+    <a href="https://www.ebay.com/usr/friendlypcsupport" class="contact-btn" target="_blank" rel="noopener">&#x1F6D2; eBay Store</a>
+    <a href="/" class="contact-btn">&#x2728; JustOut Hub</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="disclaimer">
+    <strong>Stock Notice:</strong> All items are subject to availability. Inventory changes frequently.
+    Please verify current stock and pricing before placing an order. Custom configurations
+    may take 1-3 business days to prepare. All refurbished laptops are tested and inspected
+    but sold as-is unless otherwise noted. We are continuously updating our website and inventory.
+  </div>
+  Friendly PC Support &mdash; Part of the <a href="/">JustOut Universe</a><br>
+  &copy; 2026 FPCS. All rights reserved.
+</footer>
+
+<script src="/js/auth-gate.js"></script>
+</body>
+</html>

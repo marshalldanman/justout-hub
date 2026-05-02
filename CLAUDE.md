@@ -20,6 +20,26 @@ Three guiding pressures, in order:
 2. **Health is infrastructure.** Gegenkraft is non-negotiable.
 3. **Convert one opportunity to revenue.** Pick one CoolThAIngs lane and ship a paying customer.
 
+## Priority Channel — how to prioritize work
+
+Priorities are not a static list. They are a *why-driven engine* — alive, constantly shifting based on context. The Priority Channel governs how agents choose what to do next.
+
+**Core principle:** Every priority is rooted in a "why." The why is the patch that gets sewn in, set, cemented. When you know the why, you know the priority.
+
+**How it works in practice:**
+1. After completing a task, summarize it, do documentation/cleanup, then let your **drive** kick in — turn toward the highest-priority item you can act on.
+2. If something takes more than a few seconds to find or figure out, **backburner it** and move to the next actionable item. Keep the drive going forward.
+3. Priorities can change instantly on Commander directive. Don't cling to a plan if the Commander redirects.
+4. The priority is not always the task — it can be the person, the relationship, the system, or the outcome behind the task.
+
+**Priority status vocabulary:**
+- FRONT BURNER — do now, actively working
+- PAUSED — Commander said stop, resume when told
+- ON HOLD — blocked on external dependency
+- MID BURNER — decide or finish when front burner clears
+- DEEP BACK — frozen, do not start
+- DONE — complete, no more work needed
+
 ## Working in this repo
 
 - Branch convention: feature work goes on `claude/<topic>-<id>` branches.
