@@ -491,20 +491,8 @@
 
   // --- Init on auth ---
   document.addEventListener('fpcs-authed', function () {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('main-content').style.display = '';
     loadData();
     setInterval(loadData, REFRESH_INTERVAL);
   });
-
-  // Fallback: if no auth system, show content after 2s
-  setTimeout(function () {
-    if (document.getElementById('main-content').style.display === 'none') {
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('main-content').style.display = '';
-      loadData();
-      setInterval(loadData, REFRESH_INTERVAL);
-    }
-  }, 2000);
 
 })();

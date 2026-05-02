@@ -16,18 +16,8 @@
 <body class="theme-tokens">
 <script src="js/subdomain-router.js"></script>
 
-<!-- Auth gate -->
-<div id="auth-screen" style="display:flex; align-items:center; justify-content:center; height:100vh;">
-  <div style="text-align:center;">
-    <div style="font-size:48px; margin-bottom:16px;">&#9201;&#65039;</div>
-    <h2 style="color:var(--page-accent); margin-bottom:12px;">TokenMaster</h2>
-    <p style="color:var(--muted); margin-bottom:24px;">Token Usage Command Center</p>
-    <button id="google-signin-btn" class="auth-btn" style="display:none;">Sign in with Google</button>
-  </div>
-</div>
-
-<!-- Main content (hidden until auth) -->
-<div id="main-content" style="display:none;">
+<!-- Main content (hidden until auth by auth.js #dashContent gate) -->
+<div id="dashContent" style="display:none;">
 
   <!-- Hero -->
   <div class="sb-hero">
